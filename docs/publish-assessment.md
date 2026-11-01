@@ -13,7 +13,7 @@
 > | B7 CI | ✅ `.github/workflows/test.yml` 已启用（GitHub Actions，Node 20/22 矩阵，push/PR 触发；README 带 badge） |
 > | B8 CHANGELOG/CONTRIBUTING | ✅ 已补 |
 >
-> 发布状态（已完成）：仓库 `https://github.com/Xumi0920/dsh-plan-completion`（public），`main` 已推送，tag `v0.1.0` + GitHub Release 已创建；GitHub Actions 已启用（见 badge / Actions 页）；npm 已登录（`xumi_frm`）。
+> 发布状态：GitHub 仓库 public、`main` 已推送、tag `v0.1.0` + Release 已创建；GitHub Actions 已启用并 **CI 全绿**（run [41364200848](https://github.com/Xumi0920/dsh-plan-completion/actions/runs/41364200848)，Node 20/22 两 job success）。npm 账号已登录（`xumi_frm`），但**发布因账号开启 2FA 被拒（E403）**，需 `--otp` 或带 2FA bypass 的 granular token。
 > 包名改名已完成并在本机 profile 验证（`remove @local/...` + `install <repo>`，运行状态与计划在重装后保持）。
 
 结论先说：**代码与文档质量达到"可以开源"，但当前状态"不满足全 PASS"**。
@@ -95,4 +95,5 @@ git tag v0.1.0 && git push --tags
 ```
 
 > 建议：**先把 P0 B1~B8 全部打勾，再公开仓库**；否则许可证与数据问题会成为不可逆的历史提交。
+
 
