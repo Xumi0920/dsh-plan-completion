@@ -982,8 +982,13 @@ export function apply(ctx, config = {}) {
             jsonResponse(res, 200, { ok: true, queued: true }, origin)
             return
           }
+          if (pathname === `${ROUTE_PREFIX}diag` && method === 'GET') {
+            jsonResponse(res, 200, { ok: true, lastDiag: debug.lastDiag ?? null }, origin)
+            return
+          }
           if (pathname === `${ROUTE_PREFIX}diag` && method === 'POST') {
             const body = (await readJsonBody(req)) ?? {}
+            debug.lastDiag = { at: Date.now(), body }
             debugLog({ phase: 'client-diag', body })
             jsonResponse(res, 200, { ok: true }, origin)
             return

@@ -1952,6 +1952,7 @@ window.__ModuleLoader__.load({
                 const entry = document.querySelector('[data-plan-completion-entry]');
                 const row = document.querySelector('[data-plan-completion="dock"]');
                 const suggest = document.querySelector('.dpc-suggest-pill');
+                const hero = document.querySelector('[data-plan-completion="hero-entry"]');
                 fetch('/plan-completion/diag', {
                   method: 'POST',
                   credentials: 'same-origin',
@@ -1963,6 +1964,9 @@ window.__ModuleLoader__.load({
                     hasEntry: !!entry,
                     entryText: entry ? String(entry.textContent || '').slice(0, 40) : null,
                     suggestVisible: !!suggest,
+                    dockPresent: !!row,
+                    heroVisible: !!hero,
+                    heroStyle: styleOf(hero),
                     rowHeight: row ? Math.round(row.getBoundingClientRect().height) : null,
                     rowStyle: styleOf(row),
                     suggestStyle: styleOf(suggest),
