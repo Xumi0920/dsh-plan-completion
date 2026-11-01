@@ -16,7 +16,7 @@
   "author": "XM",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Xumi0920/dsh-plan-completion.git"
+    "url": "git+https://github.com/Xumi0920/dsh-plan-completion.git"
   },
   "engines": {
     "node": ">=20"
@@ -44,11 +44,15 @@
     "docs/screenshots/*.png"
   ],
   "dsh": {
-    "bundle": { "patch": "./cordis.patch.yml" },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "platform": "web",
       "immediately": true,
-      "inject": ["@deepseek-ai/dsh-client-ui-conversation"]
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
     }
   }
 }
