@@ -216,7 +216,9 @@ plugin_manager remove_bundle target='dsh-plan-completion'
 ```powershell
 node --test test/*.test.js
 ```
-当前：**78 tests / 78 pass / 0 fail**。CI：`.github/workflows/test.yml`（Node 20/22 矩阵）。
+当前：**78 tests / 78 pass / 0 fail**。
+
+CI 定义在 `ci/test.yml`（Node 20/22 矩阵）。启用 GitHub Actions 需要把它移动到 `.github/workflows/test.yml` 并提交；若使用缺少 `workflow` scope 的 OAuth token，推送会被 GitHub 拒绝（详见 `docs/publish-assessment.md`）。
 
 ## 验证状态（2026-11-01 真机）
 
