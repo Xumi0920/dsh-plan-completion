@@ -27,7 +27,7 @@
 
 ```powershell
 # 标准方式（Lead/CI 用这个；Node 绝对路径按本机）
-& 'C:\Users\Antia\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\node\bin\node.exe' `
+node `
   --test dsh-plan-completion/test
 ```
 
@@ -37,7 +37,7 @@
 > `spawn EPERM` 失败，可用 `--test-isolation=none` + 显式文件列表绕过：
 >
 > ```powershell
-> $node = 'C:\Users\Antia\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\node\bin\node.exe'
+> $node = 'node'
 > $files = Get-ChildItem 'dsh-plan-completion\test\*.test.js' | ForEach-Object { $_.FullName }
 > & $node --test --test-isolation=none @files
 > ```
@@ -440,3 +440,4 @@ watermark/evidence，强制重写优先）；完成后只再跑一次最新作�
   都返回新对象，测试里有输入快照断言。
 - store 的 `get`/`history` 返回副本，改返回值不会污染存储。
 - 任何失败都不阻断用户发送 / Tab 填入（Host 只负责建议与计划，不碰 agent loop）。
+

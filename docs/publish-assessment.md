@@ -19,7 +19,7 @@
 结论先说：**代码与文档质量达到"可以开源"，但当前状态"不满足全 PASS"**。
 按下面的 P0 清单做完（约 1 天工作量），即可公开；P1 是加分项。
 
-评估范围：`G:\DSH\吃吃喝喝\dsh-plan-completion`（插件源码，含 78 个单测）+ 两份设计/交付文档 + 实验归档。
+评估范围：`<repo>`（插件源码，含 78 个单测）+ 两份设计/交付文档 + 实验归档。
 结论依据：代码走查、`node --test` 实测、目录/元数据检查、敏感信息扫描。
 
 ---
@@ -50,7 +50,7 @@
 | B1 | 无 git 仓库 | 工作区不是 repo | 只把插件目录+文档纳入仓库：`git init` → `.gitignore` → 首次提交（建议独立 repo，不要把 research/、其他项目带进去） |
 | B2 | 无 LICENSE | 缺失 | 选 MIT（或 Apache-2.0）→ `LICENSE` + package.json `license` 字段 |
 | B3 | package.json 元数据不全 | `private:true`、`@local/` 前缀、无 license/repository/author/keywords/engines | 改名 `dsh-plan-completion`（或保留 scoped），补全字段；若只做 GitHub 源码分发可保留 private=false 但不发 npm |
-| B4 | 本地绝对路径 | README 6 处 `G:\...`；`cordis.patch.yml` 有本地 `debugDir` | README 改成相对路径/占位符；发布版 patch 去掉 `debugDir`（代码已支持 env 覆盖） |
+| B4 | 本地绝对路径 | README 与文档中存在本地绝对路径；`cordis.patch.yml` 有本地 `debugDir` | README/文档改成相对路径/占位符；发布版 patch 去掉 `debugDir`（代码已支持 env 覆盖） |
 | B5 | 调试路由无鉴权 | `/plan-completion/experiment|autojob|steps|reset|diag|theme` | 发布版：默认关闭调试路由（config `enableDebugRoutes:false`），或加来源校验（`connection.requestRejection`） |
 | B6 | 运行时数据/实验档不应入库 | `research/plan-completion-runtime.jsonl`（含 sessionId/UA/对话片段）、`research/archive` | `.gitignore` 排除 `research/`、`*.jsonl`、实验/样本 JSON；如需展示数据，脱敏后放 `docs/` |
 | B7 | 无 CI | — | `.github/workflows/test.yml`：Node 20/22 矩阵跑 `node --test test/*.test.js`；可选 markdown lint |
@@ -84,7 +84,7 @@
 ## 五、发布命令草稿（确认后执行）
 
 ```powershell
-cd G:\DSH\吃吃喝喝\dsh-plan-completion
+cd <repo>
 git init
 # 先补 LICENSE / .gitignore / CI / CHANGELOG / 元数据 / 移除本地路径与调试路由默认值
 git add .
@@ -95,3 +95,4 @@ git tag v0.1.0 && git push --tags
 ```
 
 > 建议：**先把 P0 B1~B8 全部打勾，再公开仓库**；否则许可证与数据问题会成为不可逆的历史提交。
+

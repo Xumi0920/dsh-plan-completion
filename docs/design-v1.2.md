@@ -384,3 +384,4 @@ Prompt 护栏：
 | 存储泄漏 | TTL GC；不得用 `session/disposed` 当删除信号 |
 | 升级稳定性 | 只用公开 slot / standard props / Service；`inputActions` 是唯一需盯接口 |
 | 隐私 | 只发最近摘要；模型选择与开关可见 |
+

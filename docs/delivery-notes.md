@@ -1,8 +1,8 @@
 # 交付说明 · 会话计划补全插件（dsh-plan-completion）v0.1.0
 
 > 一期交付 · 2026-11-02 · 真机验收通过
-> 设计与实现说明见 `README.md`；设计规格见 `G:\DSH\吃吃喝喝\会话计划补全-设计计划-v1.2.md`
-> 实验数据归档见 `G:\DSH\吃吃喝喝\research\archive\2026-11-02-plan-completion\INDEX.md`
+> 设计与实现说明见 `README.md`；设计规格见 `docs/design-v1.2.md`
+> 实验数据归档见 `docs/experiment-archive.md`
 
 ## 一、它是什么
 
@@ -29,7 +29,7 @@
 已安装在当前 profile（bundle id `dsh-plan-completion`）。重装 / 卸载：
 
 ```powershell
-plugin_manager install_bundle target='G:\DSH\吃吃喝喝\dsh-plan-completion'
+plugin_manager install_bundle target='<repo>'
 plugin_manager remove_bundle target='dsh-plan-completion'
 ```
 
@@ -96,8 +96,9 @@ plugin_manager remove_bundle target='dsh-plan-completion'
 
 ## 九、排障
 
-- 运行日志：`G:\DSH\吃吃喝喝\research\plan-completion-runtime.jsonl`（Host 侧 debugLog；含 `host-ready` / `routes-registered` / `model-usage` / `client-diag` / `user-edit`）。
+- 运行日志：`<debugDir>/plan-completion-runtime.jsonl`（Host 侧 debugLog；含 `host-ready` / `routes-registered` / `model-usage` / `client-diag` / `user-edit`）。
 - 状态自检：`GET /plan-completion/state?sessionId=…`、`GET /plan-completion/debug`。
 - 客户端自检：`POST /plan-completion/diag` 上报 `build / hasPill / hasEntry / entryText / suggestVisible / rowHeight` 与计算样式。
 - 插件「没显示」排查顺序：① Ctrl+R 刷新页面 → ② 确认 profile 里插件 enabled → ③ `/plan-completion/debug` 看 `host-ready` 服务是否齐全 → ④ 看 `client-diag` 是否有 `hasPill/hasEntry`。
+
 
