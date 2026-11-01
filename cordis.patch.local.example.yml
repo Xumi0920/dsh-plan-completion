@@ -1,0 +1,15 @@
+# Local development override (not shipped): enable debug routes + local log directory.
+#
+# To use it while developing:
+#   1. copy the `config:` block below into `cordis.patch.yml`
+#   2. toggle the plugin once so the profile recomposes
+- insert:
+    - id: plan-completion
+      name: '@local/dsh-plan-completion'
+      config:
+        evidenceChars: 1500
+        maxTokensPatch: 400
+        maxTokensRewrite: 1200
+        warmBackfill: true
+        enableDebugRoutes: true
+        debugDir: '<absolute path to your local research dir>'

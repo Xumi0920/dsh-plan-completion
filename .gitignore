@@ -1,0 +1,17 @@
+# Local runtime data (never commit)
+research/
+*.jsonl
+*.log
+debug/
+node_modules/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Build artifacts (the client bundle is authored directly, no build output expected)
+dist/
+coverage/

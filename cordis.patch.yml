@@ -1,0 +1,12 @@
+- insert:
+    - id: plan-completion
+      name: '@local/dsh-plan-completion'
+      config:
+        evidenceChars: 1500
+        maxTokensPatch: 400
+        maxTokensRewrite: 1200
+        warmBackfill: true
+        # Debug endpoints (theme/experiment/autojob/steps/reset) stay off in production.
+        enableDebugRoutes: false
+        # Optional: set a local directory to persist debug logs / experiment data.
+        # debugDir: '<local debug directory>'

@@ -1,0 +1,54 @@
+{
+  "name": "@local/dsh-plan-completion",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "description": "Implicit session plans with Tab-completable next-message suggestions for DeepSeek Harness",
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "dsh-plugin",
+    "cordis",
+    "session-plan",
+    "suggestion"
+  ],
+  "author": "XM",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/<your-account>/dsh-plan-completion.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "host/*.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "docs/*.md",
+    "docs/screenshots/*.png"
+  ],
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["@deepseek-ai/dsh-client-ui-conversation"]
+    }
+  }
+}
