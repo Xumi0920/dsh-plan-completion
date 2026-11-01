@@ -16,7 +16,7 @@
   "author": "XM",
   "repository": {
     "type": "git",
-    "url": "https://github.com/<your-account>/dsh-plan-completion.git"
+    "url": "https://github.com/Xumi0920/dsh-plan-completion.git"
   },
   "engines": {
     "node": ">=20"
