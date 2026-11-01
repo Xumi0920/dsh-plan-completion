@@ -1,5 +1,5 @@
 /**
- * @local/dsh-plan-completion — Client (browser) half.
+ * dsh-plan-completion — Client (browser) half.
  *
  * Single browser artifact loaded through window.__ModuleLoader__:
  *   - `conversation.input.dock`    : full-width suggestion row + persistent plan entry, above the composer card
@@ -18,7 +18,7 @@
  */
 
 window.__ModuleLoader__.load({
-  id: '@local/dsh-plan-completion',
+  id: 'dsh-plan-completion',
   factory(require) {
     const React = require('react');
     const h = React.createElement;
@@ -1991,4 +1991,5 @@ window.__ModuleLoader__.load({
 });
 
 // hot-reload marker 2026-11-01T13:57Z
+
 

@@ -1,4 +1,4 @@
-# 交付说明 · 会话计划补全插件（@local/dsh-plan-completion）v0.1.0
+# 交付说明 · 会话计划补全插件（dsh-plan-completion）v0.1.0
 
 > 一期交付 · 2026-11-02 · 真机验收通过
 > 设计与实现说明见 `README.md`；设计规格见 `G:\DSH\吃吃喝喝\会话计划补全-设计计划-v1.2.md`
@@ -26,11 +26,11 @@
 
 ## 三、安装 / 卸载
 
-已安装在当前 profile（bundle id `@local/dsh-plan-completion`）。重装 / 卸载：
+已安装在当前 profile（bundle id `dsh-plan-completion`）。重装 / 卸载：
 
 ```powershell
 plugin_manager install_bundle target='G:\DSH\吃吃喝喝\dsh-plan-completion'
-plugin_manager remove_bundle target='@local/dsh-plan-completion'
+plugin_manager remove_bundle target='dsh-plan-completion'
 ```
 
 - **Host 代码变更**：需要一次 profile 重组（`plugin_manager set_plugin` 开关一次，或重装）后生效。
@@ -55,7 +55,7 @@ plugin_manager remove_bundle target='@local/dsh-plan-completion'
 ```yaml
 - insert:
     - id: plan-completion
-      name: '@local/dsh-plan-completion'
+      name: 'dsh-plan-completion'
       config:
         evidenceChars: 1500      # patch 路径证据字符预算
         maxTokensPatch: 400      # patch 输出上限（实测只需 65~120）
@@ -100,3 +100,4 @@ plugin_manager remove_bundle target='@local/dsh-plan-completion'
 - 状态自检：`GET /plan-completion/state?sessionId=…`、`GET /plan-completion/debug`。
 - 客户端自检：`POST /plan-completion/diag` 上报 `build / hasPill / hasEntry / entryText / suggestVisible / rowHeight` 与计算样式。
 - 插件「没显示」排查顺序：① Ctrl+R 刷新页面 → ② 确认 profile 里插件 enabled → ③ `/plan-completion/debug` 看 `host-ready` 服务是否齐全 → ④ 看 `client-diag` 是否有 `hasPill/hasEntry`。
+

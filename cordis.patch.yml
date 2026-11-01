@@ -1,6 +1,6 @@
 - insert:
     - id: plan-completion
-      name: '@local/dsh-plan-completion'
+      name: 'dsh-plan-completion'
       config:
         evidenceChars: 1500
         maxTokensPatch: 400

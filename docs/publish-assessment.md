@@ -4,16 +4,17 @@
 >
 > | 项 | 状态 |
 > |---|---|
-> | B1 git 仓库 | ✅ 已 `git init` + 首次提交（见 git log） |
+> | B1 git 仓库 | ✅ 已 `git init` + 提交（见 git log） |
 > | B2 LICENSE | ✅ MIT（`LICENSE`） |
-> | B3 包元数据 | ✅ license/repository/keywords/engines/scripts/author；`private:false`；**name 保留 `@local/...`**（本地 link 安装兼容；发 npm 前再改名） |
+> | B3 包元数据 | ✅ `name=dsh-plan-completion`、license/repository/keywords/engines/scripts/author；`private:false`；profile 已完成改名并验证运行 |
 > | B4 本地绝对路径 | ✅ README/config 已无绝对路径；发布版 patch 不含 `debugDir` |
 > | B5 调试路由鉴权/收敛 | ✅ 默认关闭（`enableDebugRoutes:false`），生产路由仅 state/debug/diag/replan/warm |
 > | B6 运行时数据不入库 | ✅ `.gitignore` 排除 research/*.jsonl 等；仓库仅含源码+文档+脱敏截图 |
-> | B7 CI | ✅ `.github/workflows/test.yml`（Node 20/22 跑 78 单测） |
+> | B7 CI | ✅ `.github/workflows/test.yml`（Node 20/22 跑 78 单测；本地实测 78/78 pass） |
 > | B8 CHANGELOG/CONTRIBUTING | ✅ 已补 |
 >
-> 剩余（发布动作，不是阻塞）：把 `repository.url` 里的 `<your-account>` 换成真实地址 → `git remote add` → `git push` → 打 tag `v0.1.0`。若要做 npm 发布：把包名改成 `dsh-plan-completion` 并同步更新 profile patch 的 `name`。
+> 剩余（发布动作，不是阻塞）：把 `repository.url` 里的 `<your-account>` 换成真实地址 → `git remote add` → `git push` → 打 tag `v0.1.0`。
+> 包名改名已完成并在本机 profile 验证（`remove @local/...` + `install <repo>`，运行状态与计划在重装后保持）。
 
 结论先说：**代码与文档质量达到"可以开源"，但当前状态"不满足全 PASS"**。
 按下面的 P0 清单做完（约 1 天工作量），即可公开；P1 是加分项。

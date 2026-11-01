@@ -5,7 +5,7 @@
 #   2. toggle the plugin once so the profile recomposes
 - insert:
     - id: plan-completion
-      name: '@local/dsh-plan-completion'
+      name: 'dsh-plan-completion'
       config:
         evidenceChars: 1500
         maxTokensPatch: 400
@@ -13,3 +13,4 @@
         warmBackfill: true
         enableDebugRoutes: true
         debugDir: '<absolute path to your local research dir>'
+

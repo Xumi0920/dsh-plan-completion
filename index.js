@@ -1,5 +1,5 @@
 /**
- * Host half of @local/dsh-plan-completion.
+ * Host half of dsh-plan-completion.
  *
  * Responsibilities (design doc v1.2 §3.5):
  * - watch committed Session events for `turn/end` and run one plan job per session;
@@ -1323,3 +1323,4 @@ export function apply(ctx, config = {}) {
     services: Object.fromEntries(Object.entries(services).map(([key, value]) => [key, Boolean(value)])),
   })
 }
+

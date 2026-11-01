@@ -78,7 +78,7 @@ Client 侧关键 API（实测）：`inputActions.captureInsertion()` 返回 `{st
 ```yaml
 - insert:
     - id: plan-completion
-      name: '@local/dsh-plan-completion'
+      name: 'dsh-plan-completion'
       config:
         evidenceChars: 1500
         maxTokensPatch: 400
@@ -106,7 +106,7 @@ Client 侧关键 API（实测）：`inputActions.captureInsertion()` 返回 `{st
 plugin_manager install_bundle target='.'
 
 # 卸载
-plugin_manager remove_bundle target='@local/dsh-plan-completion'
+plugin_manager remove_bundle target='dsh-plan-completion'
 ```
 
 装完用 `cordis_inspect_query(platform:'client', provider:'Slots', method:'listSubTree', input:{root:'conversation.input.dock'})` 确认 occupant `plan-completion-dock`（order 30）。
@@ -255,4 +255,5 @@ node --test test/*.test.js
 - fork 子会话不继承计划（二期按 `header.parentSession` 复制）；
 - 计划编辑（用户改步骤）UI 未做，数据模型已支持（`applyUserEdit` / `editedByUser`）。
 - profile patch 里残留一条 `- id: plan-probe / disabled: true` 的 tombstone（移除临时探针插件时留下的，无害）。
+
 
