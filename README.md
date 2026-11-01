@@ -1,5 +1,7 @@
 # Plan Completion（计划补全）
 
+[![test](https://github.com/Xumi0920/dsh-plan-completion/actions/workflows/test.yml/badge.svg)](https://github.com/Xumi0920/dsh-plan-completion/actions/workflows/test.yml)
+
 DSH 插件：为每个会话维护一份**隐式计划**，在每个回合结束后，于输入框上方给出一句可用 `Tab` 填入的「下一句」建议；输入框上方的 `▤ vX.Y` 是常驻入口，可查看/同步计划。
 
 ![建议条与会话窗口](docs/screenshots/light-theme.png)
@@ -218,7 +220,7 @@ node --test test/*.test.js
 ```
 当前：**78 tests / 78 pass / 0 fail**。
 
-CI 定义在 `ci/test.yml`（Node 20/22 矩阵）。启用 GitHub Actions 需要把它移动到 `.github/workflows/test.yml` 并提交；若使用缺少 `workflow` scope 的 OAuth token，推送会被 GitHub 拒绝（详见 `docs/publish-assessment.md`）。
+CI：`.github/workflows/test.yml`（GitHub Actions，Node 20/22 矩阵，push/PR 自动触发）。
 
 ## 验证状态（2026-11-01 真机）
 

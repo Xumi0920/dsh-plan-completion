@@ -10,11 +10,10 @@
 > | B4 本地绝对路径 | ✅ README/config 已无绝对路径；发布版 patch 不含 `debugDir` |
 > | B5 调试路由鉴权/收敛 | ✅ 默认关闭（`enableDebugRoutes:false`），生产路由仅 state/debug/diag/replan/warm |
 > | B6 运行时数据不入库 | ✅ `.gitignore` 排除 research/*.jsonl 等；仓库仅含源码+文档+脱敏截图 |
-> | B7 CI | 🟡 CI 定义在 `ci/test.yml`（Node 20/22，本地实测 78/78 pass）；GitHub Actions 启用需移动到 `.github/workflows/test.yml`，而推送该路径要求 OAuth token 具备 `workflow` scope（当前 token 无此 scope，被 GitHub 拒绝，未阻塞源码发布） |
+> | B7 CI | ✅ `.github/workflows/test.yml` 已启用（GitHub Actions，Node 20/22 矩阵，push/PR 触发；README 带 badge） |
 > | B8 CHANGELOG/CONTRIBUTING | ✅ 已补 |
 >
-> 发布状态（已完成）：仓库 `https://github.com/Xumi0920/dsh-plan-completion`（public），`main` 已推送，tag `v0.1.0` + GitHub Release 已创建。
-> 剩余（可选，需要你的账号动作）：① `gh auth refresh -s workflow` 后把 `ci/test.yml` 移到 `.github/workflows/test.yml` 并推送；② 若要发 npm：`npm login` 后 `npm publish`（包名 `dsh-plan-completion` 在 registry 上未被占用）。
+> 发布状态（已完成）：仓库 `https://github.com/Xumi0920/dsh-plan-completion`（public），`main` 已推送，tag `v0.1.0` + GitHub Release 已创建；GitHub Actions 已启用（见 badge / Actions 页）；npm 已登录（`xumi_frm`）。
 > 包名改名已完成并在本机 profile 验证（`remove @local/...` + `install <repo>`，运行状态与计划在重装后保持）。
 
 结论先说：**代码与文档质量达到"可以开源"，但当前状态"不满足全 PASS"**。
