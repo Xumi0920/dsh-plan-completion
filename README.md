@@ -85,6 +85,12 @@ Client 侧关键 API（实测）：`inputActions.captureInsertion()` 返回 `{st
 - 默认目录 `~/.dsh/plan-completion-data`；可用 `storageDir` 改到别处，`persistPlans: false` 退回纯内存；
 - 注意：存储为本地明文 JSON（含计划/建议文本，可能来自会话）；不加密、不自动清理，不适合多用户共享机器。
 
+## 建议文本安全（v0.1.4）
+
+- 去 Markdown 只剥离**成对**的行内标记；`transaction_id`、`payment_test.py`、`C:\a_b\file.js`、`src/**/*.js` 等标识符/路径/glob 原样保留；
+- 超过 40 字时按分句/空白/ASCII token 边界语义化缩短，不再把 `npm test` 截成 `npm`/`npm te`，也不会切断标识符或路径；
+- 危险命令过滤（rm -rf、format、Drop DB 等）不变；单行、≤40 字、可直接发送的约束不变。
+
 ## 模型路由与隐私
 
 - 仅使用宿主 `agentDefaultModel.currentSelection()` 当前默认的 provider/model，不自动改投其他已配置供应商；无可用路由时使用启发式。该默认值不一定是历史会话原先使用的模型。

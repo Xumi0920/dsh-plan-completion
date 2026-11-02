@@ -3,6 +3,22 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
+## [0.1.4] - 2026-11-02
+
+### Fixed
+- Suggestion/Markdown cleaning no longer destroys identifiers, file names or globs: `transaction_id`,
+  `payment_test.py`, `C:\work\my_file.js` and `src/**/*.js` keep their underscores/stars. Only paired
+  emphasis markers (`**bold**`, `*italic*`, `_emphasis_`, `~~strike~~`) are stripped; inline code keeps
+  its content with backticks removed.
+- Semantic shortening replaces the raw 40-character cut: prefer the last clause boundary, then a
+  whitespace boundary, then cut before an ASCII token; never leave a truncated identifier/path or a
+  dangling command prefix (`npm`, `npm te`), and drop dangling separators.
+- New `test/text.test.js` covers the identifier/glob/command cases and the old guarantees
+  (single line, ≤40 chars, dangerous suggestions filtered).
+
+### Changed
+- `npm test` now reports **132/132** tests.
+
 ## [0.1.3] - 2026-11-02
 
 ### Added

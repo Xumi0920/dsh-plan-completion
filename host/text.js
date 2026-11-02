@@ -49,12 +49,17 @@ export function oneLine(value) {
 }
 
 const MD_LINE_PREFIX = /^\s{0,3}(?:#{1,6}\s+|>\s*|[-*+]\s+|\d+[.)]\s+)/;
-const MD_INLINE = /(\*\*|__|\*|_|`)/g;
 const MD_LINK = /\[([^\]]*)\]\([^)]*\)/g;
 const WRAPPING_QUOTES = /^["'“”‘’「」『』]+|["'“”‘’「」『』]+$/g;
+const CLAUSE_BOUNDARY = /[，。；！？、,;!?]/;
+const ASCII_TOKEN_CHAR = /[A-Za-z0-9_./\\-]/;
 
 /**
  * 去掉常见 Markdown 痕迹，得到适合直接发送的纯文本。
+ *
+ * 只剥离「成对」的行内标记：`transaction_id`、`C:\a_b\file.js`、`src/**\/*.js`
+ * 这类标识符/路径/glob 里的 `_`、`*` 不再被误删；
+ * 反引号只去掉包裹符号，代码内容原样保留。
  * @param {unknown} value
  * @returns {string}
  */
@@ -66,18 +71,89 @@ export function stripMarkdown(value) {
     .map((line) => line.replace(MD_LINE_PREFIX, ''))
     .join(' ');
   text = text.replace(MD_LINK, '$1');
-  text = text.replace(MD_INLINE, '');
+  // Protect glob/star patterns (src/**/*.js, *.py, **/) before emphasis stripping.
+  const stars = [];
+  text = text.replace(/\*\*\/|\*\/|\*\.[A-Za-z0-9_-]+/g, (match) => {
+    stars.push(match);
+    return `\u0000${stars.length - 1}\u0000`;
+  });
+  // Inline code: drop the backtick delimiters, keep the code text (underscores intact).
+  text = text.replace(/`([^`\n]+)`/g, '$1').replace(/`/g, '');
+  // Paired emphasis markers only. Never strip a lone _/* that belongs to an identifier,
+  // file name or glob (e.g. transaction_id, foo_bar, *.js).
+  text = text
+    .replace(/\*\*([^*\n]+)\*\*/g, '$1')
+    .replace(/__([^_\n]+)__/g, '$1')
+    .replace(/~~([^~\n]+)~~/g, '$1')
+    .replace(/\*([^*\n]+)\*/g, '$1')
+    .replace(/(^|[^\p{L}\p{N}_])_([^_\n]+)_(?=[^\p{L}\p{N}_]|$)/gu, '$1$2');
+  text = text.replace(/\u0000(\d+)\u0000/g, (_match, index) => stars[Number(index)] ?? '');
   return oneLine(text).replace(WRAPPING_QUOTES, '').trim();
 }
 
 /**
- * 建议文本规范化：单行 + 去 Markdown + 截断到 max 字。
+ * 语义化截短：不把标识符/路径/命令从中间切断。
+ *
+ * 依次尝试：句子/分句边界（，。；！？、,;!?）→ 空白边界 → 回退到 ASCII token 起点。
+ * 实在没有边界时才硬截断，保证返回长度 ≤ max。
+ * @param {unknown} value
+ * @param {number} [max]
+ * @returns {string}
+ */
+export function shortenSuggestion(value, max = DEFAULTS.suggestionMaxChars) {
+  const text = oneLine(value);
+  const limit = Number.isFinite(max) ? Math.floor(max) : 0;
+  if (limit <= 0) return '';
+  const chars = Array.from(text);
+  if (chars.length <= limit) return text;
+
+  const prefix = chars.slice(0, limit).join('');
+  const minUseful = Math.max(1, Math.floor(limit * 0.4));
+
+  // 1) Prefer the last clause boundary so the returned text stays a complete clause.
+  for (let i = prefix.length - 1; i >= minUseful; i -= 1) {
+    if (!CLAUSE_BOUNDARY.test(chars[i])) continue;
+    // Keep sentence-ending punctuation; drop separators such as ，、；: so the
+    // returned suggestion still reads like a message the user can send directly.
+    const keep = /[。！？!?]/.test(chars[i]) ? 1 : 0;
+    const head = chars.slice(0, i + keep).join('').trim();
+    if (head) return head;
+  }
+  // 2) Whitespace boundary: never leaves a partially copied word after it.
+  for (let i = prefix.length - 1; i >= minUseful; i -= 1) {
+    if (/\s/.test(chars[i])) {
+      let head = chars.slice(0, i).join('').trim();
+      // If the cut leaves a lone ASCII command prefix ("…再重跑 npm") and the next
+      // character is another ASCII token, drop that dangling token too.
+      const next = chars[i + 1] ?? '';
+      const tail = head.match(/(?:^|\s)([A-Za-z0-9_./\\-]+)$/);
+      if (tail && ASCII_TOKEN_CHAR.test(next)) {
+        head = head.slice(0, head.length - tail[1].length).trim().replace(/[\s，。；、,;:：-]+$/, '');
+      }
+      if (head) return head;
+    }
+  }
+  // 3) Do not split an ASCII identifier/path/command token: cut before the token.
+  let cut = limit;
+  while (cut > 0 && ASCII_TOKEN_CHAR.test(chars[cut - 1] ?? '') && ASCII_TOKEN_CHAR.test(chars[cut] ?? '')) {
+    cut -= 1;
+  }
+  if (cut > 0) {
+    const head = chars.slice(0, cut).join('').trim().replace(/[\s，。；、,;:：-]+$/, '');
+    if (head) return head;
+  }
+  // 4) Single oversized token: hard clamp (still ≤ limit).
+  return prefix;
+}
+
+/**
+ * 建议文本规范化：单行 + 去 Markdown + 语义化截断到 max 字。
  * @param {unknown} value
  * @param {number} [max]
  * @returns {string}
  */
 export function clampSuggestion(value, max = DEFAULTS.suggestionMaxChars) {
-  return clampChars(stripMarkdown(value), max);
+  return shortenSuggestion(stripMarkdown(value), max);
 }
 
 /**
