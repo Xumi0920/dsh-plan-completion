@@ -12,6 +12,7 @@ DSH 插件：为每个会话维护一份**隐式计划**，在每个回合结束
 - **实验数据归档**：`docs/experiment-archive.md`
 - 二期计划：`docs/phase-2-plan.md`
 - **发布评估 / 发布清单**：`docs/publish-assessment.md`
+- **安全与隐私边界（当前修复）**：[docs/security.md](docs/security.md)
 - 契约探测报告：`docs/p0-contract.md (local research artifact)`
 - 运行时诊断日志：`research/plan-completion-runtime.jsonl (local log)`
 
@@ -39,7 +40,7 @@ DSH 插件：为每个会话维护一份**隐式计划**，在每个回合结束
 | `index.js` | Host 半：三条触发路径 → 计划作业 → 内存状态 → `GET /plan-completion/state`；`/roadmap`、`/replan` 命令 |
 | `client.js` | Client 半：`conversation.input.dock` 建议条 + 常驻入口；`shell.overlay` 计划 Popover；Tab/Esc/Alt+1..3/Ctrl+Alt+P |
 | `host/*.js` | 与 DSH 解耦的纯逻辑：计划模型、prompt、启发式、证据、作业队列、存储（有单测） |
-| `test/*.test.js` | `node --test` 单测（78 个用例） |
+| `test/*.test.js` | `node --test` 单测（含 Host 接线、Client 生命周期与安全回归） |
 | `locale/*.json` | Plugin Manager / Settings 显示用标题与描述 |
 
 ## 触发链路（三条并存，按 `sessionId+turn` 去重）
@@ -58,25 +59,26 @@ Client ⇄ Host 唯一通道是本地 HTTP 路由（`ctx.get('webServer').regist
 
 - `GET /plan-completion/state?sessionId=<id>&reason=<kind>&running=<值>`
 - `POST /plan-completion/warm` `{sessionId}`（旧会话回填：从持久化日志重建计划+建议）
-- `POST /plan-completion/replan` `{sessionId, instruction?}`（调试路由默认关闭时才不可用；replan 始终可用）
-- `GET /plan-completion/debug?sessionId=<id>`（诊断：事件计数、最近触发、会话日志尾部）
+- `POST /plan-completion/replan` `{sessionId, instruction?}`（生产路由，须通过宿主鉴权）
+- `GET /plan-completion/debug?sessionId=<id>`（仅显式启用调试路由后可用）
 
-> 生产路由：`state`、`debug`、`diag`、`replan`、`warm`。
-> 调试路由：`theme`、`experiment`、`autojob`、`steps`、`reset` —— 仅当 `config.enableDebugRoutes: true` 时注册。
+> 生产路由：`state`、`replan`、`warm`；所有路由先调用 `connection.requestRejection(req)`。
+> 调试路由：`debug`、`diag`、`theme`、`experiment`、`autojob`、`steps`、`reset` —— 仅当 `config.enableDebugRoutes: true` 时注册。
 
 Client 侧用 `fetch(..., {credentials:'same-origin'})`；Electron 的 `dsh-app://app` 页面经主进程转发，响应体可读、自动带 `dsh-auth` cookie。
 
 Client 侧关键 API（实测）：`inputActions.captureInsertion()` 返回 `{start,end,draftRev}`；`insertText(text, span)`；`setDraft(text)`；`useInput(s => s)` 返回 `{draft, attachmentIds, draftRev, phase, occurrences, queue}`。
 
-## 模型路由
+## 模型路由与隐私
 
-- 默认取 `agentDefaultModel.currentSelection()`；`pickModel` 会遍历已配置路由，优先选**不声明 reasoning** 的模型；选不到时把 `reasoningEffort` 钉到最低档（实测 `deepseek-flash` + `off`，2 秒内返回合法 JSON）。
-- 空输出（思考模型吃光预算）会双倍预算重试一次；非空但 JSON 非法会走修复重发一次。
-- 已知坑：会话默认模型若为思考模型且预算偏小，首轮会返回空文本 → 已由上面的路由 + 重试兜底。
+- 仅使用宿主 `agentDefaultModel.currentSelection()` 当前默认的 provider/model，不自动改投其他已配置供应商；无可用路由时使用启发式。该默认值不一定是历史会话原先使用的模型。
+- 模型输入包含近期对话、工具错误和计划证据；裁剪长度不等于脱敏。`warmBackfill: false` 关闭旧会话回填，`modelCalls: false` 关闭本插件全部模型请求。
+- 空输出或非法 JSON 最多重试一次；使用推理模型时仍可能更慢或触发超时。调试实验评审使用同一选定路线，不再宣称独立跨模型评审。
+- 访问控制、日志和剩余风险见 [安全与隐私边界](docs/security.md)。
 
 ## 生产配置（已冻结，写入插件 config）
 
-隔离测试结论落到 `cordis.patch.yml` 的插件行 config，经 `apply(ctx, config)` 读取并在启动日志回显：
+隔离测试结论落到 `cordis.patch.yml` 的插件行 config，经 `apply(ctx, config)` 读取；运行日志仅保留操作元数据：
 
 ```yaml
 - insert:
@@ -87,6 +89,7 @@ Client 侧关键 API（实测）：`inputActions.captureInsertion()` 返回 `{st
         maxTokensPatch: 400
         maxTokensRewrite: 1200
         warmBackfill: true
+        modelCalls: true         # false：本插件仅用启发式，不向模型发送内容
         enableDebugRoutes: false   # 本地调试时才打开
         # debugDir: '<本地日志目录>'  # 可选；发布版留空
 ```
@@ -97,7 +100,8 @@ Client 侧关键 API（实测）：`inputActions.captureInsertion()` 返回 `{st
 | `maxTokensPatch` | 400 | patch 路径输出上限（实测只需 65~120 tok） | 真机 6 样本：输出 75~113 tok |
 | `maxTokensRewrite` | 1200 | rewrite/冷启动输出上限（要输出完整步骤表） | 700 会截断，1200 稳定 |
 | `warmBackfill` | true | 打开「插件从未观察过的旧会话」时，从持久化会话日志回填一次计划+建议 | P0-1；真机老会话回填 2.2s |
-| `enableDebugRoutes` | false | 是否注册 `theme/experiment/autojob/steps/reset` 调试路由 | 发布版最小攻击面 |
+| `enableDebugRoutes` | false | 是否注册 `debug/diag/theme/experiment/autojob/steps/reset` 调试路由；仍须鉴权 | 发布版最小攻击面 |
+| `modelCalls` | true | false 时关闭本插件全部模型调用，使用启发式 | 隐私控制 |
 | `debugDir` | 空 | 调试日志/实验结果的落盘目录（也可用 `DSH_PLAN_COMPLETION_DEBUG_DIR`）；空则不写文件 | 可移植性 |
 
 验证记录：`host-ready` 日志 `settings={evidenceChars:1500,maxTokensPatch:400,maxTokensRewrite:1200,warmBackfill:true,...}`；同一宿主上 force（rewrite）调用 `maxTokens:1200`、自动 job（patch）调用 `maxTokens:400`，与配置一致。
@@ -254,12 +258,12 @@ CI：`.github/workflows/test.yml`（GitHub Actions，Node 20/22 矩阵，push/PR
 
 - ⏳ `/roadmap`、`/replan` 的实际执行输出（菜单项已确认存在）。
 
-## 已知限制（一期）
+## 已知限制（当前）
 
 - 计划只存在 Host 内存，重启 DSH 后丢失（二期接 `storageDomain` / 文件存储）；旧会话可通过 warm 回填，但热重载外的重启仍会清空状态；
 - 模型选择暂用默认路由推导，未做设置页三选一；
 - 计划页是 Popover，右栏形态二期（`ctx.sidebarRightTabs` 已确认对插件开放）；
-- `/plan-completion/*` 路由无鉴权（仅 loopback，Electron 转发带 cookie；二期加 `connection.requestRejection`）；
+- HTTP 路由依赖宿主 `connection.requestRejection`；服务缺失时返回 503，不退回未鉴权访问。此修复尚未在真实 DSH/Electron 中完成部署验收；
 - fork 子会话不继承计划（二期按 `header.parentSession` 复制）；
 - 计划编辑（用户改步骤）UI 未做，数据模型已支持（`applyUserEdit` / `editedByUser`）。
 - profile patch 里残留一条 `- id: plan-probe / disabled: true` 的 tombstone（移除临时探针插件时留下的，无害）。

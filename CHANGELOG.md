@@ -3,6 +3,22 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
+## [Unreleased]
+
+### Fixed
+- Preserve the shared plan/CAS store across plugin reloads, including upgrades from older in-memory state.
+- Prevent canceled, superseded or disposed jobs from publishing stale plans; retain concurrent user edits and CAS winners.
+- Clear Dock-owned state on unmount; reject responses from older requests or previous Dock lifetimes.
+- Preserve legitimate resets and same-version suggestion updates; apply successful warm responses correctly.
+- Use a Windows-compatible test command and cover Ubuntu/Windows with Node 20/22 in CI.
+
+### Security
+- Require DSH Host/Origin and peer authentication on every HTTP endpoint; fail closed when admission is unavailable.
+- Keep debug/diag disabled by default and remove arbitrary credentialed CORS.
+- Remove conversation/URL/config/error text from diagnostics and runtime logs.
+- Use only the host's current default model route (including experimental judging); add modelCalls: false for heuristic-only operation.
+- Add production-host, client lifecycle and security/privacy regressions. See docs/security.md for remaining data-flow boundaries.
+
 ## [0.1.0] - 2026-11-02
 
 ### Added

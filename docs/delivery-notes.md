@@ -1,5 +1,7 @@
 # 交付说明 · 会话计划补全插件（dsh-plan-completion）v0.1.0
 
+> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。当前未发布修复已接入鉴权、收紧模型路由及诊断数据，详见 [security.md](security.md) 和 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+
 > 一期交付 · 2026-11-02 · 真机验收通过
 > 设计与实现说明见 `README.md`；设计规格见 `docs/design-v1.2.md`
 > 实验数据归档见 `docs/experiment-archive.md`
@@ -19,10 +21,10 @@
 | `dsh-plan-completion/index.js` | Host 半：事件监听、计划/建议生成、HTTP 路由、slash 命令、用户编辑通道 |
 | `dsh-plan-completion/client.js` | Client 半：建议条 + 常驻入口 + 计划 Popover + Tab/快捷键 + 主题适配 |
 | `dsh-plan-completion/host/*.js` | 纯函数模块：plan / prompt / evidence / heuristics / config / store / job / experiment |
-| `dsh-plan-completion/test/` | 78 个单测（plan / prompt / heuristics / evidence / job / store / pipeline） |
+| `dsh-plan-completion/test/` | 111 个单测（plan / prompt / heuristics / evidence / job / store / pipeline / Host 接线 / Client 生命周期 / 安全与隐私） |
 | `dsh-plan-completion/cordis.patch.yml` | 插件装配行 + **生产配置** |
 | `dsh-plan-completion/README.md` | 实现说明、触发链路、数据通道、配置、验证状态、已知限制 |
-| `research/archive/2026-11-02-plan-completion/` | 实验数据、真机样本、运行日志、验收截图、归档索引 |
+| `docs/experiment-archive.md` | 实验与验收数据摘要（仓库内）；原始数据仅本地保留（`research/archive/…`） |
 
 ## 三、安装 / 卸载
 
@@ -75,23 +77,23 @@ plugin_manager remove_bundle target='dsh-plan-completion'
 5. **UI 验收**：浅色 / 暗色主题截图、建议胶囊与会话卡片左缘对齐、无建议时只剩 `▤`、新会话/切会话行为符合预期。
 6. **用户编辑通道**：标记 s4 done → `gen+1 / editedByUser=true / reason 记录`，之后模型只能 patch；整计划整理（分类）→ 7 步 `[交付]/[验证]/[冻结]/[收尾]/[二期]`。
 
-## 七、已知限制（一期）
+## 七、已知限制（v0.1.1 现状）
 
-1. **不覆盖历史会话**：插件只处理「激活后观察到 turn/end」的会话；老会话在产生下一次回合结束前，只有 `▤` 入口、没有建议（当前行为，二期可加「挂载时回填」）。
+1. **旧会话回填已支持**（v0.1.1）：打开插件从未观察过的会话时，Client 会 POST `/plan-completion/warm`，Host 从持久化会话日志重建计划+建议（同一会话 10 分钟内只回填一次；需要一次模型调用，可用 `warmBackfill:false` 关闭）。不触发回填时仍只有 `▤` 入口。
 2. **计划不持久化**：进程内存保存，DSH 重启后计划丢失，下个回合结束重新生成（二期接 `storageDomain`）。
 3. **用户编辑锁**：`editedByUser=true` 后模型不能自动 rewrite 覆盖计划，只能 patch；需要整体重构用 `/replan`。
-4. **调试路由**：`/plan-completion/experiment|autojob|steps|theme|diag` 仅监听本机回环，无鉴权（二期按 `connection.requestRejection`/`fetch` 收敛）。
+4. **调试路由**：`experiment|autojob|steps|theme|diag|reset|debug` 仅在 `enableDebugRoutes:true` 时注册，且与其他路由一样必须通过宿主 `connection.requestRejection`（v0.1.1 起）。
 5. **无「核对进度」按钮**：计划页当前只展示状态/证据；按需模型核对按钮在二期清单（见下）。
-6. **模型选择固定策略**：默认优先非思考模型；用户三选一（跟随默认/固定/自动）设置页在二期。
+6. **模型路由**：v0.1.1 起只使用宿主当前默认 provider/model（不再自动改投其他供应商）；`modelCalls:false` 可关闭插件全部模型调用。用户三选一设置页仍在二期。
 
 ## 八、二期清单
 
 - [ ] 计划持久化（`storageDomain` + 文件存储，重启不丢）
 - [ ] 模型选择设置页（跟随会话默认 / 固定模型 / 自动挑非思考模型）
 - [ ] 右栏计划页（`ctx.sidebarRightTabs.register`，替代/补充浮层）
-- [ ] 路由鉴权（`connection.requestRejection` / `connection.fetch`）
+- [x] 路由鉴权（`connection.requestRejection` / `connection.fetch`）——已在 v0.1.1 交付
 - [ ] 「核对进度」按钮（按需一次调用，输出计划 vs 实际差异清单）
-- [ ] 挂载时回填（打开老会话时按需生成计划/建议）
+- [x] 挂载时回填（打开老会话时按需生成计划/建议）——已在 v0.1.1 交付
 - [ ] 每日 token 预算闸（可选）
 
 ## 九、排障

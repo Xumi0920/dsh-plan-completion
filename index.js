@@ -14,6 +14,8 @@
 import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs'
 
 import { DEFAULTS } from './host/config.js'
+import { requestRejection, safeDebugRecord, safeDiagnostics } from './host/security.js'
+import { join } from 'node:path'
 import { normalizePlan, patchPlan, rewritePlan, statusFor, applyUserEdit } from './host/plan.js'
 import { buildPatchPrompt, buildRewritePrompt, buildRepairPrompt, parseModelOutput } from './host/prompt.js'
 import { heuristicSuggestion, fallbackPlan } from './host/heuristics.js'
@@ -28,14 +30,14 @@ const ROUTE_PREFIX = '/plan-completion/'
 // Empty means "do not write files", so a published copy of this bundle carries no local paths.
 let debugDir = ''
 function debugLogPath() {
-  return debugDir ? `${debugDir}\\plan-completion-runtime.jsonl` : ''
+  return debugDir ? join(debugDir, 'plan-completion-runtime.jsonl') : ''
 }
 
 function debugLog(record) {
   try {
     if (!debugDir) return
     mkdirSync(debugDir, { recursive: true })
-    appendFileSync(debugLogPath(), `${JSON.stringify({ time: new Date().toISOString(), ...record })}\n`, 'utf8')
+    appendFileSync(debugLogPath(), `${JSON.stringify({ time: new Date().toISOString(), ...safeDebugRecord(record) })}\n`, 'utf8')
   } catch {
     /* ignore */
   }
@@ -65,7 +67,7 @@ function readJsonBody(req) {
   })
 }
 
-function jsonResponse(res, status, value, origin) {
+function jsonResponse(res, status, value) {
   let body = ''
   try {
     body = JSON.stringify(value)
@@ -76,10 +78,7 @@ function jsonResponse(res, status, value, origin) {
     const headers = {
       'content-type': 'application/json; charset=utf-8',
       'cache-control': 'no-store',
-      'access-control-allow-origin': origin || '*',
-      'access-control-allow-credentials': 'true',
-      'access-control-allow-headers': 'content-type',
-      'access-control-allow-methods': 'GET,POST,OPTIONS',
+      'x-content-type-options': 'nosniff',
     }
     if (typeof res.writeHead === 'function') {
       res.writeHead(status, headers)
@@ -132,134 +131,28 @@ function normalizePromptMessages(prompt) {
   return messages.map(toRequestMessage).filter(Boolean)
 }
 
-let modelRouteCache = null
-let modelRouteAt = 0
-
 /**
- * Pick a suggestion model that is likely to answer without spending the whole
- * token budget on reasoning. Resolution is cached for 10 minutes.
+ * Use the user's current default route only. Never send session evidence to
+ * another configured provider/model just because it may respond faster.
  */
 async function pickModel(services) {
-  if (modelRouteCache && Date.now() - modelRouteAt < 10 * 60 * 1000) return modelRouteCache
   const llm = services.llm
-  const candidates = []
+  const selection = services.agentDefaultModel?.currentSelection?.()
+  if (!llm || !selection?.provider || !selection?.model) return null
+  const route = { provider: selection.provider, model: selection.model, source: 'session-default' }
   try {
-    const selection = services.agentDefaultModel?.currentSelection?.()
-    if (selection?.provider && selection?.model) {
-      candidates.push({ provider: selection.provider, model: selection.model, source: 'session-default' })
-    }
-  } catch {
-    /* ignore */
-  }
-  try {
-    const providers = llm?.listProviders?.() ?? []
-    for (const provider of providers) {
-      const id = typeof provider === 'string' ? provider : provider?.id
-      if (!id) continue
-      let models = null
-      try {
-        models = await llm.listModels?.(id)
-      } catch {
-        models = null
-      }
-      if (!Array.isArray(models)) continue
-      for (const model of models.slice(0, 20)) {
-        if (!model?.id) continue
-        if (candidates.some(item => item.provider === id && item.model === model.id)) continue
-        candidates.push({ provider: id, model: model.id, source: 'route' })
-      }
-    }
-  } catch {
-    /* ignore */
-  }
-  if (!candidates.length) return null
-  // Prefer a route whose resolved model advertises no reasoning effort.
-  for (const candidate of candidates) {
-    try {
-      const info = await llm.resolveModelInfo?.(candidate.provider, candidate.model)
-      if (info && !info.reasoning) {
-        modelRouteCache = { ...candidate, reasoning: false }
-        modelRouteAt = Date.now()
-        return modelRouteCache
-      }
-    } catch {
-      /* ignore */
-    }
-  }
-  // Fall back to the first candidate, pinning the lowest advertised reasoning effort.
-  const fallback = { ...candidates[0] }
-  try {
-    const info = await llm.resolveModelInfo?.(fallback.provider, fallback.model)
+    const info = await llm.resolveModelInfo?.(route.provider, route.model)
     const efforts = info?.reasoning?.efforts
-    if (Array.isArray(efforts) && efforts.length) {
-      fallback.reasoningEffort = efforts[0]?.id
-    }
+    if (Array.isArray(efforts) && efforts.length) route.reasoningEffort = efforts[0]?.id
   } catch {
-    /* ignore */
+    // Resolution failure must not silently choose a different data destination.
   }
-  modelRouteCache = fallback
-  modelRouteAt = Date.now()
-  return modelRouteCache
+  return route
 }
 
-let judgeRouteCache = null
-
-/**
- * Pick a *cross-family* judge model: a different provider first, then a different model on
- * the main provider. Each candidate is preflighted with a tiny call because some registered
- * routes have no usable credentials (deepseek-official in this profile rejects the local key).
- */
-async function pickJudgeRoute(services, mainRoute) {
-  const cacheKey = `${mainRoute?.provider ?? ''}/${mainRoute?.model ?? ''}`
-  if (judgeRouteCache && judgeRouteCache.main === cacheKey) return judgeRouteCache.route
-  const llm = services.llm
-  const fallback = mainRoute
-  if (!llm || !mainRoute) return fallback
-  const candidates = []
-  try {
-    const providers = llm.listProviders?.() ?? []
-    for (const provider of providers) {
-      const id = typeof provider === 'string' ? provider : provider?.id
-      if (!id) continue
-      let models = null
-      try {
-        models = await llm.listModels?.(id)
-      } catch {
-        models = null
-      }
-      if (!Array.isArray(models)) continue
-      for (const model of models) {
-        if (!model?.id) continue
-        if (id === mainRoute.provider && model.id === mainRoute.model) continue
-        // Prefer other providers (= different family) by pushing them first.
-        const entry = { provider: id, model: model.id, crossFamily: id !== mainRoute.provider }
-        candidates.push(entry)
-      }
-    }
-  } catch {
-    /* ignore */
-  }
-  candidates.sort((a, b) => (b.crossFamily ? 1 : 0) - (a.crossFamily ? 1 : 0));
-  for (const candidate of candidates) {
-    try {
-      const info = await llm.resolveModelInfo?.(candidate.provider, candidate.model)
-      if (info && info.reasoning) candidate.reasoningEffort = 'off'
-      const probe = await callModel(services, candidate, {
-        system: '只回复 ok',
-        messages: [{ role: 'user', content: 'ok?' }],
-        maxTokens: 8,
-        temperature: 0,
-      });
-      if (String(probe.text ?? '').trim().length >= 0) {
-        judgeRouteCache = { main: cacheKey, route: candidate }
-        return candidate
-      }
-    } catch (error) {
-      /* try the next candidate */
-    }
-  }
-  judgeRouteCache = { main: cacheKey, route: fallback }
-  return fallback
+/** Experiments also stay on the explicitly selected route (not an independent judge). */
+async function pickJudgeRoute(_services, mainRoute) {
+  return mainRoute
 }
 
 async function callModel(services, route, prompt, signal) {
@@ -303,7 +196,7 @@ const HOST_GLOBAL_KEY = '__dsh_plan_completion_host__'
  */
 function hostGlobal() {
   const fallback = { states: new Map(), sessions: new Map(), handledTurns: new Map(), warmAttempts: new Map(), disposers: [] }
-  if (typeof globalThis === 'undefined') return fallback
+  if (typeof globalThis === 'undefined') return { ...fallback, store: createMemoryStore() }
   if (!globalThis[HOST_GLOBAL_KEY] || typeof globalThis[HOST_GLOBAL_KEY] !== 'object') {
     globalThis[HOST_GLOBAL_KEY] = fallback
   }
@@ -313,6 +206,13 @@ function hostGlobal() {
   if (!(shared.handledTurns instanceof Map)) shared.handledTurns = new Map()
   if (!(shared.warmAttempts instanceof Map)) shared.warmAttempts = new Map()
   if (!Array.isArray(shared.disposers)) shared.disposers = []
+  if (!shared.store || typeof shared.store.get !== 'function' || typeof shared.store.put !== 'function') {
+    shared.store = createMemoryStore()
+    // Adopt plans retained by older plugin versions during an in-process upgrade.
+    for (const state of shared.states.values()) {
+      if (state?.plan) shared.store.put(state.plan, { cas: null })
+    }
+  }
   return shared
 }
 
@@ -331,6 +231,7 @@ export function apply(ctx, config = {}) {
     maxTokensPatch: readInt(rawConfig.maxTokensPatch, 400, 120, 4000),
     maxTokensRewrite: readInt(rawConfig.maxTokensRewrite, 1200, 400, 8000),
     warmBackfill: rawConfig.warmBackfill !== false,
+    modelCalls: rawConfig.modelCalls !== false,
     enableDebugRoutes: rawConfig.enableDebugRoutes === true,
     debugDir: typeof rawConfig.debugDir === 'string' && rawConfig.debugDir.trim() !== ''
       ? rawConfig.debugDir.trim()
@@ -345,10 +246,13 @@ export function apply(ctx, config = {}) {
   // wrapped in ctx.inject([...]) below, which re-runs once the service becomes available.
   const services = {
     get llm() {
-      return ctx.get('llm')
+      return settings.modelCalls ? ctx.get('llm') : null
     },
     get webServer() {
       return ctx.get('webServer')
+    },
+    get connection() {
+      return ctx.get('connection')
     },
     get commands() {
       return ctx.get('commands')
@@ -365,12 +269,23 @@ export function apply(ctx, config = {}) {
   }
 
   const shared = hostGlobal()
+  // A new apply can run before the old context has finished disposing.
+  shared.stopGeneration?.()
   const states = shared.states // sessionId -> { plan, suggestion, stale }
   const sessions = shared.sessions // sessionId -> Session
   const warmAttempts = shared.warmAttempts // sessionId -> { at, seq }
   const inflight = new Map() // sessionId -> AbortController
   const gate = createGate(DEFAULTS.globalConcurrency)
-  const store = createMemoryStore()
+  const store = shared.store
+  let disposed = false
+  const stopGeneration = () => {
+    disposed = true
+    for (const controller of inflight.values()) controller.abort(new Error('plugin-disposed'))
+    inflight.clear()
+    if (shared.stopGeneration === stopGeneration) delete shared.stopGeneration
+  }
+  shared.stopGeneration = stopGeneration
+  ctx.effect(() => stopGeneration)
   const debug = { lastTurnEnd: null, lastJob: null, model: null }
   let debugTheme = null
   const experimentState = { running: false, result: null, error: null }
@@ -557,7 +472,7 @@ export function apply(ctx, config = {}) {
 
   async function runGeneration(session, turnEndEvent, options = {}) {
     const sessionId = session?.id
-    if (!sessionId) return
+    if (!sessionId || disposed) return
     const seq = Number(turnEndEvent?.seq ?? 0)
     const turn = Number(turnEndEvent?.data?.turn ?? 0)
     const force = Boolean(options.force)
@@ -571,9 +486,11 @@ export function apply(ctx, config = {}) {
     const controller = new AbortController()
     inflight.set(sessionId, controller)
     const timer = setTimeout(() => controller.abort(new Error('plan-deadline')), budget)
+    const isCurrent = () => !disposed && !controller.signal.aborted && inflight.get(sessionId) === controller
 
     await gate.acquire()
     try {
+      if (!isCurrent()) return
       let events = []
       try {
         events = Array.from(session.snapshotEvents(Math.max(0, seq - 300)) ?? [])
@@ -582,6 +499,7 @@ export function apply(ctx, config = {}) {
       }
 
       const basePlan = states.get(sessionId)?.plan ?? null
+      const storedVersion = store.get(sessionId)?.version ?? null
       const evidence = (() => {
         try {
           const collected = collectFromEvents({ events, plan: basePlan, turn, sessionId })
@@ -610,6 +528,7 @@ export function apply(ctx, config = {}) {
         provisionalSuggestion = { text: provisional, alternates: [] }
         publishState(sessionId, { plan: nextPlan, suggestion: provisionalSuggestion, stale: false })
       }
+      const publishedPlan = states.get(sessionId)?.plan ?? null
 
       const prompt = (() => {
         try {
@@ -633,12 +552,14 @@ export function apply(ctx, config = {}) {
         }
         try {
           const route = await pickModel(services)
+          if (!isCurrent()) return
           debug.model = route
           debugLog({ phase: 'model-choice', sessionId, route })
           if (!route) throw new Error('no-model-route')
           let text = ''
           let parsed = null
           const primary = await callModel(services, route, prompt, controller.signal)
+          if (!isCurrent()) return
           text = primary.text
           debug.lastUsage = primary.usage ?? null
           debugLog({
@@ -659,6 +580,7 @@ export function apply(ctx, config = {}) {
                 maxTokens: Math.min(8000, Math.max(2000, (Number(prompt.maxTokens) || 800) * 2)),
               }
               const retried = await callModel(services, route, retryPrompt, controller.signal)
+              if (!isCurrent()) return
               text = retried.text
               debug.lastUsage = retried.usage ?? debug.lastUsage
               parsed = parseModelOutput(text)
@@ -681,6 +603,7 @@ export function apply(ctx, config = {}) {
               const repairPrompt = buildRepairPrompt(prompt, text, parsed?.error ?? '')
               if (repairPrompt) repairPrompt.maxTokens = Math.max(Number(repairPrompt.maxTokens) || 0, 1600)
               const repairedRes = await callModel(services, route, repairPrompt, controller.signal)
+              if (!isCurrent()) return
               debug.lastUsage = repairedRes.usage ?? debug.lastUsage
               const reparsed = parseModelOutput(repairedRes.text)
               if (reparsed?.ok) parsed = reparsed
@@ -731,6 +654,15 @@ export function apply(ctx, config = {}) {
         }
       }
 
+      if (!isCurrent()) return
+      // A user edit or reset can replace the visible plan while the model is waiting.
+      // Its newer plan and suggestion belong to that writer, not to this job.
+      if ((states.get(sessionId)?.plan ?? null) !== publishedPlan) {
+        debug.lastJob = { sessionId, turn, elapsed: Date.now() - startedAt, outcome: 'conflict', suggestion: false }
+        debugLog({ phase: 'state-conflict', sessionId, turn })
+        return
+      }
+
       if (!suggestion) {
         const fallbackText = heuristicText({ ...evidence, plan: nextPlan })
         if (fallbackText) suggestion = { text: fallbackText, alternates: [] }
@@ -738,15 +670,19 @@ export function apply(ctx, config = {}) {
 
       if (nextPlan) {
         try {
-          const committed = nextPlan === basePlan || outcome === 'unchanged'
-            ? true
-            : store.put(nextPlan, basePlan ? { cas: basePlan.version } : {})
+          // Check CAS even for an unchanged plan; an old snapshot is never an
+          // unconditional write. null also protects the first commit from races.
+          const committed = store.put(nextPlan, { cas: storedVersion })
           if (!committed) {
             debugLog({ phase: 'store-cas-miss', sessionId })
-            nextPlan = basePlan
+            const latest = store.get(sessionId)
+            publishState(sessionId, { plan: latest, suggestion: null, stale: true })
+            debug.lastJob = { sessionId, turn, elapsed: Date.now() - startedAt, outcome: 'conflict', suggestion: false }
+            return
           }
         } catch (error) {
           debugLog({ phase: 'store-error', sessionId, error: String(error) })
+          return
         }
       }
 
@@ -762,6 +698,7 @@ export function apply(ctx, config = {}) {
       debug.lastJob = { sessionId, turn, elapsed, outcome, suggestion: Boolean(suggestion), withinSuggestionDeadline }
       debugLog({ phase: 'job-done', sessionId, turn, elapsed, outcome, withinSuggestionDeadline })
     } catch (error) {
+      if (!isCurrent()) return
       debugLog({ phase: 'job-failed', sessionId, turn, error: String(error) })
       const existing = states.get(sessionId)
       publishState(sessionId, { plan: existing?.plan ?? null, suggestion: existing?.suggestion ?? null, stale: Boolean(existing?.plan) })
@@ -776,10 +713,9 @@ export function apply(ctx, config = {}) {
   const handledTurns = shared.handledTurns // sessionId -> last handled turn number
 
   function triggerTurnEnd(session, seq, turn, source) {
-    if (!session?.id) return
+    if (!session?.id || disposed) return
     sessions.set(session.id, session)
     const turnNumber = Number(turn) || 0
-    const key = `${session.id}:${turnNumber}`
     if (handledTurns.get(session.id) === turnNumber) return
     handledTurns.set(session.id, turnNumber)
     debug.lastTurnEnd = { sessionId: session.id, seq: Number(seq) || 0, turn: turnNumber, source }
@@ -798,7 +734,7 @@ export function apply(ctx, config = {}) {
   })
 
   function checkIdleTurn(session) {
-    if (!session?.id) return
+    if (!session?.id || disposed) return
     let events = []
     try {
       const from = Math.max(0, Number(session.seq ?? 0) - 160)
@@ -822,7 +758,7 @@ export function apply(ctx, config = {}) {
   }
 
   function scheduleIdleCheck(session) {
-    if (!session?.id) return
+    if (!session?.id || disposed) return
     const previous = idleTimers.get(session.id)
     if (previous) clearTimeout(previous)
     const timer = setTimeout(() => {
@@ -838,6 +774,7 @@ export function apply(ctx, config = {}) {
 
   ctx.on('session/event', (session, event) => {
     try {
+      if (disposed) return
       debug.eventCount = (debug.eventCount ?? 0) + 1
       debug.eventTypes = debug.eventTypes ?? {}
       const type = String(event?.type ?? 'unknown')
@@ -860,6 +797,7 @@ export function apply(ctx, config = {}) {
   // the session log and run the same job exactly once per turn.
   ctx.on('agent/status', payload => {
     try {
+      if (disposed) return
       if (payload?.status !== 'idle') return
       const sessionId = payload?.agent?.id
       if (!sessionId) return
@@ -896,14 +834,14 @@ export function apply(ctx, config = {}) {
   })
 
   // ── HTTP routes for the Client half ──────────────────────────────────────
-  const handleRoute = async (req, res) => {
-          const origin = (() => {
-            try {
-              return req.headers?.origin ?? null
-            } catch {
-              return null
-            }
-          })()
+  const handleRouteUnsafe = async (req, res) => {
+          let connection
+          try { connection = services.connection } catch { /* unavailable */ }
+          const rejected = requestRejection(connection, req)
+          if (rejected !== undefined) {
+            jsonResponse(res, rejected, { ok: false, error: rejected === 503 ? 'auth-unavailable' : 'request-rejected' })
+            return
+          }
           let url = null
           try {
             url = new URL(req.url, 'http://127.0.0.1')
@@ -925,22 +863,22 @@ export function apply(ctx, config = {}) {
           }
 
           if (method === 'OPTIONS') {
-            jsonResponse(res, 204, {}, origin)
+            jsonResponse(res, 204, {})
             return
           }
           if (pathname === `${ROUTE_PREFIX}warm` && method === 'POST') {
             const body = (await readJsonBody(req)) ?? {}
             const sessionId = String(body.sessionId ?? '')
             if (!sessionId) {
-              jsonResponse(res, 200, { ok: false, reason: 'no-session-id' }, origin)
+              jsonResponse(res, 200, { ok: false, reason: 'no-session-id' })
               return
             }
             const outcome = await runWarmBackfill(sessionId, { force: body.force === true })
-            jsonResponse(res, 200, outcome, origin)
+            jsonResponse(res, 200, outcome)
             return
           }
           if (pathname === `${ROUTE_PREFIX}state` && method === 'GET') {
-            jsonResponse(res, 200, publicView(url?.searchParams?.get('sessionId') ?? ''), origin)
+            jsonResponse(res, 200, publicView(url?.searchParams?.get('sessionId') ?? ''))
             return
           }
           if (pathname === `${ROUTE_PREFIX}debug` && method === 'GET') {
@@ -962,7 +900,7 @@ export function apply(ctx, config = {}) {
               states: Array.from(states.keys()),
               probeSessionId,
               logTail,
-            }, origin)
+            })
             return
           }
           if (pathname === `${ROUTE_PREFIX}replan` && method === 'POST') {
@@ -970,7 +908,7 @@ export function apply(ctx, config = {}) {
             const sessionId = String(body.sessionId ?? '')
             const session = sessions.get(sessionId)
             if (!session) {
-              jsonResponse(res, 200, { ok: false, error: 'session-not-observed' }, origin)
+              jsonResponse(res, 200, { ok: false, error: 'session-not-observed' })
               return
             }
             const turn = Number(states.get(sessionId)?.plan?.watermark?.turn ?? 0)
@@ -979,18 +917,18 @@ export function apply(ctx, config = {}) {
               { seq: Number(debug.lastTurnEnd?.seq ?? 0), data: { turn } },
               { force: true, instruction: typeof body.instruction === 'string' ? body.instruction : '' },
             )
-            jsonResponse(res, 200, { ok: true, queued: true }, origin)
+            jsonResponse(res, 200, { ok: true, queued: true })
             return
           }
           if (pathname === `${ROUTE_PREFIX}diag` && method === 'GET') {
-            jsonResponse(res, 200, { ok: true, lastDiag: debug.lastDiag ?? null }, origin)
+            jsonResponse(res, 200, { ok: true, lastDiag: debug.lastDiag ?? null })
             return
           }
           if (pathname === `${ROUTE_PREFIX}diag` && method === 'POST') {
             const body = (await readJsonBody(req)) ?? {}
-            debug.lastDiag = { at: Date.now(), body }
-            debugLog({ phase: 'client-diag', body })
-            jsonResponse(res, 200, { ok: true }, origin)
+            debug.lastDiag = { at: Date.now(), body: safeDiagnostics(body) }
+            debugLog({ phase: 'client-diag' })
+            jsonResponse(res, 200, { ok: true })
             return
           }
           if (pathname === `${ROUTE_PREFIX}autojob` && method === 'POST') {
@@ -998,11 +936,11 @@ export function apply(ctx, config = {}) {
             const sessionId = String(body.sessionId ?? '')
             const session = sessions.get(sessionId)
             if (!session) {
-              jsonResponse(res, 200, { ok: false, error: 'session-not-observed' }, origin)
+              jsonResponse(res, 200, { ok: false, error: 'session-not-observed' })
               return
             }
             if (!states.get(sessionId)?.plan) {
-              jsonResponse(res, 200, { ok: false, error: 'no-plan' }, origin)
+              jsonResponse(res, 200, { ok: false, error: 'no-plan' })
               return
             }
             const baseTurn = Number(states.get(sessionId)?.plan?.watermark?.turn ?? 0)
@@ -1026,16 +964,20 @@ export function apply(ctx, config = {}) {
               stepCount: Array.isArray(view.steps) ? view.steps.length : 0,
               reason: view.reason,
               lastJob: debug.lastJob ?? null,
-            }, origin)
+            })
             return
           }
           if (pathname === `${ROUTE_PREFIX}reset` && method === 'POST') {
             const body = (await readJsonBody(req)) ?? {}
             const sessionId = String(body.sessionId ?? '')
             const existed = states.has(sessionId)
+            inflight.get(sessionId)?.abort(new Error('state-reset'))
+            store.clear(sessionId)
             states.delete(sessionId)
+            warmAttempts.delete(sessionId)
+            handledTurns.delete(sessionId)
             debugLog({ phase: 'state-reset', sessionId, existed })
-            jsonResponse(res, 200, { ok: true, sessionId, existed }, origin)
+            jsonResponse(res, 200, { ok: true, sessionId, existed })
             return
           }
           if (pathname === `${ROUTE_PREFIX}steps` && method === 'POST') {
@@ -1043,7 +985,7 @@ export function apply(ctx, config = {}) {
             const sessionId = String(body.sessionId ?? '')
             const plan = states.get(sessionId)?.plan ?? null
             if (!plan) {
-              jsonResponse(res, 200, { ok: false, error: 'no-plan' }, origin)
+              jsonResponse(res, 200, { ok: false, error: 'no-plan' })
               return
             }
             const allowed = ['todo', 'doing', 'done', 'dropped']
@@ -1066,14 +1008,14 @@ export function apply(ctx, config = {}) {
               const stepId = String(body.stepId ?? '')
               const status = String(body.status ?? 'done')
               if (!allowed.includes(status)) {
-                jsonResponse(res, 200, { ok: false, error: 'bad-status' }, origin)
+                jsonResponse(res, 200, { ok: false, error: 'bad-status' })
                 return
               }
               nextSteps = (plan.steps || []).map(step => (
                 step.id === stepId ? { ...step, status, source: 'user' } : step
               ))
               if (!nextSteps.some(step => step.id === stepId)) {
-                jsonResponse(res, 200, { ok: false, error: 'unknown-step', stepId }, origin)
+                jsonResponse(res, 200, { ok: false, error: 'unknown-step', stepId })
                 return
               }
               editReason = typeof body.reason === 'string' && body.reason.trim()
@@ -1088,7 +1030,7 @@ export function apply(ctx, config = {}) {
               now: Date.now(),
             })
             if (!applied?.ok) {
-              jsonResponse(res, 200, { ok: false, error: 'apply-failed', detail: applied }, origin)
+              jsonResponse(res, 200, { ok: false, error: 'apply-failed', detail: applied })
               return
             }
             try {
@@ -1109,7 +1051,7 @@ export function apply(ctx, config = {}) {
               version: applied.plan.version,
               editedByUser: applied.plan.editedByUser === true,
               steps: applied.plan.steps,
-            }, origin)
+            })
             return
           }
           if (pathname === `${ROUTE_PREFIX}experiment` && method === 'GET') {
@@ -1117,24 +1059,24 @@ export function apply(ctx, config = {}) {
               running: experimentState.running,
               error: experimentState.error,
               result: experimentState.result,
-            }, origin)
+            })
             return
           }
           if (pathname === `${ROUTE_PREFIX}experiment` && method === 'POST') {
             const body = (await readJsonBody(req)) ?? {}
             if (experimentState.running) {
-              jsonResponse(res, 200, { ok: true, running: true }, origin)
+              jsonResponse(res, 200, { ok: true, running: true })
               return
             }
             const sessionId = String(body.sessionId ?? '')
             const session = sessions.get(sessionId)
             if (!session) {
-              jsonResponse(res, 200, { ok: false, error: 'session-not-observed' }, origin)
+              jsonResponse(res, 200, { ok: false, error: 'session-not-observed' })
               return
             }
             const basePlan = states.get(sessionId)?.plan ?? null
             if (!basePlan) {
-              jsonResponse(res, 200, { ok: false, error: 'no-plan' }, origin)
+              jsonResponse(res, 200, { ok: false, error: 'no-plan' })
               return
             }
             experimentState.running = true
@@ -1186,7 +1128,7 @@ export function apply(ctx, config = {}) {
                 experimentState.running = false
               }
             })()
-            jsonResponse(res, 200, { ok: true, started: true, planSteps: Array.isArray(basePlan.steps) ? basePlan.steps.length : 0 }, origin)
+            jsonResponse(res, 200, { ok: true, started: true, planSteps: Array.isArray(basePlan.steps) ? basePlan.steps.length : 0 })
             return
           }
           if (pathname === `${ROUTE_PREFIX}theme` && method === 'POST') {
@@ -1194,10 +1136,29 @@ export function apply(ctx, config = {}) {
             const mode = typeof body.mode === 'string' ? body.mode : null
             debugTheme = mode === 'dark' || mode === 'light' || mode === 'system' ? mode : null
             debugLog({ phase: 'theme-request', mode: debugTheme })
-            jsonResponse(res, 200, { ok: true, theme: debugTheme }, origin)
+            jsonResponse(res, 200, { ok: true, theme: debugTheme })
             return
           }
-          jsonResponse(res, 404, { ok: false, error: 'unknown-route', pathname }, origin)
+          jsonResponse(res, 404, { ok: false, error: 'unknown-route', pathname })
+  }
+
+  // Defense in depth: an unexpected throw must still close the HTTP response instead
+  // of leaving the client fetch hanging.
+  const handleRoute = async (req, res) => {
+    try {
+      await handleRouteUnsafe(req, res)
+    } catch (error) {
+      try {
+        jsonResponse(res, 500, { ok: false, error: 'internal-error' })
+      } catch {
+        /* ignore */
+      }
+      try {
+        debugLog({ phase: 'route-error', method: String(req?.method ?? ''), error: true })
+      } catch {
+        /* ignore */
+      }
+    }
   }
 
   // The shipped web server matches only routes already registered for the request path;
@@ -1213,13 +1174,13 @@ export function apply(ctx, config = {}) {
     // `config.enableDebugRoutes: true` so a published bundle exposes a minimal surface.
     const paths = [
       `${ROUTE_PREFIX}state`,
-      `${ROUTE_PREFIX}debug`,
       `${ROUTE_PREFIX}replan`,
-      `${ROUTE_PREFIX}diag`,
       `${ROUTE_PREFIX}warm`,
     ]
     if (settings.enableDebugRoutes) {
       paths.push(
+        `${ROUTE_PREFIX}debug`,
+        `${ROUTE_PREFIX}diag`,
         `${ROUTE_PREFIX}theme`,
         `${ROUTE_PREFIX}experiment`,
         `${ROUTE_PREFIX}autojob`,
@@ -1303,11 +1264,6 @@ export function apply(ctx, config = {}) {
           } catch {
             /* ignore */
           }
-        }
-        // Drop matching entries so the next apply() does not dispose them twice.
-        for (const dispose of disposers) {
-          const index = shared.disposers.indexOf(dispose)
-          if (index >= 0) shared.disposers.splice(index, 1)
         }
       })
     } catch (error) {

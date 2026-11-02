@@ -563,6 +563,7 @@ window.__ModuleLoader__.load({
       inputActions: null,
       draftText: '',
       inputEmpty: true,
+      dockOwner: null,
       dockRoot: null,
       triggerEl: null,
       popoverRoot: null
@@ -606,6 +607,36 @@ window.__ModuleLoader__.load({
     // Timestamp of the last state request, shared by every trigger path; drives the
     // `stale-poll` watchdog. Updated whenever a request is actually issued.
     let lastStateRequestAt = 0;
+    // All readers (including warm backfill) share an order and a Dock lifecycle.
+    // Versions alone are insufficient: a reset may legitimately start at v0.0,
+    // and a model can refine the suggestion without changing the plan version.
+    let planRequestSequence = 0;
+    let planRequestEpoch = 0;
+    let lastAppliedPlanRequest = 0;
+
+    function beginPlanRequest(sessionId) {
+      return { id: ++planRequestSequence, epoch: planRequestEpoch, sessionId: sessionId, owner: store.get().dockOwner };
+    }
+
+    function isCurrentPlanRequest(sessionId, request) {
+      const current = store.get();
+      return !!request && !!request.owner && request.owner === current.dockOwner &&
+        request.epoch === planRequestEpoch && request.sessionId === sessionId &&
+        current.sessionId === sessionId && request.id >= lastAppliedPlanRequest;
+    }
+
+    function releaseDock(owner) {
+      if (store.get().dockOwner !== owner) return;
+      planRequestEpoch += 1;
+      lastAppliedPlanRequest = 0;
+      planRefresher = null;
+      store.set({
+        dockOwner: null, sessionId: undefined, plan: null, planSig: null,
+        inputActions: null, dockRoot: null, draftText: '', inputEmpty: true,
+        suggestionVisible: false, dismissedKey: null, overlayOpen: false,
+        anchorRect: null, triggerEl: null, popoverRoot: null
+      });
+    }
 
     /**
      * Resolve `{ ok, plan }`; `ok` false means the route is absent or the payload is unusable.
@@ -616,8 +647,9 @@ window.__ModuleLoader__.load({
      * `useSession` returned.
      */
     function fetchPlanState(sessionId, reason, running) {
+      const requestToken = beginPlanRequest(sessionId);
       if (DEV_PLAN) {
-        return Promise.resolve({ ok: true, plan: normalizePlan(DEV_PLAN) });
+        return Promise.resolve({ ok: true, plan: normalizePlan(DEV_PLAN), request: requestToken });
       }
       if (typeof sessionId !== 'string' || sessionId === '') {
         return Promise.resolve({ ok: false, plan: null });
@@ -649,12 +681,8 @@ window.__ModuleLoader__.load({
           if (!response || response.ok !== true) return { ok: false, plan: null };
           return Promise.resolve(response.json()).then(
             function parsed(json) {
-              try {
-                if (json && typeof json === 'object' && json.debugTheme) applyDebugTheme(json.debugTheme);
-              } catch (error) {
-                /* ignore */
-              }
-              return { ok: true, plan: normalizePlan(json) };
+              return { ok: true, plan: normalizePlan(json), request: requestToken,
+                debugTheme: json && typeof json === 'object' ? json.debugTheme : null };
             },
             function badJson() {
               return { ok: false, plan: null };
@@ -672,6 +700,7 @@ window.__ModuleLoader__.load({
      */
     function warmPlanState(sessionId) {
       if (typeof sessionId !== 'string' || sessionId === '') return Promise.resolve(null);
+      const requestToken = beginPlanRequest(sessionId);
       let request = null;
       try {
         request = fetch('/plan-completion/warm', {
@@ -688,7 +717,7 @@ window.__ModuleLoader__.load({
           if (!response || response.ok !== true) return null;
           return Promise.resolve(response.json()).then(
             function parsed(json) {
-              return json && typeof json === 'object' ? { ok: json.ok === true, json: json } : null;
+              return json && typeof json === 'object' ? { ok: json.ok === true, json: json, request: requestToken } : null;
             },
             function badJson() {
               return null;
@@ -711,31 +740,37 @@ window.__ModuleLoader__.load({
       });
     }
 
-    function applyPlanResult(sessionId, plan) {
-      if (!plan) return;
-      if (plan.sessionId && sessionId && plan.sessionId !== sessionId) return;
+    function applyPlanResult(sessionId, plan, request) {
+      if (!plan || !isCurrentPlanRequest(sessionId, request)) return false;
+      if (plan.sessionId && plan.sessionId !== sessionId) return false;
       const current = store.get();
-      if (current.sessionId !== undefined && current.sessionId !== sessionId) return;
+      lastAppliedPlanRequest = request.id;
       const signature = planSignature(plan);
-      if (current.plan && current.planSig === signature) return;
+      if (current.plan && current.planSig === signature) return true;
       store.set({ plan: plan, planSig: signature });
+      return true;
     }
 
     /**
      * Server said "no plan for this session" (unknown / cleared / reset). Drop the cached plan
      * so the bar falls back to its always-on state instead of showing a stale suggestion.
      */
-    function clearPlanResult(sessionId) {
+    function clearPlanResult(sessionId, request) {
+      if (!isCurrentPlanRequest(sessionId, request)) return false;
       const current = store.get();
-      if (current.sessionId !== undefined && sessionId && current.sessionId !== sessionId) return;
-      if (!current.plan) return;
+      lastAppliedPlanRequest = request.id;
+      if (!current.plan) return true;
       store.set({ plan: null, planSig: null, dismissedKey: null, overlayOpen: false });
+      return true;
     }
 
     function handlePlanFetch(sessionId, result) {
-      if (!result || result.ok !== true) return;
-      if (result.plan) applyPlanResult(sessionId, result.plan);
-      else clearPlanResult(sessionId);
+      if (!result || result.ok !== true) return false;
+      const applied = result.plan
+        ? applyPlanResult(sessionId, result.plan, result.request)
+        : clearPlanResult(sessionId, result.request);
+      if (applied && result.debugTheme) applyDebugTheme(result.debugTheme);
+      return applied;
     }
 
     // =====================================================================
@@ -931,6 +966,8 @@ window.__ModuleLoader__.load({
     // Global keyboard handler (window capture, installed through ctx.effect)
     // =====================================================================
     function canTabFill(state) {
+      if (!state.dockOwner || !state.dockRoot || !state.inputActions) return false;
+      if (state.dockRoot.isConnected === false) return false;
       if (!state.suggestionVisible) return false;
       const suggestion = getSuggestion(state.plan);
       if (!suggestion) return false;
@@ -1112,13 +1149,25 @@ window.__ModuleLoader__.load({
       const runningRef = React.useRef(running);
       runningRef.current = running;
       const rootRef = React.useRef(null);
+      const ownerRef = React.useRef({});
       const suggestion = getSuggestion(plan);
       const currentSuggestionKey = suggestionKey(plan, suggestion);
       const showSuggestion = !!suggestion && inputEmpty && dismissedKey !== currentSuggestionKey;
 
+      // The overlay and keyboard handler outlive a conversation Dock. Its cleanup
+      // must not expose a previous session, or erase a newer Dock's ownership.
+      React.useEffect(function ownRuntimeFacts() {
+        planRequestEpoch += 1;
+        lastAppliedPlanRequest = 0;
+        store.set({ dockOwner: ownerRef.current });
+        const owner = ownerRef.current;
+        return function cleanupRuntimeFacts() { releaseDock(owner); };
+      }, [sessionId]);
+
       // Publish the facts the out-of-React keyboard handler needs.
       React.useEffect(function publishRuntimeFacts() {
         const current = store.get();
+        if (current.dockOwner !== ownerRef.current) return;
         const patch = {};
         if (current.sessionId !== sessionId) {
           patch.sessionId = sessionId;
@@ -1258,15 +1307,15 @@ window.__ModuleLoader__.load({
           if (cancelled) return;
           fetchPlanState(sessionId, kind, runningRef.current).then(function loaded(result) {
             if (cancelled) return;
-            handlePlanFetch(sessionId, result);
+            if (!handlePlanFetch(sessionId, result)) return;
             if (result.plan) return;
             // P0-1: session known to the app but never observed by this plugin (old session,
             // plugin just enabled) — ask the Host to backfill from the durable session log.
             if (allowWarm === false) return;
-            warmPlanState(sessionId).then(function warmed() {
-              if (cancelled || !warmed || !warmed.json) return;
+            warmPlanState(sessionId).then(function applyWarm(warmed) {
+              if (cancelled || !warmed || !warmed.ok || !warmed.json) return;
               const warmedPlan = normalizePlan(warmed.json);
-              if (warmedPlan) applyPlanResult(sessionId, warmedPlan);
+              if (warmedPlan) applyPlanResult(sessionId, warmedPlan, warmed.request);
             });
           });
         };
@@ -1940,7 +1989,6 @@ window.__ModuleLoader__.load({
                   radius: cs.borderTopLeftRadius,
                   shadow: cs.boxShadow === 'none' ? 'none' : 'yes',
                   font: cs.fontSize + '/' + cs.lineHeight,
-                  text: String(el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80),
                 };
               } catch (error) {
                 return { error: String(error) };
@@ -1962,7 +2010,6 @@ window.__ModuleLoader__.load({
                     build: CLIENT_BUILD,
                     hasPill: !!pill,
                     hasEntry: !!entry,
-                    entryText: entry ? String(entry.textContent || '').slice(0, 40) : null,
                     suggestVisible: !!suggest,
                     dockPresent: !!row,
                     heroVisible: !!hero,
@@ -1972,7 +2019,6 @@ window.__ModuleLoader__.load({
                     suggestStyle: styleOf(suggest),
                     entryStyle: styleOf(entry),
                     composerStyle: styleOf(document.querySelector('[data-composer-card]')),
-                    href: String(window.location.href).slice(0, 120),
                   }),
                 }).catch(function () {});
               } catch (error) {

@@ -6,7 +6,8 @@
         maxTokensPatch: 400
         maxTokensRewrite: 1200
         warmBackfill: true
-        # Debug endpoints (theme/experiment/autojob/steps/reset) stay off in production.
+        modelCalls: true # false: heuristic-only; no plugin model requests
+        # Debug endpoints (debug/diag/theme/experiment/autojob/steps/reset) stay off in production.
         enableDebugRoutes: false
         # Optional: set a local directory to persist debug logs / experiment data.
         # debugDir: '<local debug directory>'
