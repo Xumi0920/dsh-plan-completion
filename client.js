@@ -46,7 +46,7 @@ window.__ModuleLoader__.load({
     const STALE_POLL_MS = 15000;
     const STEP_STATUSES = ['todo', 'doing', 'done', 'dropped'];
     // Client build marker surfaced to the Host diagnostic route (proves which bundle is live).
-    const CLIENT_BUILD = 'capsule-2026-11-01';
+    const CLIENT_BUILD = 'settings-2026-11-03';
     // TEMP verification flag: auto-open the plan panel shortly after mount so a static
     // screenshot can be taken without synthetic clicks. Set back to false before release.
     const DEV_OPEN_POPOVER = false;
@@ -2147,27 +2147,26 @@ window.__ModuleLoader__.load({
 
     function settingsCss() {
       return [
-        '.dpc-settings-page{display:flex;flex-direction:column;padding:8px 24px 20px;max-width:720px;box-sizing:border-box;font-size:13px;line-height:20px;color:var(--dsw-alias-label-primary)}',
-        '.dpc-settings-head{display:flex;flex-direction:column;gap:4px;padding:6px 0 10px}',
+        '.dpc-settings-page{display:flex;flex-direction:column;padding:8px 24px 20px;max-width:700px;box-sizing:border-box;font-size:13px;line-height:20px;color:var(--dsw-alias-label-primary)}',
+        '.dpc-settings-head{display:flex;flex-direction:column;gap:4px;padding:6px 0 6px}',
         '.dpc-settings-title{font-size:16px;font-weight:600;line-height:26px}',
         '.dpc-settings-sub{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary)}',
-        '.dpc-settings-row{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:66px;padding:12px 0;box-sizing:border-box;border-bottom:1px solid var(--dsw-alias-border-l1)}',
-        '.dpc-settings-row:last-of-type{border-bottom:0}',
+        '.dpc-settings-row{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:66px;padding:12px 0;box-sizing:border-box}',
         '.dpc-settings-row-main{display:flex;flex-direction:column;gap:3px;min-width:0}',
         '.dpc-settings-row-label{font-size:14px;line-height:22px;color:var(--dsw-alias-label-primary)}',
         '.dpc-settings-row-desc{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary)}',
-        '.dpc-settings-control{flex:none;display:flex;justify-content:flex-end;align-items:center;min-width:132px;max-width:240px}',
-        '.dpc-settings-select{width:100%;border:1px solid transparent;border-radius:8px;padding:7px 12px;font-size:13px;line-height:20px;background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1));color:var(--dsw-alias-label-primary);cursor:pointer;appearance:auto}',
-        '.dpc-settings-select:hover{background:var(--dsw-alias-bg-layer-1)}',
+        '.dpc-settings-control{flex:none;display:flex;justify-content:flex-end;align-items:center;min-width:132px;max-width:260px}',
+        '.dpc-settings-select{width:100%;appearance:none;-webkit-appearance:none;border:1px solid transparent;border-radius:8px;padding:7px 30px 7px 12px;font-size:13px;line-height:20px;background-color:var(--dsw-alias-bg-layer-2,#f4f4f5);background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23888888%22 stroke-width=%222%22%3E%3Cpath d=%22M6 9l6 6 6-6%22/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;color:var(--dsw-alias-label-primary);cursor:pointer}',
+        '.dpc-settings-select:hover{background-color:var(--dsw-alias-bg-layer-1)}',
         '.dpc-settings-select:focus{outline:none;border-color:var(--dsw-alias-brand-primary,var(--dsw-alias-state-business-primary))}',
-        '.dpc-settings-toggle{width:40px;height:24px;border-radius:999px;border:0;background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1));position:relative;cursor:pointer;padding:0;flex:none}',
-        '.dpc-settings-toggle[data-on="true"]{background:var(--dsw-alias-brand-primary,var(--dsw-alias-state-business-primary))}',
+        '.dpc-settings-toggle{width:40px;height:24px;border-radius:999px;border:0;background:var(--dsw-alias-bg-layer-2,#e9e9ea);position:relative;cursor:pointer;padding:0;flex:none}',
+        '.dpc-settings-toggle[data-on="true"]{background:var(--dsw-alias-label-primary,#1f1f1f)}',
         '.dpc-settings-toggle span{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:999px;background:#fff;transition:left .12s ease;box-shadow:0 1px 2px rgba(0,0,0,.18)}',
         '.dpc-settings-toggle[data-on="true"] span{left:18px}',
-        '.dpc-settings-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding-top:18px}',
+        '.dpc-settings-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding-top:14px}',
         '.dpc-settings-status{font-size:12px;line-height:18px;color:var(--dsw-alias-state-success-primary,var(--dsw-alias-label-secondary));margin-right:auto}',
         '.dpc-settings-error{font-size:12px;line-height:18px;color:var(--dsw-alias-state-error-primary,var(--dsw-alias-label-secondary));margin-right:auto}',
-        '.dpc-settings-save{border:0;border-radius:8px;padding:7px 16px;font-size:13px;line-height:20px;cursor:pointer;background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1));color:var(--dsw-alias-label-primary);flex:none}',
+        '.dpc-settings-save{border:0;border-radius:8px;padding:7px 16px;font-size:13px;line-height:20px;cursor:pointer;background:var(--dsw-alias-bg-layer-2,#f4f4f5);color:var(--dsw-alias-label-primary);flex:none}',
         '.dpc-settings-save:hover{background:var(--dsw-alias-bg-layer-1)}',
         '.dpc-settings-save:disabled{opacity:.5;cursor:default}',
         '.dpc-settings-loading{padding:18px 24px;font-size:13px;color:var(--dsw-alias-label-secondary)}'
