@@ -11,7 +11,7 @@
  * The Client half only talks to this half through `/plan-completion/*`
  * (verified contract: same-origin fetch from the Electron page works and the body is readable).
  */
-import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs'
+import { appendFileSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 
 import { DEFAULTS } from './host/config.js'
@@ -61,6 +61,38 @@ function expandStorageDir(value, envValue) {
     }
   }
   return raw
+}
+
+const MODEL_POLICIES = new Set(['default', 'fixed', 'auto'])
+
+function normalizeModelPolicy(value) {
+  const policy = typeof value === 'string' ? value.trim() : ''
+  return MODEL_POLICIES.has(policy) ? policy : 'default'
+}
+
+/** Settings written through the model-settings page (persisted next to the plan store). */
+function readSavedSettings(dir) {
+  if (!dir) return {}
+  try {
+    const data = JSON.parse(readFileSync(join(dir, 'settings.json'), 'utf8'))
+    return data && typeof data === 'object' && !Array.isArray(data) ? data : {}
+  } catch {
+    return {}
+  }
+}
+
+function writeSavedSettings(dir, data) {
+  if (!dir) return false
+  try {
+    mkdirSync(dir, { recursive: true })
+    const target = join(dir, 'settings.json')
+    const tmp = join(dir, `.settings-${process.pid}-${Date.now()}.json.tmp`)
+    writeFileSync(tmp, `${JSON.stringify(data, null, 2)}\n`, 'utf8')
+    renameSync(tmp, target)
+    return true
+  } catch {
+    return false
+  }
 }
 
 function readJsonBody(req) {
@@ -154,11 +186,56 @@ function normalizePromptMessages(prompt) {
 /**
  * Use the user's current default route only. Never send session evidence to
  * another configured provider/model just because it may respond faster.
+ *
+ * v0.1.6 model policy:
+ *   default — follow the host's current default model (previous behaviour)
+ *   fixed   — always use `fixedProvider`/`fixedModel` (only if resolvable)
+ *   auto    — within the default provider, prefer a model without reasoning efforts
+ * Without a host default route the generator falls back to heuristics (null).
  */
-async function pickModel(services) {
+async function pickModel(services, policy = null) {
   const llm = services.llm
   const selection = services.agentDefaultModel?.currentSelection?.()
-  if (!llm || !selection?.provider || !selection?.model) return null
+  if (!llm) return null
+  const mode = policy?.modelPolicy === 'fixed' ? 'fixed' : policy?.modelPolicy === 'auto' ? 'auto' : 'default'
+
+  if (mode === 'fixed' && policy?.fixedProvider && policy?.fixedModel) {
+    const route = { provider: policy.fixedProvider, model: policy.fixedModel, source: 'fixed' }
+    try {
+      const info = await llm.resolveModelInfo?.(route.provider, route.model)
+      if (info) {
+        const efforts = info?.reasoning?.efforts
+        if (Array.isArray(efforts) && efforts.length) route.reasoningEffort = efforts[0]?.id
+        return route
+      }
+    } catch {
+      /* fixed route unavailable: fall back to the host default below */
+    }
+  }
+
+  if (!selection?.provider || !selection?.model) return null
+
+  if (mode === 'auto') {
+    try {
+      const models = typeof llm.listModels === 'function' ? await llm.listModels(selection.provider) : []
+      for (const model of Array.isArray(models) ? models : []) {
+        const id = String(model?.id ?? '')
+        if (!id) continue
+        try {
+          const info = await llm.resolveModelInfo?.(selection.provider, id)
+          const efforts = info?.reasoning?.efforts
+          if (!Array.isArray(efforts) || efforts.length === 0) {
+            return { provider: selection.provider, model: id, source: 'auto' }
+          }
+        } catch {
+          /* try the next catalog entry */
+        }
+      }
+    } catch {
+      /* fall back to the host default */
+    }
+  }
+
   const route = { provider: selection.provider, model: selection.model, source: 'session-default' }
   try {
     const info = await llm.resolveModelInfo?.(route.provider, route.model)
@@ -247,14 +324,19 @@ export function apply(ctx, config = {}) {
     return Math.min(max, Math.max(min, number))
   }
   const rawConfig = config && typeof config === 'object' ? config : {}
+  const storageDir = expandStorageDir(rawConfig.storageDir, process.env.DSH_PLAN_COMPLETION_STORE_DIR)
+  const savedSettings = readSavedSettings(storageDir)
   const settings = {
     evidenceChars: readInt(rawConfig.evidenceChars, 1500, 400, 8000),
     maxTokensPatch: readInt(rawConfig.maxTokensPatch, 400, 120, 4000),
     maxTokensRewrite: readInt(rawConfig.maxTokensRewrite, 1200, 400, 8000),
     warmBackfill: rawConfig.warmBackfill !== false,
-    modelCalls: rawConfig.modelCalls !== false,
+    modelCalls: (typeof savedSettings.modelCalls === 'boolean' ? savedSettings.modelCalls : true) && rawConfig.modelCalls !== false,
+    modelPolicy: normalizeModelPolicy(savedSettings.modelPolicy ?? rawConfig.modelPolicy),
+    fixedProvider: typeof savedSettings.fixedProvider === 'string' ? savedSettings.fixedProvider.trim().slice(0, 120) : '',
+    fixedModel: typeof savedSettings.fixedModel === 'string' ? savedSettings.fixedModel.trim().slice(0, 120) : '',
     persistPlans: rawConfig.persistPlans !== false,
-    storageDir: expandStorageDir(rawConfig.storageDir, process.env.DSH_PLAN_COMPLETION_STORE_DIR),
+    storageDir,
     maxTokensVerify: readInt(rawConfig.maxTokensVerify, DEFAULTS.maxTokensVerify, 200, 2000),
     enableDebugRoutes: rawConfig.enableDebugRoutes === true,
     debugDir: typeof rawConfig.debugDir === 'string' && rawConfig.debugDir.trim() !== ''
@@ -334,6 +416,28 @@ export function apply(ctx, config = {}) {
       suggestion: state?.suggestion ?? null,
       stale: state ? Boolean(state.stale) : true,
       debugTheme,
+    }
+  }
+
+  function settingsSnapshot() {
+    const selection = services.agentDefaultModel?.currentSelection?.() ?? null
+    let providers = []
+    try {
+      providers = services.llm?.listProviders?.() ?? []
+    } catch {
+      providers = []
+    }
+    return {
+      modelPolicy: settings.modelPolicy,
+      fixedProvider: settings.fixedProvider,
+      fixedModel: settings.fixedModel,
+      modelCalls: settings.modelCalls,
+      defaultSelection: selection && selection.provider && selection.model
+        ? { provider: selection.provider, model: selection.model }
+        : null,
+      providers: Array.isArray(providers)
+        ? providers.map(provider => ({ id: provider?.id ?? '', name: provider?.name ?? provider?.id ?? '' }))
+        : [],
     }
   }
 
@@ -633,7 +737,7 @@ export function apply(ctx, config = {}) {
           ]
         }
         try {
-          const route = await pickModel(services)
+          const route = await pickModel(services, settings)
           if (!isCurrent()) return
           debug.model = route
           debugLog({ phase: 'model-choice', sessionId, route })
@@ -1009,7 +1113,7 @@ export function apply(ctx, config = {}) {
               jsonResponse(res, 200, { ok: false, error: 'in-progress' })
               return
             }
-            const route = await pickModel(services)
+            const route = await pickModel(services, settings)
             if (!route) {
               jsonResponse(res, 200, { ok: false, error: 'no-model-route' })
               return
@@ -1075,6 +1179,54 @@ export function apply(ctx, config = {}) {
               clearTimeout(timer)
               verifyInflight.delete(sessionId)
             }
+            return
+          }
+          if (pathname === `${ROUTE_PREFIX}settings` && method === 'GET') {
+            jsonResponse(res, 200, { ok: true, settings: settingsSnapshot() })
+            return
+          }
+          if (pathname === `${ROUTE_PREFIX}settings` && method === 'POST') {
+            const body = (await readJsonBody(req)) ?? {}
+            const next = { ...settingsSnapshot() }
+            if (body.modelPolicy !== undefined) {
+              const policy = normalizeModelPolicy(body.modelPolicy)
+              if (policy !== String(body.modelPolicy).trim()) {
+                jsonResponse(res, 200, { ok: false, error: 'bad-model-policy' })
+                return
+              }
+              next.modelPolicy = policy
+            }
+            if (body.modelCalls !== undefined) {
+              if (typeof body.modelCalls !== 'boolean') {
+                jsonResponse(res, 200, { ok: false, error: 'bad-model-calls' })
+                return
+              }
+              next.modelCalls = body.modelCalls
+            }
+            for (const key of ['fixedProvider', 'fixedModel']) {
+              if (body[key] === undefined) continue
+              if (typeof body[key] !== 'string') {
+                jsonResponse(res, 200, { ok: false, error: 'bad-' + key })
+                return
+              }
+              next[key] = body[key].trim().slice(0, 120)
+            }
+            if (next.modelPolicy === 'fixed' && (!next.fixedProvider || !next.fixedModel)) {
+              jsonResponse(res, 200, { ok: false, error: 'missing-fixed-route' })
+              return
+            }
+            settings.modelPolicy = next.modelPolicy
+            settings.fixedProvider = next.fixedProvider
+            settings.fixedModel = next.fixedModel
+            settings.modelCalls = next.modelCalls
+            const saved = writeSavedSettings(settings.storageDir, {
+              modelPolicy: settings.modelPolicy,
+              fixedProvider: settings.fixedProvider,
+              fixedModel: settings.fixedModel,
+              modelCalls: settings.modelCalls,
+            })
+            debugLog({ phase: 'settings-updated', modelPolicy: settings.modelPolicy, saved })
+            jsonResponse(res, 200, { ok: true, saved, settings: settingsSnapshot() })
             return
           }
           if (pathname === `${ROUTE_PREFIX}state` && method === 'GET') {
@@ -1297,7 +1449,7 @@ export function apply(ctx, config = {}) {
             experimentState.error = null
             void (async () => {
               try {
-                const route = await pickModel(services)
+                const route = await pickModel(services, settings)
                 if (!route) throw new Error('no-model-route')
                 const judgeRoute = await pickJudgeRoute(services, route)
                 debugLog({ phase: 'experiment-start', sessionId, route, judgeRoute })
@@ -1390,6 +1542,7 @@ export function apply(ctx, config = {}) {
       `${ROUTE_PREFIX}replan`,
       `${ROUTE_PREFIX}warm`,
       `${ROUTE_PREFIX}verify`,
+      `${ROUTE_PREFIX}settings`,
     ]
     if (settings.enableDebugRoutes) {
       paths.push(
@@ -1493,4 +1646,5 @@ export function apply(ctx, config = {}) {
     services: Object.fromEntries(Object.entries(services).map(([key, value]) => [key, Boolean(value)])),
   })
 }
+
 
