@@ -428,10 +428,11 @@ export function apply(ctx, config = {}) {
       providers = []
     }
     let models = []
+    let modelsProvider = ''
     try {
-      const provider = providerHint || selection?.provider || (Array.isArray(providers) ? providers[0]?.id : '')
-      if (provider && typeof services.llm?.listModels === 'function') {
-        models = (await services.llm.listModels(provider))?.map(m => ({ provider, id: m?.id ?? '', name: m?.name ?? m?.id ?? '' })) ?? []
+      modelsProvider = providerHint || selection?.provider || (Array.isArray(providers) ? providers[0]?.id : '')
+      if (modelsProvider && typeof services.llm?.listModels === 'function') {
+        models = (await services.llm.listModels(modelsProvider))?.map(m => ({ provider: modelsProvider, id: m?.id ?? '', name: m?.name ?? m?.id ?? '' })) ?? []
       }
     } catch { models = [] }
     return {
@@ -443,7 +444,7 @@ export function apply(ctx, config = {}) {
         ? { provider: selection.provider, model: selection.model }
         : null,
       models,
-      modelsProvider: provider,
+      modelsProvider,
       providers: Array.isArray(providers)
         ? providers.map(provider => ({ id: provider?.id ?? '', name: provider?.name ?? provider?.id ?? '' }))
         : [],
