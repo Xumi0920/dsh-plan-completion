@@ -1,8 +1,10 @@
 # GitHub 发布评估 · 会话计划补全插件（2026-11-02）
 
-> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**v0.1.1 已发布**（鉴权、状态一致性、隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.1.2**（本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
 >
 > v0.1.1 发布记录（2026-11-02）：tag `v0.1.1` + [Release](https://github.com/Xumi0920/dsh-plan-completion/releases/tag/v0.1.1)；GitHub Actions [run 41366651557](https://github.com/Xumi0920/dsh-plan-completion/actions/runs/41366651557)（Ubuntu/Windows × Node20/22 四 job 全绿）；npm `dsh-plan-completion@0.1.1`（31 files，shasum `18989b0f50b72d5c8c332f3fdee7f43ccb5fd91a`）。
+>
+> v0.1.2 发布记录（2026-11-02）：tag `v0.1.2` + [Release](https://github.com/Xumi0920/dsh-plan-completion/releases/tag/v0.1.2)；GitHub Actions [run 41367719292](https://github.com/Xumi0920/dsh-plan-completion/actions/runs/41367719292)（Ubuntu/Windows × Node20/22 四 job 全绿，120/120 tests）；npm `dsh-plan-completion@0.1.2`（31 files，shasum `e9d5d61ae2cb35f043e2eb7d05a38786d2699626`）；真机持久化 canary 通过（6 个会话计划落盘、会话文件 `gen5.rev0` 可读回、subagent 真实回合自动写入）。
 
 > **2026-11-02 晚更新：P0 清单已全部完成，状态从「不满足全 PASS」→「可按 GitHub 源码仓库发布」。**
 >
