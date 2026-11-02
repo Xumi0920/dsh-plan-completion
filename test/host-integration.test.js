@@ -27,6 +27,36 @@ test('production host: cold-start rewrite and next-turn patch advance the same p
   assert.equal(host.calls.length, 2);
 });
 
+test('production host: /replan forces a rewrite and advances the plan', async t => {
+  const rewritten = {
+    op: 'rewrite',
+    reason: '按最新进展重排二期计划',
+    intent: '二期收尾',
+    steps: [
+      { id: 's1', title: '[交付] 计划持久化', status: 'done' },
+      { id: 's2', title: '[交付] 核对进度', status: 'done' },
+      { id: 's3', title: '[交付] 文本保真', status: 'done' },
+      { id: 's4', title: '[二期] 模型设置页', status: 'todo' },
+      { id: 's5', title: '[二期] 右栏计划页', status: 'todo' },
+    ],
+    suggestion: '开始做模型设置页',
+  };
+  const host = setup(t, [initialOutput(), rewritten]);
+  const session = sessionFixture('replan-route');
+  const first = await completeTurn(host, session, 1);
+  assert.deepEqual(first.version, { gen: 1, rev: 0 });
+  assert.equal(first.steps[0].title, 'Inspect requirements');
+
+  const queued = await host.request('/plan-completion/replan', { sessionId: session.id });
+  assert.equal(queued.body.ok, true);
+  await waitFor(() => host.state(session.id)?.plan?.version?.gen === 2, 'rewrite committed');
+  const after = host.state(session.id).plan;
+  assert.deepEqual(after.version, { gen: 2, rev: 0 });
+  assert.equal(after.steps.length, 5);
+  assert.equal(after.steps[3].title, '[二期] 模型设置页');
+  assert.equal(host.state(session.id).suggestion.text, '开始做模型设置页');
+});
+
 test('production host: repeated op=none results surface an actionable /replan suggestion', async t => {
   const noneOutput = { op: 'none', reason: '没有实质变化', suggestion: '继续推进当前计划' };
   const host = setup(t, [initialOutput(), noneOutput, noneOutput]);
