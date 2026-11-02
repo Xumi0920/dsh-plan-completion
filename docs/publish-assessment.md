@@ -1,6 +1,8 @@
 # GitHub 发布评估 · 会话计划补全插件（2026-11-02）
 
-> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.1.2**（本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.1.3**（核对进度 + 本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+>
+> v0.1.3 发布记录（2026-11-02）：tag `v0.1.3` + [Release](https://github.com/Xumi0920/dsh-plan-completion/releases/tag/v0.1.3)；GitHub Actions [run 41368609382](https://github.com/Xumi0920/dsh-plan-completion/actions/runs/41368609382)（Ubuntu/Windows × Node20/22 四 job 全绿，126/126 tests）；npm `dsh-plan-completion@0.1.3`（31 files，shasum `11adee0fe9acff199a180be511ca8bc600afdf6f`）；canary 验证 `/plan-completion/verify` 未认证 401、客户端鉴权请求正常。
 >
 > v0.1.1 发布记录（2026-11-02）：tag `v0.1.1` + [Release](https://github.com/Xumi0920/dsh-plan-completion/releases/tag/v0.1.1)；GitHub Actions [run 41366651557](https://github.com/Xumi0920/dsh-plan-completion/actions/runs/41366651557)（Ubuntu/Windows × Node20/22 四 job 全绿）；npm `dsh-plan-completion@0.1.1`（31 files，shasum `18989b0f50b72d5c8c332f3fdee7f43ccb5fd91a`）。
 >
