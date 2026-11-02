@@ -12,7 +12,6 @@
  * (verified contract: same-origin fetch from the Electron page works and the body is readable).
  */
 import { appendFileSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
-import { createHash } from 'node:crypto'
 import { homedir } from 'node:os'
 
 import { DEFAULTS } from './host/config.js'
@@ -338,7 +337,6 @@ export function apply(ctx, config = {}) {
     fixedModel: typeof savedSettings.fixedModel === 'string' ? savedSettings.fixedModel.trim().slice(0, 120) : '',
     persistPlans: rawConfig.persistPlans !== false,
     storageDir,
-    suggestionLog: rawConfig.suggestionLog === true,
     maxTokensVerify: readInt(rawConfig.maxTokensVerify, DEFAULTS.maxTokensVerify, 200, 2000),
     enableDebugRoutes: rawConfig.enableDebugRoutes === true,
     debugDir: typeof rawConfig.debugDir === 'string' && rawConfig.debugDir.trim() !== ''
@@ -902,29 +900,6 @@ export function apply(ctx, config = {}) {
         suggestion: publishedSuggestion,
         stale: replanSuggested,
       })
-      // Opt-in suggestion log for later debugging/tuning. It contains suggestion text,
-      // so it is written only when `suggestionLog:true` explicitly (and a debugDir is set).
-      if (settings.suggestionLog && debugDir) {
-        try {
-          const record = {
-            time: new Date().toISOString(),
-            sessionHash: createHash('sha256').update(String(sessionId)).digest('hex').slice(0, 16),
-            turn,
-            outcome,
-            version: nextPlan?.version ?? null,
-            steps: Array.isArray(nextPlan?.steps)
-              ? nextPlan.steps.map(step => ({ id: step.id, status: step.status, title: step.title }))
-              : [],
-            suggestion: publishedSuggestion?.text ?? '',
-            alternates: publishedSuggestion?.alternates ?? [],
-            replanSuggested,
-          }
-          mkdirSync(debugDir, { recursive: true })
-          appendFileSync(join(debugDir, 'plan-completion-suggestions.jsonl'), `${JSON.stringify(record)}\n`, 'utf8')
-        } catch {
-          /* logging never breaks a generation */
-        }
-      }
       debug.lastJob = {
         sessionId,
         turn,
@@ -1671,5 +1646,6 @@ export function apply(ctx, config = {}) {
     services: Object.fromEntries(Object.entries(services).map(([key, value]) => [key, Boolean(value)])),
   })
 }
+
 
 

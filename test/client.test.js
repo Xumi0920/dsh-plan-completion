@@ -7,7 +7,7 @@ const original = fs.readFileSync(process.env.DSH_CLIENT_TEST_SOURCE || new URL('
 const marker = "    return {\n      inject: ['slots', 'locale'],";
 assert.equal(original.split(marker).length, 2, 'client test seam must be unique');
 const source = original.replace(marker,
-  '    globalThis.__clientTest = { store, Dock, handleKeyDown, normalizePlan, fetchPlanState, warmPlanState, requestVerify, handlePlanFetch };\n' + marker);
+  '    globalThis.__clientTest = { store, Dock, handleKeyDown, normalizePlan, fetchPlanState, warmPlanState, requestVerify, fetchSettings, saveSettings, handlePlanFetch };\n' + marker);
 
 function fixture() {
   let effects = [], refs = [], plugin;
@@ -219,6 +219,28 @@ test('verify request posts the session id and returns the host verdict', async (
   assert.equal(await f.api.requestVerify(''), null);
 });
 
+test('settings transport reads the host settings and posts the form', async () => {
+  const f = fixture();
+  const pending = f.api.fetchSettings();
+  const get = f.requests.find(r => r.url === '/plan-completion/settings' && r.options.method === 'GET');
+  assert.ok(get, 'settings page must GET /plan-completion/settings');
+  get.respond({ok: true, settings: {modelPolicy: 'default', modelCalls: true}});
+  const loaded = await pending;
+  assert.equal(loaded.settings.modelPolicy, 'default');
+
+  const saving = f.api.saveSettings({modelPolicy: 'fixed', fixedProvider: 'fixture', fixedModel: 'm1', modelCalls: false});
+  const post = f.requests.filter(r => r.url === '/plan-completion/settings').at(-1);
+  assert.equal(post.options.method, 'POST');
+  assert.deepEqual(JSON.parse(post.options.body), {modelPolicy: 'fixed', fixedProvider: 'fixture', fixedModel: 'm1', modelCalls: false});
+  post.respond({ok: true, saved: true, settings: {modelPolicy: 'fixed', fixedProvider: 'fixture', fixedModel: 'm1', modelCalls: false}});
+  const saved = await saving;
+  assert.equal(saved.saved, true);
+  assert.equal(saved.settings.fixedModel, 'm1');
+
+  const failed = f.api.fetchSettings();
+  f.requests.at(-1).respond({}, false);
+  assert.equal(await failed, null);
+});
 test('a same-session remount owns state even if the old Dock is cleaned up later', async () => {
   const f = fixture(), first = f.mount();
   const old = f.request();
@@ -240,3 +262,5 @@ test('diagnostics contain no composer content, suggestion text, or location', ()
   assert.equal(serialized.includes('PRIVATE_TOKEN'), false);
   assert.equal(serialized.includes('href'), false);
 });
+
+

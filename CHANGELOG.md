@@ -3,6 +3,21 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
+## [0.1.6] - 2026-11-02
+
+### Added
+- Model settings page registered at `settings.plugins.tab` (Settings → Plugins → 计划补全):
+  radio group for `default` / `fixed` / `auto` model policy, Provider/Model ID inputs for fixed
+  mode, a `modelCalls` toggle, current host-default route hint, and save/status feedback.
+- Host settings route `GET/POST /plan-completion/settings` (authenticated) persists the policy to
+  `<storageDir>/settings.json` and loads it on apply; `pickModel` honours `default`/`fixed`/`auto`.
+- Client transport test for the settings page (GET/POST, failure handling).
+- Dev-only suggestion log lives outside the release: `research/suggestion-log-local/` keeps a local
+  copy for tuning; the published plugin does not contain or enable suggestion-content logging.
+
+### Changed
+- `npm test` now reports **138/138** tests.
+
 ## [0.1.5] - 2026-11-02
 
 ### Fixed
@@ -136,3 +151,4 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: Se
 - Debug endpoints (`theme`, `experiment`, `autojob`, `steps`, `reset`) are only registered when
   `enableDebugRoutes: true`; production endpoints are `state`, `debug`, `diag`, `replan`, `warm`.
 - No credentials are stored in the plugin; model calls use the host `llm` service.
+
