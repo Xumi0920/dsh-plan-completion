@@ -2171,7 +2171,7 @@ window.__ModuleLoader__.load({
         '.dpc-settings-radio:last-of-type{border-bottom:0}',
         '.dpc-settings-radio:hover{background:var(--dsw-alias-bg-layer-1)}',
         '.dpc-settings-check{padding:12px;border:1px solid var(--dsw-alias-border-l1);border-radius:12px;background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1))}',
-        '.dpc-settings-check:hover{background:var(--dsw-alias-bg-layer-1)}'
+        '.dpc-settings-check:hover{background:var(--dsw-alias-bg-layer-1)}',
         '.dpc-settings-status{padding:20px 22px;font-size:13px;color:var(--dsw-alias-label-secondary)}'
       ].join('\n');
     }
@@ -2459,6 +2459,7 @@ window.__ModuleLoader__.load({
 });
 
 // hot-reload marker 2026-11-01T13:57Z
+
 
 
 
