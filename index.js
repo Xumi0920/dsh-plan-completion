@@ -1291,7 +1291,7 @@ export function apply(ctx, config = {}) {
           if (pathname === `${ROUTE_PREFIX}diag` && method === 'POST') {
             const body = (await readJsonBody(req)) ?? {}
             debug.lastDiag = { at: Date.now(), body: safeDiagnostics(body) }
-            debugLog({ phase: 'client-diag' })
+            debugLog({ phase: 'client-diag-' + String(body?.build ?? '') })
             jsonResponse(res, 200, { ok: true })
             return
           }
@@ -1656,6 +1656,7 @@ export function apply(ctx, config = {}) {
     services: Object.fromEntries(Object.entries(services).map(([key, value]) => [key, Boolean(value)])),
   })
 }
+
 
 
 
