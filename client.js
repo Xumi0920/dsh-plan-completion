@@ -114,6 +114,9 @@ window.__ModuleLoader__.load({
         'settings.provider': 'Provider',
         'settings.modelId': 'Model ID',
         'settings.modelCalls': '允许本插件调用模型',
+        'settings.modelDesc': '选择插件生成计划与建议时使用的模型来源',
+        'settings.providerDesc': '固定使用的 provider',
+        'settings.callsDesc': '关闭后插件只使用启发式，不向模型发送内容',
         'settings.defaultRoute': '宿主默认：{value}',
         'settings.save': '保存',
         'settings.saving': '保存中…',
@@ -172,6 +175,9 @@ window.__ModuleLoader__.load({
         'settings.provider': 'Provider',
         'settings.modelId': 'Model ID',
         'settings.modelCalls': 'Allow this plugin to call models',
+        'settings.modelDesc': 'Model source used for plan and suggestion generation',
+        'settings.providerDesc': 'Provider used by the fixed policy',
+        'settings.callsDesc': 'When off, the plugin only uses heuristics and sends nothing',
         'settings.defaultRoute': 'Host default: {value}',
         'settings.save': 'Save',
         'settings.saving': 'Saving…',
@@ -820,9 +826,10 @@ window.__ModuleLoader__.load({
     /**
      * Host settings used by the settings page (model policy + modelCalls).
      */
-    function fetchSettings() {
+    function fetchSettings(provider) {
       try {
-        return Promise.resolve(fetch('/plan-completion/settings', {
+        const query = typeof provider === 'string' && provider ? '?provider=' + encodeURIComponent(provider) : '';
+        return Promise.resolve(fetch('/plan-completion/settings' + query, {
           method: 'GET',
           credentials: 'same-origin',
           headers: { accept: 'application/json' }
@@ -2140,32 +2147,32 @@ window.__ModuleLoader__.load({
 
     function settingsCss() {
       return [
-        '.dpc-settings-panel{display:flex;flex-direction:column;gap:18px;padding:20px 24px 24px;font-size:13px;line-height:20px;color:var(--dsw-alias-label-primary);max-width:600px;box-sizing:border-box}',
-        '.dpc-settings-head{display:flex;flex-direction:column;gap:4px}',
+        '.dpc-settings-page{display:flex;flex-direction:column;gap:2px;padding:18px 24px 22px;max-width:600px;box-sizing:border-box;font-size:13px;line-height:20px;color:var(--dsw-alias-label-primary)}',
+        '.dpc-settings-head{display:flex;flex-direction:column;gap:4px;padding-bottom:14px}',
         '.dpc-settings-title{font-size:15px;font-weight:600;line-height:24px}',
         '.dpc-settings-sub{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary)}',
-        '.dpc-settings-section{display:flex;flex-direction:column;gap:8px}',
-        '.dpc-settings-section-title{font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary);font-weight:500}',
-        '.dpc-settings-card{border:1px solid var(--dsw-alias-border-l1);border-radius:12px;background:var(--dsw-alias-bg-layer-1);overflow:hidden}',
-        '.dpc-settings-row{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:44px;padding:10px 14px;border-bottom:1px solid var(--dsw-alias-border-l1);box-sizing:border-box}',
-        '.dpc-settings-row:last-child{border-bottom:0}',
-        '.dpc-settings-row:hover{background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1))}',
-        '.dpc-settings-row input[type=radio],.dpc-settings-row input[type=checkbox]{accent-color:var(--dsw-alias-brand-primary,var(--dsw-alias-state-business-primary));width:15px;height:15px;margin:0}',
+        '.dpc-settings-row{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:10px 0;min-height:48px;box-sizing:border-box;border-bottom:1px solid var(--dsw-alias-border-l1)}',
+        '.dpc-settings-row:last-of-type{border-bottom:0}',
         '.dpc-settings-row-main{display:flex;flex-direction:column;gap:2px;min-width:0}',
         '.dpc-settings-row-label{font-size:13px;line-height:20px;color:var(--dsw-alias-label-primary)}',
         '.dpc-settings-row-desc{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary)}',
-        '.dpc-settings-row-control{display:flex;align-items:center;gap:8px;flex:none;color:var(--dsw-alias-label-primary)}',
-        '.dpc-settings-select{min-width:180px;max-width:240px;border:1px solid var(--dsw-alias-border-l1);border-radius:8px;padding:5px 10px;font-size:12px;line-height:18px;background:var(--dsw-alias-bg-base,var(--dsw-alias-bg-layer-1));color:var(--dsw-alias-label-primary)}',
-        '.dpc-settings-hint{padding:8px 14px;font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary);background:var(--dsw-alias-bg-layer-1)}',
-        '.dpc-settings-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:2px}',
-        '.dpc-settings-status{font-size:12px;line-height:18px;color:var(--dsw-alias-state-success-primary,var(--dsw-alias-label-secondary))}',
-        '.dpc-settings-error{font-size:12px;line-height:18px;color:var(--dsw-alias-state-error-primary,var(--dsw-alias-label-secondary))}',
-        '.dpc-settings-save{border:1px solid var(--dsw-alias-border-l1);border-radius:8px;padding:5px 16px;font-size:12px;line-height:18px;cursor:pointer;background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1));color:var(--dsw-alias-label-primary);flex:none}',
+        '.dpc-settings-control{flex:none;width:190px;display:flex;justify-content:flex-end}',
+        '.dpc-settings-select{width:100%;border:1px solid var(--dsw-alias-border-l1);border-radius:8px;padding:6px 10px;font-size:12px;line-height:18px;background:var(--dsw-alias-bg-base,var(--dsw-alias-bg-layer-1));color:var(--dsw-alias-label-primary);cursor:pointer}',
+        '.dpc-settings-select:focus{outline:none;border-color:var(--dsw-alias-brand-primary,var(--dsw-alias-state-business-primary))}',
+        '.dpc-settings-toggle{width:38px;height:22px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1));position:relative;cursor:pointer;padding:0;flex:none}',
+        '.dpc-settings-toggle[data-on="true"]{background:var(--dsw-alias-brand-primary,var(--dsw-alias-state-business-primary));border-color:transparent}',
+        '.dpc-settings-toggle span{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:999px;background:var(--dsw-alias-bg-base,#fff);transition:left .12s ease;box-shadow:0 1px 2px rgba(0,0,0,.2)}',
+        '.dpc-settings-toggle[data-on="true"] span{left:18px}',
+        '.dpc-settings-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding-top:16px}',
+        '.dpc-settings-status{font-size:12px;line-height:18px;color:var(--dsw-alias-state-success-primary,var(--dsw-alias-label-secondary));margin-right:auto}',
+        '.dpc-settings-error{font-size:12px;line-height:18px;color:var(--dsw-alias-state-error-primary,var(--dsw-alias-label-secondary));margin-right:auto}',
+        '.dpc-settings-save{border:1px solid var(--dsw-alias-border-l1);border-radius:999px;padding:5px 16px;font-size:12px;line-height:18px;cursor:pointer;background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1));color:var(--dsw-alias-label-primary);flex:none}',
         '.dpc-settings-save:hover{background:var(--dsw-alias-bg-layer-1)}',
         '.dpc-settings-save:disabled{opacity:.5;cursor:default}',
-        '.dpc-settings-loading{padding:20px 24px;font-size:13px;color:var(--dsw-alias-label-secondary)}'
+        '.dpc-settings-loading{padding:18px 24px;font-size:13px;color:var(--dsw-alias-label-secondary)}'
       ].join('\n');
     }
+
     function PlanSettingsPage(props) {
       const t = makeT(props);
       const [settings, setSettings] = React.useState(null);
@@ -2174,9 +2181,9 @@ window.__ModuleLoader__.load({
       const [error, setError] = React.useState('');
       const [saved, setSaved] = React.useState(false);
 
-      React.useEffect(function loadSettings() {
+      React.useEffect(function load() {
         let alive = true;
-        fetchSettings().then(function applySettings(result) {
+        fetchSettings().then(function applied(result) {
           if (!alive) return;
           if (!result || result.ok !== true || !result.settings) { setStatus('error'); return; }
           setSettings(result.settings);
@@ -2188,6 +2195,12 @@ window.__ModuleLoader__.load({
       function patch(next) {
         setSaved(false);
         setSettings(function keep(previous) { return previous ? { ...previous, ...next } : previous; });
+      }
+      function chooseProvider(provider) {
+        patch({ fixedProvider: provider, fixedModel: '', models: [] });
+        fetchSettings(provider).then(function applied(result) {
+          if (result && result.ok === true && result.settings) patch({ models: result.settings.models || [] });
+        });
       }
       function save() {
         if (!settings || saving) return;
@@ -2210,79 +2223,59 @@ window.__ModuleLoader__.load({
       }
 
       const styleTag = h('style', { key: 'style', 'data-plan-completion-style': 'settings' }, settingsCss());
-      if (status === 'loading') {
-        return h(React.Fragment, null, styleTag, h('div', { key: 'loading', className: 'dpc-settings-loading' }, t('settings.loading')));
-      }
-      if (status === 'error' || !settings) {
-        return h(React.Fragment, null, styleTag,
-          h('div', { key: 'error', className: 'dpc-settings-loading dpc-settings-error' }, t('settings.error')));
-      }
+      if (status === 'loading') return h(React.Fragment, null, styleTag, h('div', { key: 'loading', className: 'dpc-settings-loading' }, t('settings.loading')));
+      if (status === 'error' || !settings) return h(React.Fragment, null, styleTag, h('div', { key: 'error', className: 'dpc-settings-loading dpc-settings-error' }, t('settings.error')));
 
-      const policies = [
-        { value: 'default', label: t('settings.policy.default') },
-        { value: 'fixed', label: t('settings.policy.fixed') },
-        { value: 'auto', label: t('settings.policy.auto') }
-      ];
+      const defaultRoute = settings.defaultSelection ? settings.defaultSelection.provider + '/' + settings.defaultSelection.model : '-';
       const providers = settings.providers || [];
       const models = settings.models || [];
-      const defaultRoute = settings.defaultSelection
-        ? settings.defaultSelection.provider + '/' + settings.defaultSelection.model : '-';
+      const row = function row(key, label, desc, control) {
+        return h('div', { key: key, className: 'dpc-settings-row' },
+          h('div', { key: 'main', className: 'dpc-settings-row-main' },
+            h('div', { key: 'label', className: 'dpc-settings-row-label' }, label),
+            desc ? h('div', { key: 'desc', className: 'dpc-settings-row-desc' }, desc) : null),
+          h('div', { key: 'control', className: 'dpc-settings-control' }, control));
+      };
 
       return h(React.Fragment, null, styleTag,
-        h('div', { key: 'panel', className: 'dpc-settings-panel' },
+        h('div', { key: 'page', className: 'dpc-settings-page' },
           h('div', { key: 'head', className: 'dpc-settings-head' },
             h('div', { key: 'title', className: 'dpc-settings-title' }, t('settings.title')),
-            h('div', { key: 'sub', className: 'dpc-settings-sub' }, t('popover.title'))),
-          h('div', { key: 'model-section', className: 'dpc-settings-section' },
-            h('div', { key: 'label', className: 'dpc-settings-section-title' }, t('settings.model')),
-            h('div', { key: 'card', className: 'dpc-settings-card' },
-              ...policies.map(function renderPolicy(option) {
-                return h('label', { key: option.value, className: 'dpc-settings-row' },
-                  h('span', { key: 'main', className: 'dpc-settings-row-main' },
-                    h('span', { key: 'label', className: 'dpc-settings-row-label' }, option.label)),
-                  h('span', { key: 'control', className: 'dpc-settings-row-control' },
-                    h('input', { type: 'radio', name: 'dpc-model-policy', value: option.value,
-                      checked: settings.modelPolicy === option.value,
-                      onChange: function onPolicy() { patch({ modelPolicy: option.value }); } })));
-              }),
-              h('div', { key: 'hint', className: 'dpc-settings-hint' },
-                t('settings.defaultRoute', { value: defaultRoute })),
-              settings.modelPolicy === 'fixed'
-                ? h(React.Fragment, { key: 'fixed' },
-                    h('label', { key: 'provider-row', className: 'dpc-settings-row' },
-                      h('span', { key: 'main', className: 'dpc-settings-row-main' },
-                        h('span', { key: 'label', className: 'dpc-settings-row-label' }, t('settings.provider'))),
-                      h('span', { key: 'control', className: 'dpc-settings-row-control' },
-                        h('select', { className: 'dpc-settings-select', value: settings.fixedProvider || '',
-                          onChange: function onProvider(event) { patch({ fixedProvider: event.target.value }); } },
-                          [h('option', { key: 'empty', value: '' }, '—')].concat(providers.map(function option(provider) {
-                            return h('option', { key: provider.id, value: provider.id }, provider.name || provider.id);
-                          }))))),
-                    h('label', { key: 'model-row', className: 'dpc-settings-row' },
-                      h('span', { key: 'main', className: 'dpc-settings-row-main' },
-                        h('span', { key: 'label', className: 'dpc-settings-row-label' }, t('settings.modelId'))),
-                      h('span', { key: 'control', className: 'dpc-settings-row-control' },
-                        h('select', { className: 'dpc-settings-select', value: settings.fixedModel || '',
-                          onChange: function onModel(event) { patch({ fixedModel: event.target.value }); } },
-                          [h('option', { key: 'empty', value: '' }, '—')].concat(models.map(function option(model) {
-                            return h('option', { key: model.id, value: model.id }, model.name || model.id);
-                          }))))))
-                : null)),
-          h('div', { key: 'calls-section', className: 'dpc-settings-section' },
-            h('div', { key: 'card', className: 'dpc-settings-card' },
-              h('label', { key: 'row', className: 'dpc-settings-row' },
-                h('span', { key: 'main', className: 'dpc-settings-row-main' },
-                  h('span', { key: 'label', className: 'dpc-settings-row-label' }, t('settings.modelCalls'))),
-                h('span', { key: 'control', className: 'dpc-settings-row-control' },
-                  h('input', { type: 'checkbox', checked: settings.modelCalls === true,
-                    onChange: function onCalls(event) { patch({ modelCalls: event.target.checked }); } }))))),
+            h('div', { key: 'sub', className: 'dpc-settings-sub' }, t('settings.defaultRoute', { value: defaultRoute }))),
+          row('policy', t('settings.model'), t('settings.modelDesc'),
+            h('select', { className: 'dpc-settings-select', value: settings.modelPolicy,
+              onChange: function onPolicy(event) { patch({ modelPolicy: event.target.value }); } },
+              [h('option', { key: 'default', value: 'default' }, t('settings.policy.default')),
+               h('option', { key: 'fixed', value: 'fixed' }, t('settings.policy.fixed')),
+               h('option', { key: 'auto', value: 'auto' }, t('settings.policy.auto'))])),
+          settings.modelPolicy === 'fixed'
+            ? row('provider', t('settings.provider'), t('settings.providerDesc'),
+                h('select', { className: 'dpc-settings-select', value: settings.fixedProvider || '',
+                  onChange: function onProvider(event) { chooseProvider(event.target.value); } },
+                  [h('option', { key: 'empty', value: '' }, '—')].concat(providers.map(function option(p) {
+                    return h('option', { key: p.id, value: p.id }, p.name || p.id);
+                  }))))
+            : null,
+          settings.modelPolicy === 'fixed'
+            ? row('model', t('settings.modelId'), t('settings.modelDesc'),
+                h('select', { className: 'dpc-settings-select', value: settings.fixedModel || '',
+                  onChange: function onModel(event) { patch({ fixedModel: event.target.value }); } },
+                  [h('option', { key: 'empty', value: '' }, '—')].concat(models.map(function option(m) {
+                    return h('option', { key: m.id, value: m.id }, m.name || m.id);
+                  }))))
+            : null,
+          row('calls', t('settings.modelCalls'), t('settings.callsDesc'),
+            h('button', { type: 'button', className: 'dpc-settings-toggle', 'data-on': settings.modelCalls === true ? 'true' : 'false',
+              'aria-pressed': settings.modelCalls === true ? 'true' : 'false',
+              onClick: function onCalls() { patch({ modelCalls: settings.modelCalls !== true }); } },
+              h('span', { key: 'knob' }))),
           h('div', { key: 'footer', className: 'dpc-settings-footer' },
-            error ? h('div', { key: 'error', className: 'dpc-settings-error' }, error)
-              : saved ? h('div', { key: 'saved', className: 'dpc-settings-status' }, t('settings.saved'))
-              : h('div', { key: 'spacer', className: 'dpc-settings-sub' }, ''),
-            h('button', { key: 'save', type: 'button', className: 'dpc-settings-save', disabled: saving,
-              onClick: save }, saving ? t('settings.saving') : t('settings.save')))));
+            error ? h('div', { key: 'e', className: 'dpc-settings-error' }, error)
+              : saved ? h('div', { key: 's', className: 'dpc-settings-status' }, t('settings.saved')) : null,
+            h('button', { key: 'save', type: 'button', className: 'dpc-settings-save', disabled: saving, onClick: save },
+              saving ? t('settings.saving') : t('settings.save')))));
     }
+
 
     // =====================================================================
     // Plugin entry

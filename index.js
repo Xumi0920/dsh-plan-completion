@@ -419,7 +419,7 @@ export function apply(ctx, config = {}) {
     }
   }
 
-  async function settingsSnapshot() {
+  async function settingsSnapshot(providerHint = '') {
     const selection = services.agentDefaultModel?.currentSelection?.() ?? null
     let providers = []
     try {
@@ -429,7 +429,7 @@ export function apply(ctx, config = {}) {
     }
     let models = []
     try {
-      const provider = selection?.provider ?? (Array.isArray(providers) ? providers[0]?.id : '')
+      const provider = providerHint || selection?.provider || (Array.isArray(providers) ? providers[0]?.id : '')
       if (provider && typeof services.llm?.listModels === 'function') {
         models = (await services.llm.listModels(provider))?.map(m => ({ provider, id: m?.id ?? '', name: m?.name ?? m?.id ?? '' })) ?? []
       }
@@ -443,6 +443,7 @@ export function apply(ctx, config = {}) {
         ? { provider: selection.provider, model: selection.model }
         : null,
       models,
+      modelsProvider: provider,
       providers: Array.isArray(providers)
         ? providers.map(provider => ({ id: provider?.id ?? '', name: provider?.name ?? provider?.id ?? '' }))
         : [],
@@ -1190,7 +1191,7 @@ export function apply(ctx, config = {}) {
             return
           }
           if (pathname === `${ROUTE_PREFIX}settings` && method === 'GET') {
-            jsonResponse(res, 200, { ok: true, settings: await settingsSnapshot() })
+            jsonResponse(res, 200, { ok: true, settings: await settingsSnapshot(url?.searchParams?.get('provider') ?? '') })
             return
           }
           if (pathname === `${ROUTE_PREFIX}settings` && method === 'POST') {
