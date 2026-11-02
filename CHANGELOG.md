@@ -3,6 +3,18 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
+## [0.1.7] - 2026-11-02
+
+### Fixed
+- Settings page model lists now load per provider (`GET /settings?provider=…`), so third-party
+  providers' models appear after switching Provider; fixed an internal error caused by a
+  provider-scope bug in the settings snapshot.
+
+### Changed
+- Settings page redesign matched to DSH General Settings: flat 66px rows (title + description left,
+  control right), filled controls without borders, DSH-sized toggle, right-aligned save button,
+  unified typography/theme tokens for light and dark themes.
+
 ## [0.1.6] - 2026-11-02
 
 ### Added
@@ -151,4 +163,5 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: Se
 - Debug endpoints (`theme`, `experiment`, `autojob`, `steps`, `reset`) are only registered when
   `enableDebugRoutes: true`; production endpoints are `state`, `debug`, `diag`, `replan`, `warm`.
 - No credentials are stored in the plugin; model calls use the host `llm` service.
+
 
