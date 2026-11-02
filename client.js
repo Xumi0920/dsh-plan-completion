@@ -105,7 +105,22 @@ window.__ModuleLoader__.load({
         'verify.clean': '未发现明显差异。',
         'verify.next': '建议：{value}',
         'verify.failed': '核对失败：{value}',
-        'verify.no-session': '当前还没有可用会话'
+        'verify.no-session': '当前还没有可用会话',
+        'settings.title': '计划补全',
+        'settings.model': '模型选择',
+        'settings.policy.default': '跟随宿主默认',
+        'settings.policy.fixed': '固定模型',
+        'settings.policy.auto': '自动（优先非推理）',
+        'settings.provider': 'Provider',
+        'settings.modelId': 'Model ID',
+        'settings.modelCalls': '允许本插件调用模型',
+        'settings.defaultRoute': '宿主默认：{value}',
+        'settings.save': '保存',
+        'settings.saving': '保存中…',
+        'settings.saved': '已保存',
+        'settings.loading': '加载中…',
+        'settings.error': '设置加载失败',
+        'settings.saveError': '保存失败'
       },
       en: {
         'entry.aria': 'Open the session plan panel',
@@ -148,7 +163,22 @@ window.__ModuleLoader__.load({
         'verify.clean': 'No obvious mismatches found.',
         'verify.next': 'Next: {value}',
         'verify.failed': 'Verification failed: {value}',
-        'verify.no-session': 'No session available yet'
+        'verify.no-session': 'No session available yet',
+        'settings.title': 'Plan Completion',
+        'settings.model': 'Model selection',
+        'settings.policy.default': 'Follow host default',
+        'settings.policy.fixed': 'Fixed model',
+        'settings.policy.auto': 'Auto (prefer non-reasoning)',
+        'settings.provider': 'Provider',
+        'settings.modelId': 'Model ID',
+        'settings.modelCalls': 'Allow this plugin to call models',
+        'settings.defaultRoute': 'Host default: {value}',
+        'settings.save': 'Save',
+        'settings.saving': 'Saving…',
+        'settings.saved': 'Saved',
+        'settings.loading': 'Loading…',
+        'settings.error': 'Failed to load settings',
+        'settings.saveError': 'Save failed'
       }
     };
 
@@ -785,6 +815,52 @@ window.__ModuleLoader__.load({
         .catch(function networkError() {
           return null;
         });
+    }
+
+    /**
+     * Host settings used by the settings page (model policy + modelCalls).
+     */
+    function fetchSettings() {
+      try {
+        return Promise.resolve(fetch('/plan-completion/settings', {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: { accept: 'application/json' }
+        }))
+          .then(function readResponse(response) {
+            return response && response.ok === true ? Promise.resolve(response.json()) : null;
+          })
+          .then(function parsed(json) {
+            return json && typeof json === 'object' ? json : null;
+          })
+          .catch(function networkError() {
+            return null;
+          });
+      } catch (error) {
+        return Promise.resolve(null);
+      }
+    }
+
+    function saveSettings(payload) {
+      try {
+        return Promise.resolve(fetch('/plan-completion/settings', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload || {})
+        }))
+          .then(function readResponse(response) {
+            return response && response.ok === true ? Promise.resolve(response.json()) : null;
+          })
+          .then(function parsed(json) {
+            return json && typeof json === 'object' ? json : null;
+          })
+          .catch(function networkError() {
+            return null;
+          });
+      } catch (error) {
+        return Promise.resolve(null);
+      }
     }
 
     /**
@@ -2056,6 +2132,184 @@ window.__ModuleLoader__.load({
     }
 
     // =====================================================================
+    // Settings page (settings.plugins.tab)
+    // =====================================================================
+    const SETTINGS_SLOT = 'settings.plugins.tab';
+    const SETTINGS_ID = 'plan-completion-settings';
+    const SETTINGS_ORDER = 60;
+
+    function settingsCss() {
+      return [
+        '.dpc-settings-panel{display:flex;flex-direction:column;gap:14px;padding:16px 18px;font-size:13px;line-height:20px;color:var(--dsw-alias-label-primary);max-width:560px}',
+        '.dpc-settings-title{font-size:15px;font-weight:600;line-height:24px}',
+        '.dpc-settings-group{display:flex;flex-direction:column;gap:8px}',
+        '.dpc-settings-label{font-size:12px;color:var(--dsw-alias-label-tertiary)}',
+        '.dpc-settings-radio{display:flex;align-items:center;gap:8px;cursor:pointer}',
+        '.dpc-settings-fixed{display:flex;gap:8px;padding:8px 0 0 24px;flex-wrap:wrap}',
+        '.dpc-settings-input{flex:1 1 180px;min-width:140px;border:1px solid var(--dsw-alias-border-l1);border-radius:8px;padding:5px 10px;font-size:12px;background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1));color:var(--dsw-alias-label-primary)}',
+        '.dpc-settings-check{display:flex;align-items:center;gap:8px;cursor:pointer}',
+        '.dpc-settings-hint{font-size:11px;color:var(--dsw-alias-label-tertiary)}',
+        '.dpc-settings-error{font-size:12px;color:var(--dsw-alias-state-error-primary,var(--dsw-alias-label-secondary))}',
+        '.dpc-settings-save{align-self:flex-start;border:1px solid var(--dsw-alias-border-l1);border-radius:999px;padding:5px 14px;font-size:12px;line-height:18px;cursor:pointer;background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1));color:var(--dsw-alias-label-primary)}',
+        '.dpc-settings-save:disabled{opacity:.5;cursor:default}',
+        '.dpc-settings-status{padding:16px 18px;font-size:13px;color:var(--dsw-alias-label-secondary)}'
+      ].join('\n');
+    }
+
+    function PlanSettingsPage(props) {
+      const t = makeT(props);
+      const [settings, setSettings] = React.useState(null);
+      const [status, setStatus] = React.useState('loading');
+      const [saving, setSaving] = React.useState(false);
+      const [error, setError] = React.useState('');
+      const [saved, setSaved] = React.useState(false);
+
+      React.useEffect(function loadSettings() {
+        let alive = true;
+        fetchSettings().then(function applySettings(result) {
+          if (!alive) return;
+          if (!result || result.ok !== true || !result.settings) {
+            setStatus('error');
+            return;
+          }
+          setSettings(result.settings);
+          setStatus('ready');
+        });
+        return function cleanup() {
+          alive = false;
+        };
+      }, []);
+
+      function patch(next) {
+        setSaved(false);
+        setSettings(function keep(previous) {
+          return previous ? { ...previous, ...next } : previous;
+        });
+      }
+
+      function save() {
+        if (!settings || saving) return;
+        setSaving(true);
+        setError('');
+        saveSettings({
+          modelPolicy: settings.modelPolicy,
+          fixedProvider: settings.fixedProvider || '',
+          fixedModel: settings.fixedModel || '',
+          modelCalls: settings.modelCalls === true
+        }).then(function applied(result) {
+          setSaving(false);
+          if (!result || result.ok !== true) {
+            const detail = result && typeof result.error === 'string' ? result.error : '';
+            setError(detail ? t('settings.saveError') + ': ' + detail : t('settings.saveError'));
+            return;
+          }
+          setSettings(result.settings || settings);
+          setSaved(true);
+          setError('');
+        });
+      }
+
+      const styleTag = h('style', { key: 'style', 'data-plan-completion-style': 'settings' }, settingsCss());
+
+      if (status === 'loading') {
+        return h(React.Fragment, null, styleTag, h('div', { key: 'loading', className: 'dpc-settings-status' }, t('settings.loading')));
+      }
+      if (status === 'error' || !settings) {
+        return h(
+          React.Fragment,
+          null,
+          styleTag,
+          h('div', { key: 'error', className: 'dpc-settings-status dpc-settings-error' }, t('settings.error'))
+        );
+      }
+
+      const policies = [
+        { value: 'default', label: t('settings.policy.default') },
+        { value: 'fixed', label: t('settings.policy.fixed') },
+        { value: 'auto', label: t('settings.policy.auto') }
+      ];
+      const defaultRoute = settings.defaultSelection
+        ? settings.defaultSelection.provider + '/' + settings.defaultSelection.model
+        : '-';
+
+      return h(
+        React.Fragment,
+        null,
+        styleTag,
+        h(
+          'div',
+          { key: 'panel', className: 'dpc-settings-panel' },
+          h('div', { key: 'title', className: 'dpc-settings-title' }, t('settings.title')),
+          h(
+            'div',
+            { key: 'model', className: 'dpc-settings-group' },
+            h('div', { key: 'label', className: 'dpc-settings-label' }, t('settings.model')),
+            ...policies.map(function renderPolicy(option) {
+              return h(
+                'label',
+                { key: 'policy-' + option.value, className: 'dpc-settings-radio' },
+                h('input', {
+                  type: 'radio',
+                  name: 'dpc-model-policy',
+                  value: option.value,
+                  checked: settings.modelPolicy === option.value,
+                  onChange: function onPolicy() {
+                    patch({ modelPolicy: option.value });
+                  }
+                }),
+                h('span', null, option.label)
+              );
+            }),
+            h('div', { key: 'hint', className: 'dpc-settings-hint' }, t('settings.defaultRoute', { value: defaultRoute })),
+            settings.modelPolicy === 'fixed'
+              ? h(
+                  'div',
+                  { key: 'fixed', className: 'dpc-settings-fixed' },
+                  h('input', {
+                    key: 'provider',
+                    className: 'dpc-settings-input',
+                    placeholder: t('settings.provider'),
+                    value: settings.fixedProvider || '',
+                    onChange: function onProvider(event) {
+                      patch({ fixedProvider: event.target.value });
+                    }
+                  }),
+                  h('input', {
+                    key: 'model',
+                    className: 'dpc-settings-input',
+                    placeholder: t('settings.modelId'),
+                    value: settings.fixedModel || '',
+                    onChange: function onModel(event) {
+                      patch({ fixedModel: event.target.value });
+                    }
+                  })
+                )
+              : null
+          ),
+          h(
+            'label',
+            { key: 'calls', className: 'dpc-settings-check' },
+            h('input', {
+              type: 'checkbox',
+              checked: settings.modelCalls === true,
+              onChange: function onCalls(event) {
+                patch({ modelCalls: event.target.checked });
+              }
+            }),
+            h('span', null, t('settings.modelCalls'))
+          ),
+          error ? h('div', { key: 'error', className: 'dpc-settings-error' }, error) : null,
+          saved && !error ? h('div', { key: 'saved', className: 'dpc-settings-hint' }, t('settings.saved')) : null,
+          h(
+            'button',
+            { key: 'save', type: 'button', className: 'dpc-settings-save', disabled: saving, onClick: save },
+            saving ? t('settings.saving') : t('settings.save')
+          )
+        )
+      );
+    }
+
+    // =====================================================================
     // Plugin entry
     // =====================================================================
     return {
@@ -2088,6 +2342,13 @@ window.__ModuleLoader__.load({
 
         ctx.slots.inject(OVERLAY_SLOT, function registerOverlay() {
           return ctx.slots.register({ name: OVERLAY_SLOT, id: OVERLAY_ID, order: OVERLAY_ORDER }, PlanPopover);
+        });
+
+        ctx.slots.inject(SETTINGS_SLOT, function registerSettingsPage() {
+          return ctx.slots.register(
+            { name: SETTINGS_SLOT, id: SETTINGS_ID, order: SETTINGS_ORDER, label: '计划补全' },
+            PlanSettingsPage
+          );
         });
 
         ctx.effect(function installKeyboard() {
