@@ -2240,7 +2240,7 @@ window.__ModuleLoader__.load({
         h('div', { key: 'page', className: 'dpc-settings-page' },
           h('div', { key: 'head', className: 'dpc-settings-head' },
             h('div', { key: 'title', className: 'dpc-settings-title' }, t('settings.title')),
-            h('div', { key: 'sub', className: 'dpc-settings-sub' }, t('settings.defaultRoute', { value: defaultRoute }))),
+            h('div', { key: 'sub', className: 'dpc-settings-sub' }, 'v0.1.8 · build ' + CLIENT_BUILD + ' · ' + t('settings.defaultRoute', { value: defaultRoute }))),
           row('policy', t('settings.model'), t('settings.modelDesc'),
             h('select', { className: 'dpc-settings-select', value: settings.modelPolicy,
               onChange: function onPolicy(event) { patch({ modelPolicy: event.target.value }); } },
