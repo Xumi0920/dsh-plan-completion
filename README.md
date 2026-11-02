@@ -1,6 +1,7 @@
 # Plan Completion（计划补全）
 
 [![test](https://github.com/Xumi0920/dsh-plan-completion/actions/workflows/test.yml/badge.svg)](https://github.com/Xumi0920/dsh-plan-completion/actions/workflows/test.yml)
+[![npm](https://img.shields.io/npm/v/dsh-plan-completion)](https://www.npmjs.com/package/dsh-plan-completion)
 
 DSH 插件：为每个会话维护一份**隐式计划**，在每个回合结束后，于输入框上方给出一句可用 `Tab` 填入的「下一句」建议；输入框上方的 `▤ vX.Y` 是常驻入口，可查看/同步计划。
 
@@ -102,6 +103,9 @@ Client 侧关键 API（实测）：`inputActions.captureInsertion()` 返回 `{st
 验证记录：`host-ready` 日志 `settings={evidenceChars:1500,maxTokensPatch:400,maxTokensRewrite:1200,warmBackfill:true,...}`；同一宿主上 force（rewrite）调用 `maxTokens:1200`、自动 job（patch）调用 `maxTokens:400`，与配置一致。
 
 ## 安装 / 卸载
+
+> npm：**`dsh-plan-completion@0.1.0`** 已发布（https://www.npmjs.com/package/dsh-plan-completion）。
+> DSH 的 profile 安装仍以仓库 `link:` 或路径安装为准（包内是 `dsh.bundle.patch` + `dsh.client` bundle）。
 
 ```powershell
 # 安装（profile 级，一次即可）

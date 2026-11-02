@@ -5,7 +5,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: Se
 
 ## [0.1.0] - 2026-11-02
 
-### Added- Implicit per-session plan with version watermark (`gen.rev`), steps, evidence and update reason.
+### Added
+- Implicit per-session plan with version watermark (`gen.rev`), steps, evidence and update reason.
 - Turn-end trigger: after every completed turn the plugin generates a Tab-completable next-message
   suggestion plus plan patches, using an isolated model call (never the agent loop).
 - Floating suggestion bar above the composer: `Tab` fills the draft (does not send), `Alt+1..3`
@@ -24,6 +25,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: Se
 - 78 unit tests (plan/prompt/heuristics/evidence/job/store/pipeline).
 
 ### Changed
+- Published to npm as **`dsh-plan-completion@0.1.0`** (https://www.npmjs.com/package/dsh-plan-completion); the DSH profile still installs the repo as a `link:` bundle.
 - Package renamed from `@local/dsh-plan-completion` to **`dsh-plan-completion`** for standalone
   GitHub distribution (install as a `link:` profile bundle). Existing installs should uninstall
   the old name and install the repository path; existing runtime state is preserved across the
