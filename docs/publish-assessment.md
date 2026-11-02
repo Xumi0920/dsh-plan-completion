@@ -1,6 +1,8 @@
 # GitHub 发布评估 · 会话计划补全插件（2026-11-02）
 
-> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.1.4**（建议文本保真 + 核对进度 + 本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.1.5**（计划停更检测 + 建议文本保真 + 核对进度 + 本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+>
+> v0.1.5 发布记录（2026-11-02）：计划停更检测——连续 2 次 op=none 后建议变为 `/replan …` 并标记 stale。tag `v0.1.5` + [Release](https://github.com/Xumi0920/dsh-plan-completion/releases/tag/v0.1.5)；Actions [run 41391402601](https://github.com/Xumi0920/dsh-plan-completion/actions/runs/41391402601)（四 job 全绿，133/133 tests）；npm `dsh-plan-completion@0.1.5`（shasum `c53c6d7ef79d8634913054db79fa9e5b1e86b182`）。
 >
 > v0.1.4 发布记录（2026-11-02）：建议文本保真修复（标识符/路径/命令保留 + 语义化截断）。tag `v0.1.4` + [Release](https://github.com/Xumi0920/dsh-plan-completion/releases/tag/v0.1.4)；GitHub Actions [run 41389845733](https://github.com/Xumi0920/dsh-plan-completion/actions/runs/41389845733)（四 job 全绿，132/132 tests）；npm `dsh-plan-completion@0.1.4`（31 files，shasum `a6f8953445e330081243f9f9d6b429fd4402b341`）。
 >
@@ -105,6 +107,7 @@ git tag v0.1.0 && git push --tags
 ```
 
 > 建议：**先把 P0 B1~B8 全部打勾，再公开仓库**；否则许可证与数据问题会成为不可逆的历史提交。
+
 
 
 
