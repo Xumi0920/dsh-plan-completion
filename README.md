@@ -263,7 +263,7 @@ CI：`.github/workflows/test.yml`（GitHub Actions，Node 20/22 矩阵，push/PR
 - 计划只存在 Host 内存，重启 DSH 后丢失（二期接 `storageDomain` / 文件存储）；旧会话可通过 warm 回填，但热重载外的重启仍会清空状态；
 - 模型选择暂用默认路由推导，未做设置页三选一；
 - 计划页是 Popover，右栏形态二期（`ctx.sidebarRightTabs` 已确认对插件开放）；
-- HTTP 路由依赖宿主 `connection.requestRejection`；服务缺失时返回 503，不退回未鉴权访问。此修复尚未在真实 DSH/Electron 中完成部署验收；
+- HTTP 路由依赖宿主 `connection.requestRejection`；服务缺失时返回 503，不退回未鉴权访问。已在真实 DSH 完成 v0.1.1 canary（Electron 代理请求正常、直连未认证请求 401）；其他宿主/部署形态仍需各自验证；
 - fork 子会话不继承计划（二期按 `header.parentSession` 复制）；
 - 计划编辑（用户改步骤）UI 未做，数据模型已支持（`applyUserEdit` / `editedByUser`）。
 - profile patch 里残留一条 `- id: plan-probe / disabled: true` 的 tombstone（移除临时探针插件时留下的，无害）。

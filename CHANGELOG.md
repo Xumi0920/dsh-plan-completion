@@ -3,13 +3,17 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
-## [Unreleased]
+## [0.1.1] - 2026-11-02
 
 ### Fixed
 - Preserve the shared plan/CAS store across plugin reloads, including upgrades from older in-memory state.
 - Prevent canceled, superseded or disposed jobs from publishing stale plans; retain concurrent user edits and CAS winners.
 - Clear Dock-owned state on unmount; reject responses from older requests or previous Dock lifetimes.
 - Preserve legitimate resets and same-version suggestion updates; apply successful warm responses correctly.
+- Reset also clears `handledTurns` so a reset session can regenerate on the same turn.
+- Add a top-level route error guard and drop dead code (unused trigger key, no-op command disposer loop).
+- Fix locale copy: suggestions are shown **above** the composer, not below.
+- Sync delivery notes / phase-2 plan with the shipped warm-backfill and hero-entry work.
 - Use a Windows-compatible test command and cover Ubuntu/Windows with Node 20/22 in CI.
 
 ### Security
@@ -18,6 +22,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: Se
 - Remove conversation/URL/config/error text from diagnostics and runtime logs.
 - Use only the host's current default model route (including experimental judging); add modelCalls: false for heuristic-only operation.
 - Add production-host, client lifecycle and security/privacy regressions. See docs/security.md for remaining data-flow boundaries.
+
+### Verified
+- 111 unit tests pass; real-DSH canary: Electron-proxied client requests keep working under `connection.requestRejection`, direct unauthenticated requests return 401, debug routes absent in production config.
 
 ## [0.1.0] - 2026-11-02
 
