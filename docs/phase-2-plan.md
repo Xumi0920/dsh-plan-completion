@@ -1,5 +1,7 @@
 # 会话计划补全插件 · 二期计划
 
+> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。当前未发布修复已接入鉴权、收紧模型路由及诊断数据，详见 [security.md](security.md) 和 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+
 > 版本：v2.0 计划草案 · 2026-11-02
 > 依据：一期交付（见 `dsh-plan-completion/交付说明.md`）+ 本次真机反馈（常驻、计划页视觉、GitHub 发布评估）
 > 目标：把「能用」的一期做成「稳、好看、可发布」的二期
@@ -10,12 +12,14 @@
 
 ### P0（必须，决定可用性与发布）
 
+> 更新（v0.1.1）：P0-1（挂载回填）、P0-2（Hero 常驻）、P0-4（路由鉴权）已交付；以下保留原始规划记录，未完成项为 P0-3 / P0-5 / P0-6。
+
 | # | 事项 | 现状问题 | 方案 | 验收标准 | 预估 |
 |---|---|---|---|---|---|
-| P0-1 | **挂载时回填（旧会话也能有建议）** | 插件只处理「激活后观察到 turn/end」的会话；老会话打开只有裸入口 | client 挂载时若 `state.stale && !plan`，POST `/plan-completion/warm {sessionId}`；host 用 `session.snapshotEvents` 回填一次计划+建议（可在会话无新回合时工作） | 打开任意历史会话 ≤5s 出现建议；同一会话只回填一次（按 session+seq 去重） | 0.5d |
-| P0-2 | **真·常驻（hero / 新会话也有入口）** | `conversation.input.dock` 在无 Session 的 hero 页不渲染；删除全部消息后栏位消失 | 在 `shell.overlay` 增加一个随 composer 定位的轻量 `▤ 计划` 入口（hero 时显示；已有 dock 时隐藏避免重复）；无计划时保留虚线提示胶囊（一期已做） | 新会话 hero、删除全部消息、旧会话、正常会话四种状态都有入口且不重叠 | 0.5d |
+| P0-1 | ✅ **挂载时回填（旧会话也能有建议）** | 插件只处理「激活后观察到 turn/end」的会话；老会话打开只有裸入口 | client 挂载时若 `state.stale && !plan`，POST `/plan-completion/warm {sessionId}`；host 用 `session.snapshotEvents` 回填一次计划+建议（可在会话无新回合时工作） | 打开任意历史会话 ≤5s 出现建议；同一会话只回填一次（按 session+seq 去重） | ✅ 已交付（v0.1.1） |
+| P0-2 | ✅ **真·常驻（hero / 新会话也有入口）** | `conversation.input.dock` 在无 Session 的 hero 页不渲染；删除全部消息后栏位消失 | 在 `shell.overlay` 增加一个随 composer 定位的轻量 `▤ 计划` 入口（hero 时显示；已有 dock 时隐藏避免重复）；无计划时保留虚线提示胶囊（一期已做） | 新会话 hero、删除全部消息、旧会话、正常会话四种状态都有入口且不重叠 | ✅ 已交付（v0.1.1） |
 | P0-3 | **计划持久化** | 进程内存，DSH 重启丢失 | `storageDomain` 持久化 plan（按 sessionId 分 key）+ 启动时恢复 + 版本号 `gen.rev` 保留 | 重启 DSH 后同一会话仍显示原计划与版本；schema 变更可迁移 | 1d |
-| P0-4 | **路由鉴权** | `/plan-completion/*` 调试路由无鉴权（本机回环） | 使用 `connection.requestRejection` 校验来源、或改用 `connection.fetch` 同源校验；调试路由默认仅本机、可配置关闭 | 非本机/非 DSH 页面的请求被拒；客户端不受影响 | 0.5d |
+| P0-4 | ✅ **路由鉴权** | `/plan-completion/*` 调试路由无鉴权（本机回环） | 使用 `connection.requestRejection` 校验来源、或改用 `connection.fetch` 同源校验；调试路由默认仅本机、可配置关闭 | 非本机/非 DSH 页面的请求被拒；客户端不受影响 | ✅ 已交付（v0.1.1） |
 | P0-5 | **「核对进度」按钮** | 计划页只能看状态，无法对照实际进度 | 计划页底部加「核对进度」→ POST `/plan-completion/verify` → 一次模型调用生成「计划 vs 实际差异 + 建议修正」→ 展示在计划页（可折叠、可采纳） | 点击后 ≤5s 返回差异清单；采纳后生成 patch；失败有降级文案 | 1d |
 | P0-6 | **发布工程化** | 无 git 仓库 / LICENSE / CI / 包元数据、README 含本地绝对路径 | 见 `发布评估-GitHub.md` 的 P0 清单 | 全部 P0 项 PASS，`node --test` 绿，仓库可公开 | 1d |
 

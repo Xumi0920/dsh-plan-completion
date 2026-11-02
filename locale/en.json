@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Plan Completion",
-    "description": "Keeps an implicit plan per session and offers Tab-completable next-message suggestions in the composer."
+    "description": "Keeps an implicit plan per session and offers Tab-completable next-message suggestions above the composer."
   }
 }

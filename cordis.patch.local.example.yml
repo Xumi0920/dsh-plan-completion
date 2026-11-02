@@ -11,6 +11,7 @@
         maxTokensPatch: 400
         maxTokensRewrite: 1200
         warmBackfill: true
+        modelCalls: true # false: heuristic-only; no plugin model requests
         enableDebugRoutes: true
         debugDir: '<absolute path to your local research dir>'
 
