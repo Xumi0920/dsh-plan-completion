@@ -3,6 +3,10 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
+## [0.1.8] - 2026-11-03
+
+- Settings page final DSH visual alignment: filled borderless selects with custom chevron, no row borders, filled save button, DSH toggle colors, build marker settings-2026-11-03 (forces a fresh client bundle after host restart).
+
 ## [0.1.7] - 2026-11-02
 
 ### Fixed
@@ -163,5 +167,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: Se
 - Debug endpoints (`theme`, `experiment`, `autojob`, `steps`, `reset`) are only registered when
   `enableDebugRoutes: true`; production endpoints are `state`, `debug`, `diag`, `replan`, `warm`.
 - No credentials are stored in the plugin; model calls use the host `llm` service.
+
 
 
