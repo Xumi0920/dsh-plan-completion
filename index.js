@@ -419,7 +419,7 @@ export function apply(ctx, config = {}) {
     }
   }
 
-  function settingsSnapshot() {
+  async function settingsSnapshot() {
     const selection = services.agentDefaultModel?.currentSelection?.() ?? null
     let providers = []
     try {
@@ -427,6 +427,13 @@ export function apply(ctx, config = {}) {
     } catch {
       providers = []
     }
+    let models = []
+    try {
+      const provider = selection?.provider ?? (Array.isArray(providers) ? providers[0]?.id : '')
+      if (provider && typeof services.llm?.listModels === 'function') {
+        models = (await services.llm.listModels(provider))?.map(m => ({ provider, id: m?.id ?? '', name: m?.name ?? m?.id ?? '' })) ?? []
+      }
+    } catch { models = [] }
     return {
       modelPolicy: settings.modelPolicy,
       fixedProvider: settings.fixedProvider,
@@ -435,6 +442,7 @@ export function apply(ctx, config = {}) {
       defaultSelection: selection && selection.provider && selection.model
         ? { provider: selection.provider, model: selection.model }
         : null,
+      models,
       providers: Array.isArray(providers)
         ? providers.map(provider => ({ id: provider?.id ?? '', name: provider?.name ?? provider?.id ?? '' }))
         : [],
@@ -1182,12 +1190,12 @@ export function apply(ctx, config = {}) {
             return
           }
           if (pathname === `${ROUTE_PREFIX}settings` && method === 'GET') {
-            jsonResponse(res, 200, { ok: true, settings: settingsSnapshot() })
+            jsonResponse(res, 200, { ok: true, settings: await settingsSnapshot() })
             return
           }
           if (pathname === `${ROUTE_PREFIX}settings` && method === 'POST') {
             const body = (await readJsonBody(req)) ?? {}
-            const next = { ...settingsSnapshot() }
+            const next = { ...(await settingsSnapshot()) }
             if (body.modelPolicy !== undefined) {
               const policy = normalizeModelPolicy(body.modelPolicy)
               if (policy !== String(body.modelPolicy).trim()) {
@@ -1226,7 +1234,7 @@ export function apply(ctx, config = {}) {
               modelCalls: settings.modelCalls,
             })
             debugLog({ phase: 'settings-updated', modelPolicy: settings.modelPolicy, saved })
-            jsonResponse(res, 200, { ok: true, saved, settings: settingsSnapshot() })
+            jsonResponse(res, 200, { ok: true, saved, settings: await settingsSnapshot() })
             return
           }
           if (pathname === `${ROUTE_PREFIX}state` && method === 'GET') {
@@ -1646,6 +1654,7 @@ export function apply(ctx, config = {}) {
     services: Object.fromEntries(Object.entries(services).map(([key, value]) => [key, Boolean(value)])),
   })
 }
+
 
 
 

@@ -2286,6 +2286,7 @@ window.__ModuleLoader__.load({
                   { key: 'fixed', className: 'dpc-settings-fixed' },
                   h('input', {
                     key: 'provider',
+                    list: 'dpc-settings-providers',
                     className: 'dpc-settings-input',
                     placeholder: t('settings.provider'),
                     value: settings.fixedProvider || '',
@@ -2295,6 +2296,7 @@ window.__ModuleLoader__.load({
                   }),
                   h('input', {
                     key: 'model',
+                    list: 'dpc-settings-models',
                     className: 'dpc-settings-input',
                     placeholder: t('settings.modelId'),
                     value: settings.fixedModel || '',
@@ -2459,6 +2461,7 @@ window.__ModuleLoader__.load({
 });
 
 // hot-reload marker 2026-11-01T13:57Z
+
 
 
 
