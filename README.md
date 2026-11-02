@@ -60,14 +60,22 @@ Client ⇄ Host 唯一通道是本地 HTTP 路由（`ctx.get('webServer').regist
 - `GET /plan-completion/state?sessionId=<id>&reason=<kind>&running=<值>`
 - `POST /plan-completion/warm` `{sessionId}`（旧会话回填：从持久化日志重建计划+建议）
 - `POST /plan-completion/replan` `{sessionId, instruction?}`（生产路由，须通过宿主鉴权）
+- `POST /plan-completion/verify` `{sessionId}`（「核对进度」：一次模型调用返回差异清单，不修改计划）
 - `GET /plan-completion/debug?sessionId=<id>`（仅显式启用调试路由后可用）
 
-> 生产路由：`state`、`replan`、`warm`；所有路由先调用 `connection.requestRejection(req)`。
+> 生产路由：`state`、`replan`、`warm`、`verify`；所有路由先调用 `connection.requestRejection(req)`。
 > 调试路由：`debug`、`diag`、`theme`、`experiment`、`autojob`、`steps`、`reset` —— 仅当 `config.enableDebugRoutes: true` 时注册。
 
 Client 侧用 `fetch(..., {credentials:'same-origin'})`；Electron 的 `dsh-app://app` 页面经主进程转发，响应体可读、自动带 `dsh-auth` cookie。
 
 Client 侧关键 API（实测）：`inputActions.captureInsertion()` 返回 `{start,end,draftRev}`；`insertText(text, span)`；`setDraft(text)`；`useInput(s => s)` 返回 `{draft, attachmentIds, draftRev, phase, occurrences, queue}`。
+
+## 核对进度（v0.1.3）
+
+- 计划面板底部「核对进度」按钮 → `POST /plan-completion/verify {sessionId}`（生产路由，需宿主鉴权）；
+- Host 用**一次**受控模型调用对照「当前计划 + 最近证据」，返回 `{assessment, mismatches[], suggestion}`，**不修改计划**；
+- 面板内展示结论、差异列表与下一步建议；同一会话同时只允许一个核对请求，8s 超时/解析失败返回降级错误，`modelCalls:false` 时禁用模型调用；
+- 输出预算 `maxTokensVerify`（默认 600）；核对结果仅内存展示，不落盘。
 
 ## 计划持久化（v0.1.2）
 
@@ -100,8 +108,7 @@ Client 侧关键 API（实测）：`inputActions.captureInsertion()` 返回 `{st
         modelCalls: true         # false：本插件仅用启发式，不向模型发送内容
         persistPlans: true       # false：计划只存内存
         storageDir: '~/.dsh/plan-completion-data'
-        enableDebugRoutes: false   # 本地调试时才打开
-        # debugDir: '<本地日志目录>'  # 可选；发布版留空
+        enableDebugRoutes: false   # 本地调试时才打开        # debugDir: '<本地日志目录>'  # 可选；发布版留空
 ```
 
 | 配置项 | 默认 | 作用 | 依据 |
@@ -112,6 +119,7 @@ Client 侧关键 API（实测）：`inputActions.captureInsertion()` 返回 `{st
 | `warmBackfill` | true | 打开「插件从未观察过的旧会话」时，从持久化会话日志回填一次计划+建议 | P0-1；真机老会话回填 2.2s |
 | `persistPlans` | true | 是否把计划+最近建议持久化到本地文件（DSH 重启恢复） | v0.1.2 |
 | `storageDir` | `~/.dsh/plan-completion-data` | 计划文件目录；`~` 会展开为 home；也可用 `DSH_PLAN_COMPLETION_STORE_DIR` | v0.1.2 |
+| `maxTokensVerify` | 600 | 「核对进度」单次模型调用的输出预算 | v0.1.3 |
 | `enableDebugRoutes` | false | 是否注册 `debug/diag/theme/experiment/autojob/steps/reset` 调试路由；仍须鉴权 | 发布版最小攻击面 |
 | `modelCalls` | true | false 时关闭本插件全部模型调用，使用启发式 | 隐私控制 |
 | `debugDir` | 空 | 调试日志/实验结果的落盘目录（也可用 `DSH_PLAN_COMPLETION_DEBUG_DIR`）；空则不写文件 | 可移植性 |

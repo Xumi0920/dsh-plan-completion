@@ -80,6 +80,7 @@ window.__ModuleLoader__.load({
         'popover.fill': '填入草稿',
         'popover.sync': '同步给 Agent',
         'popover.close': '关闭',
+        'popover.verify': '核对进度',
         'popover.empty': '暂无计划',
         'popover.updated': '更新于 {time}',
         'popover.stale': '计划可能已过期，将在下一回合重建',
@@ -97,7 +98,14 @@ window.__ModuleLoader__.load({
         'sync.todo': '待办：{value}。',
         'sync.reason': '最近更新：{value}。',
         'sync.next': '下一步建议：{value}。',
-        'sync.fallback': '请先确认当前进度，再继续推进。'
+        'sync.fallback': '请先确认当前进度，再继续推进。',
+        'verify.loading': '正在对照计划与实际进度…',
+        'verify.assessment': '核对结论',
+        'verify.mismatch': '差异',
+        'verify.clean': '未发现明显差异。',
+        'verify.next': '建议：{value}',
+        'verify.failed': '核对失败：{value}',
+        'verify.no-session': '当前还没有可用会话'
       },
       en: {
         'entry.aria': 'Open the session plan panel',
@@ -115,6 +123,7 @@ window.__ModuleLoader__.load({
         'popover.fill': 'Fill draft',
         'popover.sync': 'Sync to Agent',
         'popover.close': 'Close',
+        'popover.verify': 'Verify progress',
         'popover.empty': 'No plan yet',
         'popover.updated': 'Updated {time}',
         'popover.stale': 'The plan may be stale and will be rebuilt next turn',
@@ -132,7 +141,14 @@ window.__ModuleLoader__.load({
         'sync.todo': 'Pending: {value}.',
         'sync.reason': 'Latest update: {value}.',
         'sync.next': 'Next suggestion: {value}.',
-        'sync.fallback': 'Please confirm the current progress before continuing.'
+        'sync.fallback': 'Please confirm the current progress before continuing.',
+        'verify.loading': 'Comparing the plan against the latest evidence…',
+        'verify.assessment': 'Assessment',
+        'verify.mismatch': 'Mismatch',
+        'verify.clean': 'No obvious mismatches found.',
+        'verify.next': 'Next: {value}',
+        'verify.failed': 'Verification failed: {value}',
+        'verify.no-session': 'No session available yet'
       }
     };
 
@@ -301,6 +317,14 @@ window.__ModuleLoader__.load({
       '.dpc-pop-foot .dpc-updated{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       '.dpc-actions{padding-top:0;gap:8px;flex:none}',
       '.dpc-btn{border-radius:999px;padding:5px 12px;font-size:12px;line-height:18px}',
+      '.dpc-verify-card{gap:6px}',
+      '.dpc-verify-loading{font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary)}',
+      '.dpc-verify-error{font-size:12px;line-height:18px;color:var(--dsw-alias-state-error-primary, var(--dsw-alias-label-secondary));word-break:break-word}',
+      '.dpc-verify-assessment{font-size:13px;line-height:20px;color:var(--dsw-alias-label-primary);white-space:pre-wrap;word-break:break-word}',
+      '.dpc-verify-list{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:4px}',
+      '.dpc-verify-item{font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary);word-break:break-word}',
+      '.dpc-verify-clean{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary)}',
+      '.dpc-verify-next{font-size:12px;line-height:18px;color:var(--dsw-alias-label-primary);word-break:break-word}',
       '.dpc-empty{padding:14px;font-size:13px}'
     ].join('\n');
 
@@ -718,6 +742,40 @@ window.__ModuleLoader__.load({
           return Promise.resolve(response.json()).then(
             function parsed(json) {
               return json && typeof json === 'object' ? { ok: json.ok === true, json: json, request: requestToken } : null;
+            },
+            function badJson() {
+              return null;
+            }
+          );
+        })
+        .catch(function networkError() {
+          return null;
+        });
+    }
+
+    /**
+     * P0-5「核对进度」：让 Host 用一次受控模型调用对照计划与实际证据。
+     * 返回 Host 的 JSON（{ok, assessment, mismatches, suggestion}）或 null。
+     */
+    function requestVerify(sessionId) {
+      if (typeof sessionId !== 'string' || sessionId === '') return Promise.resolve(null);
+      let request = null;
+      try {
+        request = fetch('/plan-completion/verify', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ sessionId: sessionId })
+        });
+      } catch (error) {
+        return Promise.resolve(null);
+      }
+      return Promise.resolve(request)
+        .then(function readResponse(response) {
+          if (!response || response.ok !== true) return null;
+          return Promise.resolve(response.json()).then(
+            function parsed(json) {
+              return json && typeof json === 'object' ? json : null;
             },
             function badJson() {
               return null;
@@ -1620,7 +1678,7 @@ window.__ModuleLoader__.load({
       );
     }
 
-    function renderPopoverContent(plan, inputActions, t) {
+    function renderPopoverContent(plan, inputActions, t, verify, onVerify) {
       const children = [];
       if (!plan) {
         children.push(
@@ -1732,6 +1790,50 @@ window.__ModuleLoader__.load({
         }
       }
 
+      // P0-5「核对进度」结果：显示在计划正文里，不改动计划本身。
+      if (verify && (verify.loading || verify.error || verify.result)) {
+        const verifyChildren = [
+          h('div', { key: 'label', className: 'dpc-label' }, t('verify.assessment'))
+        ];
+        if (verify.loading) {
+          verifyChildren.push(h('div', { key: 'loading', className: 'dpc-verify-loading' }, t('verify.loading')));
+        } else if (verify.error) {
+          verifyChildren.push(
+            h('div', { key: 'error', className: 'dpc-verify-error' }, t('verify.failed', { value: verify.error }))
+          );
+        } else if (verify.result) {
+          const result = verify.result;
+          if (result.assessment) {
+            verifyChildren.push(h('div', { key: 'assessment', className: 'dpc-verify-assessment' }, result.assessment));
+          }
+          const mismatches = Array.isArray(result.mismatches) ? result.mismatches : [];
+          if (mismatches.length) {
+            verifyChildren.push(
+              h(
+                'ul',
+                { key: 'mismatches', className: 'dpc-verify-list' },
+                mismatches.map(function renderMismatch(item, index) {
+                  const prefix = item && item.stepId ? '[' + item.stepId + '] ' : '';
+                  return h(
+                    'li',
+                    { key: 'mismatch-' + index, className: 'dpc-verify-item' },
+                    prefix + String(item && item.issue ? item.issue : '')
+                  );
+                })
+              )
+            );
+          } else {
+            verifyChildren.push(h('div', { key: 'clean', className: 'dpc-verify-clean' }, t('verify.clean')));
+          }
+          if (result.suggestion) {
+            verifyChildren.push(
+              h('div', { key: 'next', className: 'dpc-verify-next' }, t('verify.next', { value: result.suggestion }))
+            );
+          }
+        }
+        children.push(h('div', { key: 'verify', className: 'dpc-section dpc-verify-card' }, verifyChildren));
+      }
+
       if (plan.updatedAt) {
         children.push(
           h('div', { key: 'updated', className: 'dpc-updated' }, t('popover.updated', { time: formatTime(plan.updatedAt) }))
@@ -1779,6 +1881,20 @@ window.__ModuleLoader__.load({
             {
               type: 'button',
               className: 'dpc-btn',
+              disabled: !!(verify && verify.loading),
+              onMouseDown: preventDefault,
+              onClick: function onClickVerify(event) {
+                stopPropagation(event);
+                if (typeof onVerify === 'function') onVerify();
+              }
+            },
+            t('popover.verify')
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'dpc-btn',
               onMouseDown: preventDefault,
               onClick: function onClickClose(event) {
                 stopPropagation(event);
@@ -1815,6 +1931,32 @@ window.__ModuleLoader__.load({
       const rootRef = React.useRef(null);
       const open = state.overlayOpen === true;
       const [heroPos, setHeroPos] = React.useState(null);
+      const [verify, setVerify] = React.useState(null);
+
+      // Ephemeral P0-5 verification result: clear it when the active session changes.
+      React.useEffect(function resetVerify() {
+        setVerify(null);
+      }, [state.sessionId]);
+
+      const onVerify = React.useCallback(function requestVerifyAction() {
+        const sessionId = state.sessionId;
+        if (typeof sessionId !== 'string' || sessionId === '') {
+          setVerify({ loading: false, result: null, error: 'no-session' });
+          return;
+        }
+        setVerify({ loading: true, result: null, error: null });
+        requestVerify(sessionId).then(function applyResult(result) {
+          if (!result) {
+            setVerify({ loading: false, result: null, error: 'request-failed' });
+            return;
+          }
+          if (result.ok !== true) {
+            setVerify({ loading: false, result: null, error: String(result.error || 'failed') });
+            return;
+          }
+          setVerify({ loading: false, result: result, error: null });
+        });
+      }, [state.sessionId]);
 
       // P0-2 hero fallback: when no session-bound dock is mounted (new conversation / hero,
       // or a cleared conversation), float a small «▤ 计划» entry above the composer so the
@@ -1908,7 +2050,7 @@ window.__ModuleLoader__.load({
             'data-plan-completion': 'popover',
             style: position
           },
-          renderPopoverContent(state.plan, state.inputActions, t)
+          renderPopoverContent(state.plan, state.inputActions, t, verify, onVerify)
         )
       );
     }

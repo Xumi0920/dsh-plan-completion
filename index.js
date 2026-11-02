@@ -18,7 +18,7 @@ import { DEFAULTS } from './host/config.js'
 import { requestRejection, safeDebugRecord, safeDiagnostics } from './host/security.js'
 import { join } from 'node:path'
 import { normalizePlan, patchPlan, rewritePlan, statusFor, applyUserEdit } from './host/plan.js'
-import { buildPatchPrompt, buildRewritePrompt, buildRepairPrompt, parseModelOutput } from './host/prompt.js'
+import { buildPatchPrompt, buildRewritePrompt, buildRepairPrompt, parseModelOutput, buildVerifyPrompt, parseVerifyOutput } from './host/prompt.js'
 import { heuristicSuggestion, fallbackPlan } from './host/heuristics.js'
 import { collectFromEvents } from './host/evidence.js'
 import { createMemoryStore, createFileStore } from './host/store.js'
@@ -254,6 +254,7 @@ export function apply(ctx, config = {}) {
     modelCalls: rawConfig.modelCalls !== false,
     persistPlans: rawConfig.persistPlans !== false,
     storageDir: expandStorageDir(rawConfig.storageDir, process.env.DSH_PLAN_COMPLETION_STORE_DIR),
+    maxTokensVerify: readInt(rawConfig.maxTokensVerify, DEFAULTS.maxTokensVerify, 200, 2000),
     enableDebugRoutes: rawConfig.enableDebugRoutes === true,
     debugDir: typeof rawConfig.debugDir === 'string' && rawConfig.debugDir.trim() !== ''
       ? rawConfig.debugDir.trim()
@@ -297,6 +298,7 @@ export function apply(ctx, config = {}) {
   const sessions = shared.sessions // sessionId -> Session
   const warmAttempts = shared.warmAttempts // sessionId -> { at, seq }
   const inflight = new Map() // sessionId -> AbortController
+  const verifyInflight = new Set() // sessionId -> 正在核对（同一会话同时只允许一个）
   const gate = createGate(DEFAULTS.globalConcurrency)
   // Persistence: a file-backed plan store when a directory is configured; otherwise memory.
   // The store keeps the last plan + suggestion per session so a restart can restore the UI.
@@ -964,6 +966,95 @@ export function apply(ctx, config = {}) {
             jsonResponse(res, 200, outcome)
             return
           }
+          if (pathname === `${ROUTE_PREFIX}verify` && method === 'POST') {
+            const body = (await readJsonBody(req)) ?? {}
+            const sessionId = String(body.sessionId ?? '')
+            if (!sessionId) {
+              jsonResponse(res, 200, { ok: false, error: 'no-session-id' })
+              return
+            }
+            await hydrateSession(sessionId)
+            const plan = states.get(sessionId)?.plan ?? null
+            if (!plan) {
+              jsonResponse(res, 200, { ok: false, error: 'no-plan' })
+              return
+            }
+            if (!settings.modelCalls) {
+              jsonResponse(res, 200, { ok: false, error: 'model-disabled' })
+              return
+            }
+            if (verifyInflight.has(sessionId)) {
+              jsonResponse(res, 200, { ok: false, error: 'in-progress' })
+              return
+            }
+            const route = await pickModel(services)
+            if (!route) {
+              jsonResponse(res, 200, { ok: false, error: 'no-model-route' })
+              return
+            }
+            const session = sessions.get(sessionId) ?? null
+            let events = []
+            try {
+              if (session) {
+                events = Array.from(session.snapshotEvents(Math.max(0, Number(session.seq ?? 0) - 300)) ?? [])
+              }
+            } catch {
+              events = []
+            }
+            const evidence = (() => {
+              try {
+                const collected = collectFromEvents({
+                  events,
+                  plan,
+                  turn: Number(plan.watermark?.turn ?? 0),
+                  sessionId,
+                })
+                if (collected && collected.ok !== false) return collected
+              } catch {
+                /* fall through to the plan-only payload */
+              }
+              return { plan, turn: Number(plan.watermark?.turn ?? 0), lastAssistantText: '', lastUserMessages: [] }
+            })()
+            verifyInflight.add(sessionId)
+            const controller = new AbortController()
+            const timer = setTimeout(() => controller.abort(new Error('verify-deadline')), 8000)
+            const startedAt = Date.now()
+            try {
+              const prompt = buildVerifyPrompt(evidence)
+              prompt.maxTokens = settings.maxTokensVerify
+              const response = await callModel(services, route, prompt, controller.signal)
+              const text = String(response?.text ?? '')
+              if (!text) {
+                jsonResponse(res, 200, { ok: false, error: 'empty-model-output' })
+                return
+              }
+              const parsed = parseVerifyOutput(text)
+              if (!parsed.ok) {
+                debugLog({ phase: 'verify-parse-failed', sessionId, code: parsed.code })
+                jsonResponse(res, 200, { ok: false, error: 'parse-failed', code: parsed.code })
+                return
+              }
+              debugLog({
+                phase: 'verify-done',
+                sessionId,
+                elapsed: Date.now() - startedAt,
+                mismatches: parsed.output.mismatches.length,
+              })
+              jsonResponse(res, 200, {
+                ok: true,
+                ...parsed.output,
+                usage: response?.usage ?? null,
+                elapsedMs: Date.now() - startedAt,
+              })
+            } catch (error) {
+              debugLog({ phase: 'verify-error', sessionId, error: String(error) })
+              jsonResponse(res, 200, { ok: false, error: 'model-error' })
+            } finally {
+              clearTimeout(timer)
+              verifyInflight.delete(sessionId)
+            }
+            return
+          }
           if (pathname === `${ROUTE_PREFIX}state` && method === 'GET') {
             const sessionId = url?.searchParams?.get('sessionId') ?? ''
             await hydrateSession(sessionId)
@@ -1275,6 +1366,7 @@ export function apply(ctx, config = {}) {
       `${ROUTE_PREFIX}state`,
       `${ROUTE_PREFIX}replan`,
       `${ROUTE_PREFIX}warm`,
+      `${ROUTE_PREFIX}verify`,
     ]
     if (settings.enableDebugRoutes) {
       paths.push(

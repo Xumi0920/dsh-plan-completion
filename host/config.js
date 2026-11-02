@@ -69,6 +69,8 @@ export const DEFAULTS = Object.freeze({
   // 真机实测（Lead index.js，2026-11）：rewrite 700 会被截断 → 至少 1200；patch 建议至少 800。
   maxTokensPatch: 800,
   maxTokensRewrite: 1200,
+  /** 「核对进度」一次调用的输出预算（差异清单 JSON，不需要完整步骤表）。 */
+  maxTokensVerify: 600,
   temperaturePatch: 0.2,
   temperatureRewrite: 0.3,
 });

@@ -384,3 +384,87 @@ export function parseModelOutput(text) {
     return fail('internal', `模型输出解析异常：${errMsg(err)}`);
   }
 }
+
+/* ──────────────────────────────────────────────────────────────
+ * 「核对进度」：对照计划与实际证据，输出差异清单（不修改计划）
+ * ────────────────────────────────────────────────────────────── */
+
+export const VERIFY_SCHEMA = [
+  '{"ok":true,',
+  '"assessment":"<一句话总体判断>",',
+  '"mismatches":[{"stepId":"s2","issue":"<计划状态与证据不一致之处，≤80字>"}],',
+  '"suggestion":"<下一步建议，≤40字，可直接发送>"}',
+].join('');
+
+/**
+ * 构造「核对进度」prompt：不要求 op/steps，只输出 assessment + mismatches + suggestion。
+ * @param {object} evidence 与生成计划相同的证据结构
+ */
+export function buildVerifyPrompt(evidence = {}) {
+  const task = [
+    '【任务：核对计划进度】',
+    '对照下面的计划与最近会话证据，找出计划状态与实际进展不一致的地方：',
+    '- 步骤实际已完成/已开始，但计划仍为 todo/doing；',
+    '- 计划标记 done，但证据中没有完成依据；',
+    '- 步骤被跳过、顺序明显变化，或计划目标与当前工作方向不一致。',
+    '不要修改计划，也不要输出 op/steps/changes 字段。',
+    '没有明显差异时 mismatches 返回空数组，并给出收尾/推进建议。',
+    '严格只输出一个 JSON 对象，schema 如下（字段值用中文）：',
+    VERIFY_SCHEMA,
+  ].join('\n')
+  return {
+    system: `${SYSTEM_PROMPT}\n\n【本次任务】只核对进度并输出差异清单；本次输出 schema 不同于计划更新，不要输出 op 字段。`,
+    messages: buildMessages(evidence, task),
+    maxTokens: DEFAULTS.maxTokensVerify,
+    temperature: 0,
+    op: 'verify',
+  }
+}
+
+/**
+ * 解析「核对进度」输出；永不抛异常。
+ * @param {unknown} text
+ * @returns {{ok:true, output:{assessment:string, mismatches:Array<{stepId:string, issue:string}>, suggestion:string, verifiedAt:number}}|{ok:false, code:string, error:string}}
+ */
+export function parseVerifyOutput(text) {
+  try {
+    if (typeof text !== 'string') return fail('not-string', '模型输出不是字符串')
+    const cleaned = text.replace(/^\uFEFF/, '').trim()
+    if (!cleaned) return fail('empty', '模型输出为空')
+
+    let parsed = null
+    for (const candidate of jsonCandidates(cleaned)) {
+      try {
+        parsed = JSON.parse(candidate)
+        break
+      } catch {
+        /* try next candidate */
+      }
+    }
+    if (!isObj(parsed)) return fail('no-json', '未找到合法 JSON 对象')
+
+    const assessment = isStr(parsed.assessment) ? clampChars(oneLine(parsed.assessment), 200) : ''
+    if (!assessment) return fail('missing-assessment', 'assessment 必填且非空')
+
+    const mismatches = []
+    if (Array.isArray(parsed.mismatches)) {
+      for (const item of parsed.mismatches.slice(0, 6)) {
+        if (!isObj(item)) continue
+        const issue = isStr(item.issue) ? clampChars(oneLine(item.issue), 120) : ''
+        if (!issue) continue
+        const stepId = isStr(item.stepId) ? clampChars(oneLine(item.stepId), 64) : ''
+        mismatches.push({ stepId, issue })
+      }
+    }
+
+    let suggestion = ''
+    if (parsed.suggestion !== undefined) {
+      const sanitized = sanitizeSuggestion(parsed.suggestion, DEFAULTS.suggestionMaxChars)
+      if (sanitized.ok) suggestion = sanitized.text
+    }
+
+    return { ok: true, output: { assessment, mismatches, suggestion, verifiedAt: Date.now() } }
+  } catch (err) {
+    return fail('internal', `核对解析异常：${errMsg(err)}`)
+  }
+}

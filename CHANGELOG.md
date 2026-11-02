@@ -3,6 +3,21 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
+## [0.1.3] - 2026-11-02
+
+### Added
+- Plan page「核对进度」button (P0-5): `POST /plan-completion/verify {sessionId}` runs one bounded,
+  authenticated model call that compares the stored plan with recent evidence and returns
+  `{assessment, mismatches[], suggestion}`. It never mutates the plan; results render in the plan
+  panel as an assessment list plus next-step suggestion.
+- New config `maxTokensVerify` (default 600); per-session in-flight guard, 8s abort deadline and
+  parse-error fallbacks; `modelCalls:false` disables this route's model call.
+- Tests: verify prompt/parser edge cases, authenticated route integration, and a client transport
+  test for the new request helper.
+
+### Changed
+- `npm test` now reports **126/126** tests; production routes are `state`/`replan`/`warm`/`verify`.
+
 ## [0.1.2] - 2026-11-02
 
 ### Added

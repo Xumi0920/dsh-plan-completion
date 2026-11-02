@@ -7,7 +7,7 @@ const original = fs.readFileSync(process.env.DSH_CLIENT_TEST_SOURCE || new URL('
 const marker = "    return {\n      inject: ['slots', 'locale'],";
 assert.equal(original.split(marker).length, 2, 'client test seam must be unique');
 const source = original.replace(marker,
-  '    globalThis.__clientTest = { store, Dock, handleKeyDown, normalizePlan, fetchPlanState, warmPlanState, handlePlanFetch };\n' + marker);
+  '    globalThis.__clientTest = { store, Dock, handleKeyDown, normalizePlan, fetchPlanState, warmPlanState, requestVerify, handlePlanFetch };\n' + marker);
 
 function fixture() {
   let effects = [], refs = [], plugin;
@@ -198,6 +198,25 @@ test('a successful warm backfill applies its returned plan', async () => {
   f.requests.find(r => r.url === '/plan-completion/warm').respond({...plan(0, 'warm result'), ok: true});
   await flush();
   assert.equal(f.api.store.get().plan.suggestion.text, 'warm result');
+});
+
+test('verify request posts the session id and returns the host verdict', async () => {
+  const f = fixture();
+  const pending = f.api.requestVerify('A');
+  const wire = f.requests.find(r => r.url === '/plan-completion/verify');
+  assert.ok(wire, 'must POST /plan-completion/verify');
+  assert.equal(wire.options.method, 'POST');
+  assert.deepEqual(JSON.parse(wire.options.body), {sessionId: 'A'});
+  wire.respond({ok: true, assessment: 'looks good', mismatches: [{stepId: 's1', issue: 'stale'}], suggestion: 'ship it'});
+  const result = await pending;
+  assert.equal(result.ok, true);
+  assert.equal(result.suggestion, 'ship it');
+  assert.equal(result.mismatches.length, 1);
+
+  const failed = f.api.requestVerify('A');
+  f.requests.at(-1).respond({}, false);
+  assert.equal(await failed, null);
+  assert.equal(await f.api.requestVerify(''), null);
 });
 
 test('a same-session remount owns state even if the old Dock is cleaned up later', async () => {
