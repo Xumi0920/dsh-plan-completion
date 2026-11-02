@@ -69,6 +69,14 @@ Client 侧用 `fetch(..., {credentials:'same-origin'})`；Electron 的 `dsh-app:
 
 Client 侧关键 API（实测）：`inputActions.captureInsertion()` 返回 `{start,end,draftRev}`；`insertText(text, span)`；`setDraft(text)`；`useInput(s => s)` 返回 `{draft, attachmentIds, draftRev, phase, occurrences, queue}`。
 
+## 计划持久化（v0.1.2）
+
+- 计划 + 最近一条建议按会话持久化到本地文件（`storageDir/plans/<base64url(sessionId)>.json`，原子写）；
+- 插件启动/打开会话时按需恢复（`GET /state` 前 hydrate），**DSH 重启后仍能看到原计划与版本**，无需等下一回合；
+- 每次成功提交（含用户编辑、reset）同步落盘；`reset` 会同时删除磁盘记录；
+- 默认目录 `~/.dsh/plan-completion-data`；可用 `storageDir` 改到别处，`persistPlans: false` 退回纯内存；
+- 注意：存储为本地明文 JSON（含计划/建议文本，可能来自会话）；不加密、不自动清理，不适合多用户共享机器。
+
 ## 模型路由与隐私
 
 - 仅使用宿主 `agentDefaultModel.currentSelection()` 当前默认的 provider/model，不自动改投其他已配置供应商；无可用路由时使用启发式。该默认值不一定是历史会话原先使用的模型。
@@ -90,6 +98,8 @@ Client 侧关键 API（实测）：`inputActions.captureInsertion()` 返回 `{st
         maxTokensRewrite: 1200
         warmBackfill: true
         modelCalls: true         # false：本插件仅用启发式，不向模型发送内容
+        persistPlans: true       # false：计划只存内存
+        storageDir: '~/.dsh/plan-completion-data'
         enableDebugRoutes: false   # 本地调试时才打开
         # debugDir: '<本地日志目录>'  # 可选；发布版留空
 ```
@@ -100,6 +110,8 @@ Client 侧关键 API（实测）：`inputActions.captureInsertion()` 返回 `{st
 | `maxTokensPatch` | 400 | patch 路径输出上限（实测只需 65~120 tok） | 真机 6 样本：输出 75~113 tok |
 | `maxTokensRewrite` | 1200 | rewrite/冷启动输出上限（要输出完整步骤表） | 700 会截断，1200 稳定 |
 | `warmBackfill` | true | 打开「插件从未观察过的旧会话」时，从持久化会话日志回填一次计划+建议 | P0-1；真机老会话回填 2.2s |
+| `persistPlans` | true | 是否把计划+最近建议持久化到本地文件（DSH 重启恢复） | v0.1.2 |
+| `storageDir` | `~/.dsh/plan-completion-data` | 计划文件目录；`~` 会展开为 home；也可用 `DSH_PLAN_COMPLETION_STORE_DIR` | v0.1.2 |
 | `enableDebugRoutes` | false | 是否注册 `debug/diag/theme/experiment/autojob/steps/reset` 调试路由；仍须鉴权 | 发布版最小攻击面 |
 | `modelCalls` | true | false 时关闭本插件全部模型调用，使用启发式 | 隐私控制 |
 | `debugDir` | 空 | 调试日志/实验结果的落盘目录（也可用 `DSH_PLAN_COMPLETION_DEBUG_DIR`）；空则不写文件 | 可移植性 |
@@ -108,7 +120,7 @@ Client 侧关键 API（实测）：`inputActions.captureInsertion()` 返回 `{st
 
 ## 安装 / 卸载
 
-> npm：**`dsh-plan-completion@0.1.0`** 已发布（https://www.npmjs.com/package/dsh-plan-completion）。
+> npm：[`dsh-plan-completion`](https://www.npmjs.com/package/dsh-plan-completion)（版本见上方 npm badge）。
 > DSH 的 profile 安装仍以仓库 `link:` 或路径安装为准（包内是 `dsh.bundle.patch` + `dsh.client` bundle）。
 
 ```powershell
@@ -260,7 +272,7 @@ CI：`.github/workflows/test.yml`（GitHub Actions，Node 20/22 矩阵，push/PR
 
 ## 已知限制（当前）
 
-- 计划只存在 Host 内存，重启 DSH 后丢失（二期接 `storageDomain` / 文件存储）；旧会话可通过 warm 回填，但热重载外的重启仍会清空状态；
+- **计划持久化**（v0.1.2）：计划+最近建议按会话落盘到 `storageDir`，DSH 重启后自动恢复（仍保留"本会话内存态"作为快路径）；默认目录 `~/.dsh/plan-completion-data`，`persistPlans:false` 可退回纯内存。存储为本地明文 JSON，不加密、不自动清理；
 - 模型选择暂用默认路由推导，未做设置页三选一；
 - 计划页是 Popover，右栏形态二期（`ctx.sidebarRightTabs` 已确认对插件开放）；
 - HTTP 路由依赖宿主 `connection.requestRejection`；服务缺失时返回 503，不退回未鉴权访问。已在真实 DSH 完成 v0.1.1 canary（Electron 代理请求正常、直连未认证请求 401）；其他宿主/部署形态仍需各自验证；

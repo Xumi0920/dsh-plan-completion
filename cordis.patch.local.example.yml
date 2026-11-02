@@ -12,6 +12,7 @@
         maxTokensRewrite: 1200
         warmBackfill: true
         modelCalls: true # false: heuristic-only; no plugin model requests
+        persistPlans: true
+        storageDir: '~/.dsh/plan-completion-data'
         enableDebugRoutes: true
         debugDir: '<absolute path to your local research dir>'
-

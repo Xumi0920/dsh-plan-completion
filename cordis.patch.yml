@@ -7,6 +7,9 @@
         maxTokensRewrite: 1200
         warmBackfill: true
         modelCalls: true # false: heuristic-only; no plugin model requests
+        # Plans + last suggestion are persisted per session so a DSH restart restores the UI.
+        persistPlans: true
+        storageDir: '~/.dsh/plan-completion-data'
         # Debug endpoints (debug/diag/theme/experiment/autojob/steps/reset) stay off in production.
         enableDebugRoutes: false
         # Optional: set a local directory to persist debug logs / experiment data.

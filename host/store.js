@@ -5,7 +5,9 @@
  *
  * 语义（两个 store 一致）：
  *   get(sessionId)              → plan | null（返回副本，改它不影响存储）
- *   put(plan, {cas})            → boolean；cas 省略=无条件写，null=仅新建，{gen,rev}=期望当前版本
+ *   getState(sessionId)         → { plan, suggestion } | null（持久化恢复用）
+ *   put(plan, {cas,suggestion}) → boolean；cas 省略=无条件写，null=仅新建，{gen,rev}=期望当前版本；
+ *                                 suggestion 存在时一并保存最近一次建议（undefined=保持不变）
  *   history(sessionId)          → plan[]（旧 → 新，含当前版本）
  *   prune(n = 5)                → 每会话只保留最近 n 版
  *   clear(sessionId?)           → boolean | number
@@ -24,6 +26,10 @@ import { validVersion, versionEquals } from './plan.js';
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const isNonEmptyStr = (v) => typeof v === 'string' && v.trim().length > 0;
+
+function hasOwn(obj, key) {
+  return isObj(obj) && Object.prototype.hasOwnProperty.call(obj, key);
+}
 
 function clone(value) {
   if (value == null) return value;
@@ -69,7 +75,7 @@ function pushHistory(state, plan) {
  * @returns {object}
  */
 export function createMemoryStore() {
-  /** @type {Map<string, {plan: object, history: object[]}>} */
+  /** @type {Map<string, {plan: object, suggestion: object|null, history: object[]}>} */
   const states = new Map();
 
   function get(sessionId) {
@@ -78,13 +84,21 @@ export function createMemoryStore() {
     return state && state.plan ? clone(state.plan) : null;
   }
 
+  function getState(sessionId) {
+    if (!isNonEmptyStr(sessionId)) return null;
+    const state = states.get(sessionId);
+    if (!state || !state.plan) return null;
+    return { plan: clone(state.plan), suggestion: state.suggestion ?? null };
+  }
+
   function put(plan, options = {}) {
     if (!lightValidate(plan)) return false;
-    const cas = isObj(options) && Object.prototype.hasOwnProperty.call(options, 'cas') ? options.cas : undefined;
+    const cas = hasOwn(options, 'cas') ? options.cas : undefined;
     const sessionId = plan.sessionId;
-    const state = states.get(sessionId) ?? { plan: null, history: [] };
+    const state = states.get(sessionId) ?? { plan: null, suggestion: null, history: [] };
     if (!casMatches(cas, state)) return false;
     state.plan = clone(plan);
+    if (hasOwn(options, 'suggestion')) state.suggestion = clone(options.suggestion) ?? null;
     pushHistory(state, plan);
     states.set(sessionId, state);
     return true;
@@ -124,7 +138,7 @@ export function createMemoryStore() {
     return [...states.keys()];
   }
 
-  return { get, put, history, prune, clear, listSessions, size: () => states.size };
+  return { get, getState, put, history, prune, clear, listSessions, size: () => states.size };
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -171,15 +185,22 @@ export function createFileStore(dir) {
       const data = await readState(sessionId);
       return data && isObj(data.plan) ? clone(data.plan) : null;
     },
+    async getState(sessionId) {
+      if (!enabled || !isNonEmptyStr(sessionId)) return null;
+      const data = await readState(sessionId);
+      if (!data || !isObj(data.plan)) return null;
+      return { plan: clone(data.plan), suggestion: isObj(data.suggestion) ? clone(data.suggestion) : null };
+    },
     async put(plan, options = {}) {
       if (!enabled || !lightValidate(plan)) return false;
       try {
-        const cas = isObj(options) && Object.prototype.hasOwnProperty.call(options, 'cas') ? options.cas : undefined;
+        const cas = hasOwn(options, 'cas') ? options.cas : undefined;
         const sessionId = plan.sessionId;
-        const data = (await readState(sessionId)) ?? { sessionId, plan: null, history: [] };
+        const data = (await readState(sessionId)) ?? { sessionId, plan: null, suggestion: null, history: [] };
         if (!casMatches(cas, data)) return false;
         data.plan = clone(plan);
         data.sessionId = sessionId;
+        if (hasOwn(options, 'suggestion')) data.suggestion = clone(options.suggestion) ?? null;
         if (!Array.isArray(data.history)) data.history = [];
         const last = data.history[data.history.length - 1];
         if (last && versionEquals(last.version, plan.version)) data.history[data.history.length - 1] = clone(plan);

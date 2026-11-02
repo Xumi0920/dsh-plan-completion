@@ -12,6 +12,7 @@
  * (verified contract: same-origin fetch from the Electron page works and the body is readable).
  */
 import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs'
+import { homedir } from 'node:os'
 
 import { DEFAULTS } from './host/config.js'
 import { requestRejection, safeDebugRecord, safeDiagnostics } from './host/security.js'
@@ -20,7 +21,7 @@ import { normalizePlan, patchPlan, rewritePlan, statusFor, applyUserEdit } from 
 import { buildPatchPrompt, buildRewritePrompt, buildRepairPrompt, parseModelOutput } from './host/prompt.js'
 import { heuristicSuggestion, fallbackPlan } from './host/heuristics.js'
 import { collectFromEvents } from './host/evidence.js'
-import { createMemoryStore } from './host/store.js'
+import { createMemoryStore, createFileStore } from './host/store.js'
 import { runExperiment } from './host/experiment.js'
 import { sliceEvidence } from './host/experiment.js'
 
@@ -41,6 +42,25 @@ function debugLog(record) {
   } catch {
     /* ignore */
   }
+}
+
+/**
+ * Resolve the local plan-store directory. `~` is expanded so a shipped config can point at the
+ * user's home without hard-coding an absolute path. Empty means "memory only".
+ */
+function expandStorageDir(value, envValue) {
+  const raw = typeof value === 'string' && value.trim() !== ''
+    ? value.trim()
+    : (typeof envValue === 'string' ? envValue.trim() : '')
+  if (raw === '') return ''
+  if (raw === '~' || raw.startsWith('~/') || raw.startsWith('~\\')) {
+    try {
+      return raw === '~' ? homedir() : join(homedir(), raw.slice(2))
+    } catch {
+      return ''
+    }
+  }
+  return raw
 }
 
 function readJsonBody(req) {
@@ -232,6 +252,8 @@ export function apply(ctx, config = {}) {
     maxTokensRewrite: readInt(rawConfig.maxTokensRewrite, 1200, 400, 8000),
     warmBackfill: rawConfig.warmBackfill !== false,
     modelCalls: rawConfig.modelCalls !== false,
+    persistPlans: rawConfig.persistPlans !== false,
+    storageDir: expandStorageDir(rawConfig.storageDir, process.env.DSH_PLAN_COMPLETION_STORE_DIR),
     enableDebugRoutes: rawConfig.enableDebugRoutes === true,
     debugDir: typeof rawConfig.debugDir === 'string' && rawConfig.debugDir.trim() !== ''
       ? rawConfig.debugDir.trim()
@@ -276,7 +298,11 @@ export function apply(ctx, config = {}) {
   const warmAttempts = shared.warmAttempts // sessionId -> { at, seq }
   const inflight = new Map() // sessionId -> AbortController
   const gate = createGate(DEFAULTS.globalConcurrency)
-  const store = shared.store
+  // Persistence: a file-backed plan store when a directory is configured; otherwise memory.
+  // The store keeps the last plan + suggestion per session so a restart can restore the UI.
+  const fileStore = settings.persistPlans && settings.storageDir ? createFileStore(settings.storageDir) : null
+  const store = fileStore ?? createMemoryStore()
+  shared.store = store
   let disposed = false
   const stopGeneration = () => {
     disposed = true
@@ -311,6 +337,53 @@ export function apply(ctx, config = {}) {
   function publishState(sessionId, patch) {
     const previous = states.get(sessionId) ?? { plan: null, suggestion: null, stale: false }
     states.set(sessionId, { ...previous, ...patch })
+  }
+
+  // ── Persistence ⇄ in-memory state ────────────────────────────────────────
+  const hydration = new Map() // sessionId -> Promise (in-flight disk reads)
+
+  // Adopt plans retained in memory across a hot reload into the file store. `cas:null` means
+  // "only when the file has no plan yet", so a newer on-disk plan is never overwritten.
+  if (fileStore) {
+    for (const [sessionId, state] of states.entries()) {
+      if (!state?.plan) continue
+      void fileStore
+        .put(state.plan, { cas: null, suggestion: state.suggestion ?? null })
+        .catch(() => {})
+    }
+  }
+
+  /**
+   * Load a persisted plan (+ last suggestion) into the shared in-memory state. The UI can show
+   * the previous plan right after a DSH restart, before the next turn runs.
+   */
+  async function hydrateSession(sessionId) {
+    if (!sessionId) return
+    if (states.get(sessionId)?.plan) return
+    const pending = hydration.get(sessionId)
+    if (pending) return pending
+    const task = (async () => {
+      try {
+        const stored = typeof store.getState === 'function'
+          ? await store.getState(sessionId)
+          : { plan: await store.get(sessionId), suggestion: null }
+        if (!stored?.plan || states.get(sessionId)?.plan) return
+        const normalized = normalizePlan(stored.plan)
+        if (!normalized?.ok || !normalized.plan) return
+        states.set(sessionId, {
+          plan: normalized.plan,
+          suggestion: stored.suggestion && typeof stored.suggestion === 'object' ? stored.suggestion : null,
+          stale: false,
+        })
+        debugLog({ phase: 'state-hydrated', sessionId })
+      } catch (error) {
+        debugLog({ phase: 'state-hydrate-error', sessionId, error: String(error) })
+      } finally {
+        hydration.delete(sessionId)
+      }
+    })()
+    hydration.set(sessionId, task)
+    return task
   }
 
   function seedPlan(sessionId, evidence) {
@@ -429,6 +502,7 @@ export function apply(ctx, config = {}) {
   async function runWarmBackfill(sessionId, options = {}) {
     if (!settings.warmBackfill) return { ok: false, reason: 'disabled' }
     if (!sessionId) return { ok: false, reason: 'no-session-id' }
+    await hydrateSession(sessionId)
     if (states.get(sessionId)?.plan) return { ok: true, already: true }
     const now = Date.now()
     const attempt = warmAttempts.get(sessionId)
@@ -491,6 +565,8 @@ export function apply(ctx, config = {}) {
     await gate.acquire()
     try {
       if (!isCurrent()) return
+      await hydrateSession(sessionId)
+      if (!isCurrent()) return
       let events = []
       try {
         events = Array.from(session.snapshotEvents(Math.max(0, seq - 300)) ?? [])
@@ -499,7 +575,10 @@ export function apply(ctx, config = {}) {
       }
 
       const basePlan = states.get(sessionId)?.plan ?? null
-      const storedVersion = store.get(sessionId)?.version ?? null
+      const storedPlan = typeof store.getState === 'function'
+        ? (await store.getState(sessionId))?.plan ?? null
+        : await store.get(sessionId)
+      const storedVersion = storedPlan?.version ?? null
       const evidence = (() => {
         try {
           const collected = collectFromEvents({ events, plan: basePlan, turn, sessionId })
@@ -668,16 +747,28 @@ export function apply(ctx, config = {}) {
         if (fallbackText) suggestion = { text: fallbackText, alternates: [] }
       }
 
+      const elapsed = Date.now() - startedAt
+      const suggestionDeadline = force ? Number.POSITIVE_INFINITY : Math.max(DEFAULTS.suggestionDeadlineMs, 6000)
+      const withinSuggestionDeadline = elapsed <= suggestionDeadline
+      const finalSuggestion = withinSuggestionDeadline ? suggestion ?? provisionalSuggestion : provisionalSuggestion
+
       if (nextPlan) {
         try {
           // Check CAS even for an unchanged plan; an old snapshot is never an
           // unconditional write. null also protects the first commit from races.
-          const committed = store.put(nextPlan, { cas: storedVersion })
+          // The last suggestion is persisted in the same write so a restart can restore it.
+          const committed = await store.put(nextPlan, { cas: storedVersion, suggestion: finalSuggestion })
           if (!committed) {
             debugLog({ phase: 'store-cas-miss', sessionId })
-            const latest = store.get(sessionId)
-            publishState(sessionId, { plan: latest, suggestion: null, stale: true })
-            debug.lastJob = { sessionId, turn, elapsed: Date.now() - startedAt, outcome: 'conflict', suggestion: false }
+            const winner = typeof store.getState === 'function'
+              ? await store.getState(sessionId)
+              : { plan: await store.get(sessionId), suggestion: null }
+            publishState(sessionId, {
+              plan: winner?.plan ?? null,
+              suggestion: null,
+              stale: Boolean(winner?.plan),
+            })
+            debug.lastJob = { sessionId, turn, elapsed, outcome: 'conflict', suggestion: false }
             return
           }
         } catch (error) {
@@ -686,10 +777,6 @@ export function apply(ctx, config = {}) {
         }
       }
 
-      const elapsed = Date.now() - startedAt
-      const suggestionDeadline = force ? Number.POSITIVE_INFINITY : Math.max(DEFAULTS.suggestionDeadlineMs, 6000)
-      const withinSuggestionDeadline = elapsed <= suggestionDeadline
-      const finalSuggestion = withinSuggestionDeadline ? suggestion ?? provisionalSuggestion : provisionalSuggestion
       publishState(sessionId, {
         plan: nextPlan,
         suggestion: finalSuggestion,
@@ -878,7 +965,9 @@ export function apply(ctx, config = {}) {
             return
           }
           if (pathname === `${ROUTE_PREFIX}state` && method === 'GET') {
-            jsonResponse(res, 200, publicView(url?.searchParams?.get('sessionId') ?? ''))
+            const sessionId = url?.searchParams?.get('sessionId') ?? ''
+            await hydrateSession(sessionId)
+            jsonResponse(res, 200, publicView(sessionId))
             return
           }
           if (pathname === `${ROUTE_PREFIX}debug` && method === 'GET') {
@@ -972,7 +1061,12 @@ export function apply(ctx, config = {}) {
             const sessionId = String(body.sessionId ?? '')
             const existed = states.has(sessionId)
             inflight.get(sessionId)?.abort(new Error('state-reset'))
-            store.clear(sessionId)
+            try {
+              await store.clear(sessionId)
+            } catch (error) {
+              debugLog({ phase: 'reset-store-error', sessionId, error: String(error) })
+            }
+            hydration.delete(sessionId)
             states.delete(sessionId)
             warmAttempts.delete(sessionId)
             handledTurns.delete(sessionId)
@@ -983,6 +1077,7 @@ export function apply(ctx, config = {}) {
           if (pathname === `${ROUTE_PREFIX}steps` && method === 'POST') {
             const body = (await readJsonBody(req)) ?? {}
             const sessionId = String(body.sessionId ?? '')
+            await hydrateSession(sessionId)
             const plan = states.get(sessionId)?.plan ?? null
             if (!plan) {
               jsonResponse(res, 200, { ok: false, error: 'no-plan' })
@@ -1034,7 +1129,11 @@ export function apply(ctx, config = {}) {
               return
             }
             try {
-              store.put(applied.plan, { cas: plan.version })
+              const committed = await store.put(applied.plan, {
+                cas: plan.version,
+                suggestion: states.get(sessionId)?.suggestion ?? null,
+              })
+              if (!committed) await store.put(applied.plan, { suggestion: states.get(sessionId)?.suggestion ?? null })
             } catch (error) {
               debugLog({ phase: 'user-edit-store-error', sessionId, error: String(error) })
             }

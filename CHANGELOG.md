@@ -3,6 +3,30 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
+## [0.1.2] - 2026-11-02
+
+### Added
+- Plan persistence: the plan plus the last suggestion are written per session to a local file
+  store (`storageDir/plans/<base64url(sessionId)>.json`, atomic temp+rename). After a DSH restart,
+  `GET /state` hydrates the persisted plan before responding, so the previous plan/version and
+  suggestion are visible immediately (no model call needed).
+- New config: `persistPlans` (default true) and `storageDir` (default `~/.dsh/plan-completion-data`,
+  `~` expanded; `DSH_PLAN_COMPLETION_STORE_DIR` also honored). `persistPlans:false` returns to
+  memory-only behavior.
+- Persisted writes happen on every committed generation, user edit (`/steps`) and are deleted by
+  `/reset`; warm backfill sees the persisted plan and reports `already` instead of re-generating.
+- `store.getState()` / `put(plan, {cas, suggestion})` in both memory and file stores.
+- 9 new tests: store persistence semantics (memory + file, corrupt record tolerance) and a
+  restart-simulation integration suite (restore on mount, continue patching after restart, reset
+  clears disk).
+
+### Changed
+- `npm test` now reports **120/120** tests.
+
+### Security
+- Persisted files contain conversation-derived plan/suggestion text (plain JSON, unencrypted, no
+  automatic expiry); see `docs/security.md`. `persistPlans:false` disables disk persistence.
+
 ## [0.1.1] - 2026-11-02
 
 ### Fixed

@@ -80,7 +80,7 @@ plugin_manager remove_bundle target='dsh-plan-completion'
 ## 七、已知限制（v0.1.1 现状）
 
 1. **旧会话回填已支持**（v0.1.1）：打开插件从未观察过的会话时，Client 会 POST `/plan-completion/warm`，Host 从持久化会话日志重建计划+建议（同一会话 10 分钟内只回填一次；需要一次模型调用，可用 `warmBackfill:false` 关闭）。不触发回填时仍只有 `▤` 入口。
-2. **计划不持久化**：进程内存保存，DSH 重启后计划丢失，下个回合结束重新生成（二期接 `storageDomain`）。
+2. **计划持久化已支持**（v0.1.2）：计划+最近建议写入 `storageDir`（默认 `~/.dsh/plan-completion-data`，明文 JSON），DSH 重启后打开会话即可恢复；`persistPlans:false` 可退回纯内存。存储不加密、不自动清理，多 profile 共用默认目录时可能互相可见（见 `docs/security.md`）。
 3. **用户编辑锁**：`editedByUser=true` 后模型不能自动 rewrite 覆盖计划，只能 patch；需要整体重构用 `/replan`。
 4. **调试路由**：`experiment|autojob|steps|theme|diag|reset|debug` 仅在 `enableDebugRoutes:true` 时注册，且与其他路由一样必须通过宿主 `connection.requestRejection`（v0.1.1 起）。
 5. **无「核对进度」按钮**：计划页当前只展示状态/证据；按需模型核对按钮在二期清单（见下）。
