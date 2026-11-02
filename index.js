@@ -215,7 +215,7 @@ const HOST_GLOBAL_KEY = '__dsh_plan_completion_host__'
  * up with two live handler sets answering different state.
  */
 function hostGlobal() {
-  const fallback = { states: new Map(), sessions: new Map(), handledTurns: new Map(), warmAttempts: new Map(), disposers: [] }
+  const fallback = { states: new Map(), sessions: new Map(), handledTurns: new Map(), warmAttempts: new Map(), noneStreaks: new Map(), disposers: [] }
   if (typeof globalThis === 'undefined') return { ...fallback, store: createMemoryStore() }
   if (!globalThis[HOST_GLOBAL_KEY] || typeof globalThis[HOST_GLOBAL_KEY] !== 'object') {
     globalThis[HOST_GLOBAL_KEY] = fallback
@@ -225,6 +225,7 @@ function hostGlobal() {
   if (!(shared.sessions instanceof Map)) shared.sessions = new Map()
   if (!(shared.handledTurns instanceof Map)) shared.handledTurns = new Map()
   if (!(shared.warmAttempts instanceof Map)) shared.warmAttempts = new Map()
+  if (!(shared.noneStreaks instanceof Map)) shared.noneStreaks = new Map()
   if (!Array.isArray(shared.disposers)) shared.disposers = []
   if (!shared.store || typeof shared.store.get !== 'function' || typeof shared.store.put !== 'function') {
     shared.store = createMemoryStore()
@@ -754,12 +755,22 @@ export function apply(ctx, config = {}) {
       const withinSuggestionDeadline = elapsed <= suggestionDeadline
       const finalSuggestion = withinSuggestionDeadline ? suggestion ?? provisionalSuggestion : provisionalSuggestion
 
+      // A long `op=none` streak means the visible plan stopped tracking the conversation
+      // (edited-by-user plans cannot be rewritten automatically, and one coarse step may need
+      // splitting). Surface an actionable replan suggestion instead of repeating a stale one.
+      const priorNoneStreak = noneStreaks.get(sessionId) ?? 0
+      const nextNoneStreak = force ? 0 : outcome === 'none' && nextPlan ? priorNoneStreak + 1 : 0
+      const replanSuggested = nextNoneStreak >= 2 && Boolean(nextPlan)
+      const publishedSuggestion = replanSuggested
+        ? { text: '/replan 按最近进展重排计划，把已完成项标记完成', alternates: [] }
+        : finalSuggestion
+
       if (nextPlan) {
         try {
           // Check CAS even for an unchanged plan; an old snapshot is never an
           // unconditional write. null also protects the first commit from races.
           // The last suggestion is persisted in the same write so a restart can restore it.
-          const committed = await store.put(nextPlan, { cas: storedVersion, suggestion: finalSuggestion })
+          const committed = await store.put(nextPlan, { cas: storedVersion, suggestion: publishedSuggestion })
           if (!committed) {
             debugLog({ phase: 'store-cas-miss', sessionId })
             const winner = typeof store.getState === 'function'
@@ -779,13 +790,23 @@ export function apply(ctx, config = {}) {
         }
       }
 
+      noneStreaks.set(sessionId, nextNoneStreak)
       publishState(sessionId, {
         plan: nextPlan,
-        suggestion: finalSuggestion,
-        stale: false,
+        suggestion: publishedSuggestion,
+        stale: replanSuggested,
       })
-      debug.lastJob = { sessionId, turn, elapsed, outcome, suggestion: Boolean(suggestion), withinSuggestionDeadline }
-      debugLog({ phase: 'job-done', sessionId, turn, elapsed, outcome, withinSuggestionDeadline })
+      debug.lastJob = {
+        sessionId,
+        turn,
+        elapsed,
+        outcome,
+        suggestion: Boolean(suggestion),
+        withinSuggestionDeadline,
+        noneStreak: nextNoneStreak,
+        replanSuggested,
+      }
+      debugLog({ phase: 'job-done', sessionId, turn, elapsed, outcome, withinSuggestionDeadline, replanSuggested })
     } catch (error) {
       if (!isCurrent()) return
       debugLog({ phase: 'job-failed', sessionId, turn, error: String(error) })
@@ -800,6 +821,7 @@ export function apply(ctx, config = {}) {
 
   // ── Session event subscription: one plan job per completed turn ──────────
   const handledTurns = shared.handledTurns // sessionId -> last handled turn number
+  const noneStreaks = shared.noneStreaks // sessionId -> consecutive op=none outcomes
 
   function triggerTurnEnd(session, seq, turn, source) {
     if (!session?.id || disposed) return
@@ -1161,6 +1183,7 @@ export function apply(ctx, config = {}) {
             states.delete(sessionId)
             warmAttempts.delete(sessionId)
             handledTurns.delete(sessionId)
+            noneStreaks.delete(sessionId)
             debugLog({ phase: 'state-reset', sessionId, existed })
             jsonResponse(res, 200, { ok: true, sessionId, existed })
             return

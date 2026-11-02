@@ -3,6 +3,18 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
+## [0.1.5] - 2026-11-02
+
+### Fixed
+- Detect a plan that stopped tracking the conversation: after **two consecutive `op=none`**
+  generation outcomes (e.g. an edited plan whose coarse step needs splitting), the published
+  suggestion becomes `/replan 按最近进展重排计划，把已完成项标记完成` and the plan is marked
+  stale, so the user can fix the plan with one Tab fill instead of seeing a repeated stale hint.
+- `/reset` and forced `/replan` clear the none-streak counter.
+
+### Changed
+- `npm test` now reports **133/133** tests.
+
 ## [0.1.4] - 2026-11-02
 
 ### Fixed

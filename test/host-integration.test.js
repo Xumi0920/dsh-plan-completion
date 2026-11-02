@@ -27,6 +27,19 @@ test('production host: cold-start rewrite and next-turn patch advance the same p
   assert.equal(host.calls.length, 2);
 });
 
+test('production host: repeated op=none results surface an actionable /replan suggestion', async t => {
+  const noneOutput = { op: 'none', reason: '没有实质变化', suggestion: '继续推进当前计划' };
+  const host = setup(t, [initialOutput(), noneOutput, noneOutput]);
+  const session = sessionFixture('none-streak');
+  await completeTurn(host, session, 1);
+  await completeTurn(host, session, 2);
+  assert.equal(host.state(session.id).suggestion.text, '继续推进当前计划');
+  assert.equal(host.state(session.id).stale, false);
+  await completeTurn(host, session, 3);
+  assert.match(host.state(session.id).suggestion.text, /^\/replan/);
+  assert.equal(host.state(session.id).stale, true);
+});
+
 test('production host: existing plans keep updating after dispose/apply', async t => {
   const host = setup(t, [initialOutput(), patchOutput('s2', 'doing')]);
   const session = sessionFixture('reload');
