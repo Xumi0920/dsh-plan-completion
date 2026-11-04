@@ -44,9 +44,9 @@ window.__ModuleLoader__.load({
     // Watchdog cadence for a known-but-static `running`: no state request for this
     // long means suggestions may be stuck, so issue one `reason=stale-poll`.
     const STALE_POLL_MS = 15000;
-    const STEP_STATUSES = ['todo', 'doing', 'done', 'dropped'];
+    const STEP_STATUSES = ['todo', 'doing', 'blocked', 'done', 'dropped'];
     // Client build marker surfaced to the Host diagnostic route (proves which bundle is live).
-    const CLIENT_BUILD = 'settings-2026-11-03';
+    const CLIENT_BUILD = 'rag-progress-2026-11-04';
     // TEMP verification flag: auto-open the plan panel shortly after mount so a static
     // screenshot can be taken without synthetic clicks. Set back to false before release.
     const DEV_OPEN_POPOVER = false;
@@ -89,6 +89,7 @@ window.__ModuleLoader__.load({
         'status.archived': '已归档',
         'step.todo': '待办',
         'step.doing': '进行中',
+        'step.blocked': '需处理',
         'step.done': '已完成',
         'step.dropped': '已放弃',
         'sync.prefix': '请按当前会话计划继续推进。',
@@ -150,6 +151,7 @@ window.__ModuleLoader__.load({
         'status.archived': 'Archived',
         'step.todo': 'Todo',
         'step.doing': 'In progress',
+        'step.blocked': 'Needs attention',
         'step.done': 'Done',
         'step.dropped': 'Dropped',
         'sync.prefix': 'Please continue based on the current session plan.',
@@ -430,6 +432,7 @@ window.__ModuleLoader__.load({
           id: typeof step.id === 'string' && step.id !== '' ? step.id : 's' + (index + 1),
           title: truncate(title, 300),
           status: STEP_STATUSES.indexOf(step.status) >= 0 ? step.status : 'todo',
+          lifecycle: typeof step.lifecycle === 'string' ? step.lifecycle : '',
           evidence: normalizeEvidence(step.evidence)
         });
       }
@@ -492,6 +495,8 @@ window.__ModuleLoader__.load({
         version: version,
         status: status === 'completed' || status === 'archived' ? status : 'active',
         intent: typeof intent === 'string' ? truncate(intent, 400) : '',
+        constraints: Array.isArray(pick('constraints')) ? pick('constraints').filter(v => typeof v === 'string').slice(0, 6) : [],
+        retrieval: pick('retrieval') ?? null,
         steps: normalizeSteps(pick('steps')),
         updatedAt: typeof updatedAt === 'number' && isFinite(updatedAt) ? updatedAt : null,
         reason: typeof reason === 'string' ? truncate(reason, 300) : '',
@@ -510,9 +515,11 @@ window.__ModuleLoader__.load({
           plan.intent,
           plan.updatedAt,
           plan.reason,
+          plan.constraints,
+          plan.retrieval,
           plan.stale,
           plan.steps.map(function stepKey(step) {
-            return [step.id, step.title, step.status, step.evidence];
+            return [step.id, step.title, step.status, step.lifecycle, step.evidence];
           }),
           plan.suggestion ? [plan.suggestion.text, plan.suggestion.alternates] : null
         ]);
@@ -1555,7 +1562,7 @@ window.__ModuleLoader__.load({
         if (typeof sessionId !== 'string' || sessionId === '') return undefined;
         // A settled (idle) session must converge fast (~4s); during a running turn
         // 15s is enough because the answer is not ready yet.
-        const interval = running === false ? POLL_MS : STALE_POLL_MS;
+        const interval = running === false ? POLL_MS : 1000;
         let cancelled = false;
         let timer = 0;
         function schedule() {
@@ -1804,6 +1811,8 @@ window.__ModuleLoader__.load({
         );
       }
 
+      const activeSteps = plan.steps.filter(s => s.status !== 'done' && s.status !== 'dropped').sort((a, b) => ({blocked:0,doing:1,todo:2}[a.status] - {blocked:0,doing:1,todo:2}[b.status]));
+      if (plan.constraints && plan.constraints.length) children.push(h('div', { key: 'constraints', className: 'dpc-section' }, h('div', { className: 'dpc-label' }, '关键约束'), plan.constraints.map((text, i) => h('div', { key: i, className: 'dpc-text' }, text))));
       if (plan.steps.length > 0) {
         children.push(
           h(
@@ -1813,13 +1822,13 @@ window.__ModuleLoader__.load({
             h(
               'ol',
               { className: 'dpc-steps' },
-              plan.steps.map(function renderStep(step) {
+              activeSteps.slice(0, 3).map(function renderStep(step) {
                 const glyph =
-                  step.status === 'done' ? '✓' : step.status === 'doing' ? '●' : step.status === 'dropped' ? '✕' : '○';
-                const mainChildren = [h('span', { key: 'title', className: 'dpc-step-title' }, step.title)];
+                  step.status === 'blocked' ? '!' : step.status === 'done' ? '✓' : step.status === 'doing' ? '●' : step.status === 'dropped' ? '✕' : '○';
+                const mainChildren = [h('span', { key: 'title', className: 'dpc-step-title' }, step.title), h('span', { key: 'state', className: 'dpc-evidence' }, step.lifecycle === 'awaiting_receipt' ? '等待工具回执' : step.lifecycle === 'outcome_unverified' ? '结果待核验' : t('step.' + step.status))];
                 if (step.evidence.length > 0) {
                   mainChildren.push(
-                    h('span', { key: 'evidence', className: 'dpc-evidence' }, step.evidence.join(' · '))
+                    h('details', { key: 'evidence', className: 'dpc-evidence' }, h('summary', null, '查看回执编号'), step.evidence.join(' · '))
                   );
                 }
                 return h(
@@ -1838,6 +1847,8 @@ window.__ModuleLoader__.load({
         );
       }
 
+      children.push(h('details', { key: 'full-plan', className: 'dpc-section' }, h('summary', null, '完整计划 · ' + plan.steps.filter(s => s.status === 'done').length + ' 项已完成'), plan.steps.map(s => h('div', { key: s.id, className: 'dpc-text' }, t('step.' + s.status) + ' · ' + s.title))));
+      children.push(h('div', { key: 'retrieval-note', className: 'dpc-evidence' }, '思考仅作意图参考；完成状态须核对执行回执。' + (plan.retrieval?.mode === 'hybrid' ? ' Q8 混合检索' : plan.retrieval?.mode === 'lexical' ? ' 词法检索（向量暂不可用或预热中）' : '')));
       if (plan.reason) {
         children.push(
           h(

@@ -3,7 +3,7 @@
       name: 'dsh-plan-completion'
       config:
         evidenceChars: 1500
-        maxTokensPatch: 400
+        maxTokensPatch: 800
         maxTokensRewrite: 1200
         warmBackfill: true
         modelCalls: true # false: heuristic-only; no plugin model requests
@@ -12,5 +12,10 @@
         storageDir: '~/.dsh/plan-completion-data'
         # Debug endpoints (debug/diag/theme/experiment/autojob/steps/reset) stay off in production.
         enableDebugRoutes: false
+        rag:
+          enabled: false
+          sendContextToGenerator: false
+          endpoint: 'http://127.0.0.1:11434/v1/embeddings'
+          model: 'dsh-qwen3-embedding:q8_0'
         # Optional: set a local directory to persist debug logs / experiment data.
         # debugDir: '<local debug directory>'

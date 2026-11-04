@@ -54,16 +54,29 @@ test('production host: /replan forces a rewrite and advances the plan', async t 
   assert.deepEqual(after.version, { gen: 2, rev: 0 });
   assert.equal(after.steps.length, 5);
   assert.equal(after.steps[3].title, '[二期] 模型设置页');
-  assert.equal(host.state(session.id).suggestion.text, '开始做模型设置页');
+  assert.equal(after.steps[0].status, 'todo', 'a rewrite has no execution receipts');
+  assert.equal(host.state(session.id).suggestion.text, '先核对实际执行回执，再更新完成状态');
 });
 
-test('production host: repeated op=none results surface an actionable /replan suggestion', async t => {
+test('production host: repeated valid op=none reviews keep the plan current', async t => {
   const noneOutput = { op: 'none', reason: '没有实质变化', suggestion: '继续推进当前计划' };
   const host = setup(t, [initialOutput(), noneOutput, noneOutput]);
   const session = sessionFixture('none-streak');
   await completeTurn(host, session, 1);
   await completeTurn(host, session, 2);
   assert.equal(host.state(session.id).suggestion.text, '继续推进当前计划');
+  assert.equal(host.state(session.id).stale, false);
+  await completeTurn(host, session, 3);
+  assert.equal(host.state(session.id).suggestion.text, '继续推进当前计划');
+  assert.equal(host.state(session.id).stale, false);
+});
+
+test('production host: repeated failed updates still surface an actionable review', async t => {
+  const fail = () => { throw new Error('synthetic provider unavailable'); };
+  const host = setup(t, [initialOutput(), fail, fail]);
+  const session = sessionFixture('failed-update-streak');
+  await completeTurn(host, session, 1);
+  await completeTurn(host, session, 2);
   assert.equal(host.state(session.id).stale, false);
   await completeTurn(host, session, 3);
   assert.match(host.state(session.id).suggestion.text, /^\/replan/);
@@ -84,7 +97,7 @@ test('production host: existing plans keep updating after dispose/apply', async 
   assert.equal(after.steps[2].status, 'doing');
   const later = await completeTurn(reloaded, session, 4);
   assert.deepEqual(later.version, { gen: 1, rev: 3 });
-  assert.equal(later.steps[2].status, 'done');
+  assert.equal(later.steps[2].status, 'todo', 'reload retains the completion gate');
 });
 
 test('production host: upgrade adopts a plan retained by a version without shared storage', async t => {
@@ -97,7 +110,7 @@ test('production host: upgrade adopts a plan retained by a version without share
   t.after(() => upgraded.dispose());
   const after = await completeTurn(upgraded, session, 2);
   assert.deepEqual(after.version, { gen: 1, rev: 1 });
-  assert.equal(after.steps[1].status, 'done');
+  assert.equal(after.steps[1].status, 'todo', 'legacy completion requires receipts');
 });
 
 test('production host: a delayed abort rejection cannot roll back a replacement job', async t => {
@@ -110,7 +123,7 @@ test('production host: a delayed abort rejection cannot roll back a replacement 
   const newest = await completeTurn(host, session, 3);
   assert.equal(host.calls[1].signal.aborted, true);
   assert.deepEqual(newest.version, { gen: 1, rev: 1 });
-  assert.equal(newest.steps[1].status, 'done');
+  assert.equal(newest.steps[1].status, 'todo', 'superseding jobs require receipts');
   old.reject(new Error('Delayed stream cancellation'));
   await flushJobs();
   assert.deepEqual(host.state(session.id).plan, newest);
@@ -180,7 +193,7 @@ test('production host: a replacement apply invalidates work before old context d
   // must not consume the shared turn dedupe key or suppress the new instance.
   host.startTurn(session, 3);
   const latest = await completeTurn(replacement, session, 3);
-  assert.equal(latest.steps[2].status, 'done');
+  assert.equal(latest.steps[2].status, 'todo', 'new apply retains the completion gate');
   assert.equal(host.calls[1].signal.aborted, true);
   pending.resolve(patchOutput('s2', 'doing'));
   await flushJobs();

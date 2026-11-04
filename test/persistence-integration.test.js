@@ -65,7 +65,7 @@ test('persistence: a restart restores the last plan and suggestion before the ne
   assert.deepEqual(response.body.version, { gen: 1, rev: 0 });
   assert.equal(response.body.stale, false);
   assert.equal(response.body.steps.length, 3);
-  assert.equal(response.body.suggestion.text, 'Implement the next step');
+  assert.equal(response.body.suggestion.text, '先核对实际执行回执，再更新完成状态');
   // No model call was needed: the persisted plan is shown immediately.
   assert.equal(secondHost.calls.length, 0);
 });

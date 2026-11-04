@@ -13,7 +13,11 @@
  */
 import { appendFileSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
+import { randomUUID } from 'node:crypto'
 
+import { createRag } from './host/rag.js'
+import { collectRetrievalRecords, redactData } from './host/rag-evidence.js'
+import { validateProgress, lifecycleChanges, normalizeConstraints } from './host/progress.js'
 import { DEFAULTS } from './host/config.js'
 import { requestRejection, safeDebugRecord, safeDiagnostics } from './host/security.js'
 import { join } from 'node:path'
@@ -262,7 +266,7 @@ async function callModel(services, route, prompt, signal) {
     provider: route.provider,
     model: route.model,
     system: prompt.system,
-    messages,
+    messages: messages.map(message => ({ ...message, id: 'message-' + randomUUID(), source: message.role === 'assistant' ? { kind: 'model', provider: route.provider, model: route.model } : { kind: 'user' } })),
     maxTokens: prompt.maxTokens,
     temperature: prompt.temperature,
     signal,
@@ -328,7 +332,7 @@ export function apply(ctx, config = {}) {
   const savedSettings = readSavedSettings(storageDir)
   const settings = {
     evidenceChars: readInt(rawConfig.evidenceChars, 1500, 400, 8000),
-    maxTokensPatch: readInt(rawConfig.maxTokensPatch, 400, 120, 4000),
+    maxTokensPatch: readInt(rawConfig.maxTokensPatch, 800, 120, 4000),
     maxTokensRewrite: readInt(rawConfig.maxTokensRewrite, 1200, 400, 8000),
     warmBackfill: rawConfig.warmBackfill !== false,
     modelCalls: (typeof savedSettings.modelCalls === 'boolean' ? savedSettings.modelCalls : true) && rawConfig.modelCalls !== false,
@@ -388,11 +392,18 @@ export function apply(ctx, config = {}) {
   const fileStore = settings.persistPlans && settings.storageDir ? createFileStore(settings.storageDir) : null
   const store = fileStore ?? createMemoryStore()
   shared.store = store
+  const rag = createRag(rawConfig.rag)
+  const observeTimers = new Map()
+  const resetAfter = new Map()
+  const ragViews = new Map()
   let disposed = false
   const stopGeneration = () => {
     disposed = true
     for (const controller of inflight.values()) controller.abort(new Error('plugin-disposed'))
     inflight.clear()
+    rag.close()
+    for (const timer of observeTimers.values()) clearTimeout(timer)
+    observeTimers.clear()
     if (shared.stopGeneration === stopGeneration) delete shared.stopGeneration
   }
   shared.stopGeneration = stopGeneration
@@ -415,6 +426,8 @@ export function apply(ctx, config = {}) {
       reason: plan?.reason ?? null,
       suggestion: state?.suggestion ?? null,
       stale: state ? Boolean(state.stale) : true,
+      constraints: plan?.constraints ?? [],
+      retrieval: ragViews.get(sessionId) ?? { mode: rag.settings.enabled ? 'warming' : 'disabled' },
       debugTheme,
     }
   }
@@ -686,17 +699,24 @@ export function apply(ctx, config = {}) {
       if (!isCurrent()) return
       let events = []
       try {
-        events = Array.from(session.snapshotEvents(Math.max(0, seq - 300)) ?? [])
+        events = Array.from(session.snapshotEvents(resetAfter.get(sessionId) ?? 0) ?? [])
       } catch {
         events = []
       }
 
-      const basePlan = states.get(sessionId)?.plan ?? null
+      let basePlan = states.get(sessionId)?.plan ?? null
+      const records = collectRetrievalRecords(sessionId, events, { maxRecords: 32768 })
+      const lifecycle = lifecycleChanges(basePlan, records)
+      if (lifecycle.length) {
+        const applied = patchPlan(basePlan, lifecycle, { reason: '按最新工具回执校验状态', watermark: { turn, seq } })
+        if (applied.ok) basePlan = applied.plan
+      }
+      if (settings.modelCalls) rag.sync(sessionId, events)
       const storedPlan = typeof store.getState === 'function'
         ? (await store.getState(sessionId))?.plan ?? null
         : await store.get(sessionId)
       const storedVersion = storedPlan?.version ?? null
-      const evidence = (() => {
+      const evidence = redactData((() => {
         try {
           const collected = collectFromEvents({ events, plan: basePlan, turn, sessionId })
           if (collected && collected.ok !== false) return collected
@@ -704,17 +724,30 @@ export function apply(ctx, config = {}) {
           debugLog({ phase: 'evidence-error', sessionId, error: String(error) })
         }
         return { ok: false, turn, watermark: { turn, seq }, plan: basePlan, intent: '', lastAssistantText: '' }
-      })()
+      })())
       if (instruction) evidence.instruction = instruction
+      const retrieval = settings.modelCalls && rag.settings.sendContextToGenerator
+        ? await rag.retrieve(sessionId, [evidence.intent, ...(evidence.lastUserMessages ?? []).slice(-1), ...(basePlan?.steps ?? []).filter(s => s.status !== 'done').map(s => s.title)].join(' '), { signal: controller.signal })
+        : { mode: 'disabled', records: [], elapsedMs: 0, indexed: 0 }
+      if (!isCurrent()) return
+      ragViews.set(sessionId, { mode: retrieval.mode, elapsedMs: retrieval.elapsedMs, indexed: retrieval.indexed, count: retrieval.records.length, kinds: [...new Set(retrieval.records.map(r => r.kind))] })
+      // Recent lifecycle records are always checked; semantic retrieval cannot hide a failure.
+      const relevant = records.filter(r => r.kind === 'tool_call' || r.kind === 'tool_result').slice(-24)
+      evidence.progressRecords = relevant
+      evidence.retrieval = retrieval
 
       // Round-2 isolation test: the patch path is most accurate with a compact evidence
       // slice (800-2000 chars); feeding the full history caused false-completion claims
       // and dropped the blind-judge score. Rewrite keeps the full evidence payload.
       const modelEvidence = force || !basePlan ? evidence : sliceEvidence(evidence, settings.evidenceChars)
 
+      modelEvidence.progressRecords = evidence.progressRecords
+      modelEvidence.retrieval = evidence.retrieval
+      modelEvidence.lastUserMessages = evidence.lastUserMessages
       let nextPlan = basePlan ?? seedPlan(sessionId, evidence)
+      if (!basePlan && nextPlan) nextPlan.steps = nextPlan.steps.map(s => ({ ...s, status: s.status === 'done' ? 'todo' : s.status }))
       let suggestion = null
-      let outcome = 'none'
+      let outcome = lifecycle.length ? 'committed' : 'none'
 
       // First paint: publish an instant heuristic suggestion so the composer shows something
       // within the turn-end latency budget; the model refines it below when it arrives in time.
@@ -731,7 +764,7 @@ export function apply(ctx, config = {}) {
           const built = force || !basePlan ? buildRewritePrompt(evidence, { force }) : buildPatchPrompt(modelEvidence)
           // Round-2 test: patch output needs ~65-120 tokens; cap at 400 (rewrite keeps 1200
           // because it must emit the full step table).
-          if (built) built.maxTokens = force ? settings.maxTokensRewrite : settings.maxTokensPatch
+          if (built) built.maxTokens = force || !basePlan ? settings.maxTokensRewrite : settings.maxTokensPatch
           return built
         } catch (error) {
           debugLog({ phase: 'prompt-error', sessionId, error: String(error) })
@@ -808,7 +841,11 @@ export function apply(ctx, config = {}) {
             }
           }
           if (parsed?.ok && parsed.output) {
-            const output = parsed.output
+            const checked = validateProgress(parsed.output, basePlan, records)
+            const output = checked.output
+            // A valid no-change review is expected while waiting or discussing.
+            // Repeated step/turn boundaries must not turn that into a stale plan.
+            if (output.op === 'none' && outcome === 'none') outcome = 'reviewed'
             const meta = {
               reason: output.reason || '模型更新',
               watermark: { turn, seq },
@@ -825,16 +862,22 @@ export function apply(ctx, config = {}) {
                 applied = rewritePlan(nextPlan, {
                   steps,
                   intent: output.intent || undefined,
+                  constraints: output.constraints,
                   reason: output.reason,
                 }, meta)
               }
             }
             if (applied?.ok && applied.plan) {
               nextPlan = applied.plan
+              if (output.constraints) nextPlan.constraints = normalizeConstraints(output.constraints)
               nextPlan.status = statusFor(nextPlan.steps)
               outcome = applied.changed === false ? 'unchanged' : 'committed'
             } else if (applied && !applied.ok) {
               debugLog({ phase: 'plan-apply-rejected', sessionId, code: applied.code, error: applied.error })
+            }
+            if (output.op === 'none' && output.constraints && nextPlan && JSON.stringify(nextPlan.constraints ?? []) !== JSON.stringify(output.constraints)) {
+              const bumped = patchPlan(nextPlan, [{ id: nextPlan.steps[0].id, status: nextPlan.steps[0].status }], meta)
+              if (bumped.ok) { nextPlan = { ...bumped.plan, constraints: normalizeConstraints(output.constraints) }; outcome = 'committed' }
             }
             if (typeof output.suggestion === 'string' && output.suggestion.trim()) {
               suggestion = {
@@ -869,14 +912,13 @@ export function apply(ctx, config = {}) {
       const withinSuggestionDeadline = elapsed <= suggestionDeadline
       const finalSuggestion = withinSuggestionDeadline ? suggestion ?? provisionalSuggestion : provisionalSuggestion
 
-      // A long `op=none` streak means the visible plan stopped tracking the conversation
-      // (edited-by-user plans cannot be rewritten automatically, and one coarse step may need
-      // splitting). Surface an actionable replan suggestion instead of repeating a stale one.
+      // Only unresolved updates count toward a stale-plan hint. Valid op=none reviews
+      // and receipt-driven lifecycle changes confirm that the plan is still current.
       const priorNoneStreak = noneStreaks.get(sessionId) ?? 0
       const nextNoneStreak = force ? 0 : outcome === 'none' && nextPlan ? priorNoneStreak + 1 : 0
       const replanSuggested = nextNoneStreak >= 2 && Boolean(nextPlan)
       const publishedSuggestion = replanSuggested
-        ? { text: '/replan 按最近进展重排计划，把已完成项标记完成', alternates: [] }
+        ? { text: '/replan 核对执行回执并按最近进展重排计划', alternates: [] }
         : finalSuggestion
 
       if (nextPlan) {
@@ -935,7 +977,7 @@ export function apply(ctx, config = {}) {
 
   // ── Session event subscription: one plan job per completed turn ──────────
   const handledTurns = shared.handledTurns // sessionId -> last handled turn number
-  const noneStreaks = shared.noneStreaks // sessionId -> consecutive op=none outcomes
+  const noneStreaks = shared.noneStreaks // sessionId -> consecutive unresolved updates
 
   function triggerTurnEnd(session, seq, turn, source) {
     if (!session?.id || disposed) return
@@ -1008,6 +1050,21 @@ export function apply(ctx, config = {}) {
       if (!session?.id) return
       sessions.set(session.id, session)
       scheduleIdleCheck(session)
+      if (event?.type === 'user/message') {
+        inflight.get(session.id)?.abort(new Error('new-user-message'))
+        clearTimeout(observeTimers.get(session.id)); observeTimers.delete(session.id)
+      }
+      if (['tool/call', 'tool/result', 'step/end', 'turn/end', 'compaction/end'].includes(event?.type)) {
+        inflight.get(session.id)?.abort(new Error('new-progress-boundary'))
+        clearTimeout(observeTimers.get(session.id))
+        if (event.type !== 'turn/end' || event.data?.reason?.kind !== 'completed') {
+          const timer = setTimeout(() => {
+            observeTimers.delete(session.id)
+            runGeneration(session, event).catch(() => {})
+          }, readInt(rawConfig.observationDebounceMs, 700, 100, 5000))
+          observeTimers.set(session.id, timer)
+        } else observeTimers.delete(session.id)
+      }
       if (event?.type !== 'turn/end') return
       debugLog({ phase: 'turn-end-raw', sessionId: session.id, turn: event.data?.turn, reason: event.data?.reason?.kind, seq: event.seq })
       if (event.data?.reason?.kind !== 'completed') return
@@ -1229,6 +1286,10 @@ export function apply(ctx, config = {}) {
             settings.fixedProvider = next.fixedProvider
             settings.fixedModel = next.fixedModel
             settings.modelCalls = next.modelCalls
+            if (!settings.modelCalls) {
+              for (const controller of inflight.values()) controller.abort(new Error('model-disabled'))
+              rag.clear(); ragViews.clear()
+            }
             const saved = writeSavedSettings(settings.storageDir, {
               modelPolicy: settings.modelPolicy,
               fixedProvider: settings.fixedProvider,
@@ -1336,6 +1397,9 @@ export function apply(ctx, config = {}) {
             const sessionId = String(body.sessionId ?? '')
             const existed = states.has(sessionId)
             inflight.get(sessionId)?.abort(new Error('state-reset'))
+            clearTimeout(observeTimers.get(sessionId)); observeTimers.delete(sessionId)
+            rag.forget(sessionId); ragViews.delete(sessionId)
+            resetAfter.set(sessionId, Number(sessions.get(sessionId)?.seq ?? 0) + 1)
             try {
               await store.clear(sessionId)
             } catch (error) {
