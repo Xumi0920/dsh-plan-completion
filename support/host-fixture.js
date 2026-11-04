@@ -62,7 +62,7 @@ export function createHostFixture(apply, responses, config = {}) {
     effect: fn => { const cleanup = fn(); if (typeof cleanup === 'function') cleanups.push(cleanup); },
     inject: (_deps, fn) => fn({ ...services, effect: ctx.effect, get: ctx.get }),
   };
-  const core = apply(ctx, { warmBackfill: false, ...config });
+  const core = apply(ctx, { warmBackfill: false, progressProtocol: 'strict', ...config });
   globalThis[HOST_KEY] = core
   return {
     calls, ctx, services, handlers, routes,

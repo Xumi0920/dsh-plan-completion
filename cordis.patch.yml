@@ -3,22 +3,24 @@
       name: 'dsh-plan-completion'
       config:
         components: managed
+        progressProtocol: legacy # existing UX; opt into strict receipt/human acceptance in Settings
         evidenceChars: 1500
         maxTokensPatch: 800
         maxTokensRewrite: 1200
         warmBackfill: true
-        modelCalls: true # false: heuristic-only; no plugin model requests
+        modelCalls: true # false: no helper generation; receipt validation remains active
         # Plans + last suggestion are persisted per session so a DSH restart restores the UI.
         persistPlans: true
-        storageDir: '~/.dsh/plan-completion-data'
+        storageDir: '~/.dsh/plan-completion-data' # follows DSH_HOME when explicitly set
         # Debug endpoints (debug/diag/theme/experiment/autojob/steps/reset) stay off in production.
         enableDebugRoutes: false
         rag:
           enabled: false
           sendContextToGenerator: false
+          backend: 'llama.cpp'
+          executablePath: '' # absolute local llama-server path; no automatic download
+          modelPath: '' # absolute official Qwen3-Embedding-0.6B-Q8_0.gguf path
           strategy: 'typed' # source-aware retrieval + established acceptance targets
-          endpoint: 'http://127.0.0.1:11434/v1/embeddings'
-          model: 'dsh-qwen3-embedding:q8_0'
         # Optional: set a local directory to persist debug logs / experiment data.
         # debugDir: '<local debug directory>'
     - id: plan-completion-observer

@@ -13,6 +13,7 @@ import { collectFromEvents } from './evidence.js'
 import { sliceEvidence } from './evidence-budget.js'
 
 import { pickModel, callModel } from './model-route.js'
+import * as legacyPrompt from './legacy-prompt.js'
 
 export const inject = ['planCompletion']
 export function apply(ctx) { return attach(ctx, ctx.get('planCompletion')) }
@@ -74,8 +75,10 @@ function createGate(limit) {
       }
 
       let basePlan = states.get(sessionId)?.plan ?? null
+      const strict = settings.progressProtocol === 'strict' || basePlan?.steps.some(s => s.acceptance)
+      const prompts = strict ? { buildRewritePrompt, buildPatchPrompt, parseModelOutput } : legacyPrompt
       const records = collectRetrievalRecords(sessionId, events, { maxRecords: 32768 })
-      const lifecycle = lifecycleChanges(basePlan, records)
+      const lifecycle = strict ? lifecycleChanges(basePlan, records) : []
       if (lifecycle.length) {
         const applied = patchPlan(basePlan, lifecycle, { reason: '按最新工具回执校验状态', watermark: { turn, seq } })
         if (applied.ok) basePlan = applied.plan
@@ -132,7 +135,7 @@ function createGate(limit) {
 
       const prompt = (() => {
         try {
-          const built = force || !basePlan ? buildRewritePrompt(evidence, { force }) : buildPatchPrompt(modelEvidence)
+          const built = force || !basePlan ? prompts.buildRewritePrompt(evidence, { force }) : prompts.buildPatchPrompt(modelEvidence)
           // Round-2 test: patch output needs ~65-120 tokens; cap at 400 (rewrite keeps 1200
           // because it must emit the full step table).
           if (built) built.maxTokens = force || !basePlan ? settings.maxTokensRewrite : settings.maxTokensPatch
@@ -170,7 +173,7 @@ function createGate(limit) {
             textChars: String(text ?? '').length,
             maxTokens: prompt.maxTokens,
           })
-          parsed = parseModelOutput(text, { requireProtocol: true })
+          parsed = prompts.parseModelOutput(text, { requireProtocol: strict })
           if (!parsed?.ok && !String(text ?? '').trim()) {
             // Empty answer: reasoning models can spend the whole budget before emitting text.
             // Retry the same prompt once with a larger budget before giving up.
@@ -183,7 +186,7 @@ function createGate(limit) {
               if (!isCurrent()) return
               text = retried.text
               debug.lastUsage = retried.usage ?? debug.lastUsage
-              parsed = parseModelOutput(text, { requireProtocol: true })
+              parsed = prompts.parseModelOutput(text, { requireProtocol: strict })
               debugLog({
                 phase: 'empty-retry',
                 sessionId,
@@ -205,19 +208,19 @@ function createGate(limit) {
               const repairedRes = await callModel(services, route, repairPrompt, controller.signal)
               if (!isCurrent()) return
               debug.lastUsage = repairedRes.usage ?? debug.lastUsage
-              const reparsed = parseModelOutput(repairedRes.text, { requireProtocol: true })
+              const reparsed = prompts.parseModelOutput(repairedRes.text, { requireProtocol: strict })
               if (reparsed?.ok) parsed = reparsed
             } catch (error) {
               debugLog({ phase: 'repair-failed', sessionId, error: String(error) })
             }
           }
           if (parsed?.ok && parsed.output) {
-            const checked = validateProgress(parsed.output, basePlan, records)
+            const checked = strict ? validateProgress(parsed.output, basePlan, records) : { output: parsed.output }
             if (checked.protocolRejected) debugLog({ phase: 'progress-protocol-rejected', sessionId, count: checked.protocolRejected })
             const output = checked.output
             // A valid no-change review is expected while waiting or discussing.
             // Repeated step/turn boundaries must not turn that into a stale plan.
-            if (output.op === 'none' && outcome === 'none') outcome = 'reviewed'
+            if (strict && !checked.protocolRejected && output.op === 'none' && outcome === 'none') outcome = 'reviewed'
             const meta = {
               reason: output.reason || '模型更新',
               watermark: { turn, seq },

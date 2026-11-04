@@ -6,6 +6,17 @@ import { join } from 'node:path';
 
 import { apply } from '../index.js';
 import { HOST_KEY, createHostFixture } from '../support/host-fixture.js';
+import { expandStorageDir } from '../host/settings.js';
+import { homedir } from 'node:os';
+import { resolve } from 'node:path';
+
+test('default storage follows isolated DSH_HOME without importing the shared legacy directory', () => {
+  const isolated=join(tmpdir(),'synthetic-dsh-home');
+  assert.equal(expandStorageDir('~/.dsh/plan-completion-data',undefined,isolated),join(resolve(isolated),'plan-completion-data'));
+  assert.equal(expandStorageDir('~/.dsh/plan-completion-data',undefined,''),join(homedir(),'.dsh/plan-completion-data'));
+  assert.equal(expandStorageDir(join(tmpdir(),'explicit-plan-store'),undefined,isolated),join(tmpdir(),'explicit-plan-store'));
+  assert.equal(expandStorageDir('',undefined,isolated),'');
+});
 
 async function tempDir(t) {
   const dir = await mkdtemp(join(tmpdir(), 'dpc-settings-'));

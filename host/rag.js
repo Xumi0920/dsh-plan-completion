@@ -46,7 +46,7 @@ function normalized(vector, dimensions = 1024) {
 }
 
 /** Direct node transport deliberately ignores HTTP(S)_PROXY and refuses redirects. */
-export function createEmbeddingClient(config) {
+export function createEmbeddingClient(config, dependencies = {}) {
   const settings = ragSettings(config), url = localEmbeddingURL(settings.endpoint);
   const protocol = url.protocol === 'https:' ? https : http;
   const agent = new protocol.Agent({ keepAlive: true, maxSockets: 2 });
@@ -60,8 +60,8 @@ export function createEmbeddingClient(config) {
       signal?.addEventListener('abort', abort, { once: true });
       const timer = setTimeout(abort, settings.embeddingTimeoutMs);
       try {
-        let key = '';
-        if (settings.apiKeyFile) {
+        let key = dependencies.apiKey ?? '';
+        if (!key && settings.apiKeyFile) {
           if (!isAbsolute(settings.apiKeyFile)) throw new Error('invalid-key-file');
           const info = await stat(settings.apiKeyFile);
           if (!info.isFile() || info.size > 4096) throw new Error('invalid-key-file');

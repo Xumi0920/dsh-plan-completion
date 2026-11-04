@@ -40,10 +40,12 @@ function debugLog(record) {
     const number = typeof value === 'number' && Number.isFinite(value) ? Math.round(value) : fallback
     return Math.min(max, Math.max(min, number))
   }
-  const rawConfig = config && typeof config === 'object' ? config : {}
+  const rawConfig = config && typeof config === 'object' ? { ...config } : {}
   const storageDir = expandStorageDir(rawConfig.storageDir, process.env.DSH_PLAN_COMPLETION_STORE_DIR)
   const savedSettings = readSavedSettings(storageDir)
+  rawConfig.rag = { ...rawConfig.rag, ...savedSettings.rag }
   const settings = {
+    progressProtocol: (savedSettings.progressProtocol ?? rawConfig.progressProtocol) === 'strict' ? 'strict' : 'legacy',
     evidenceChars: readInt(rawConfig.evidenceChars, 1500, 400, 8000),
     maxTokensPatch: readInt(rawConfig.maxTokensPatch, 800, 120, 4000),
     maxTokensRewrite: readInt(rawConfig.maxTokensRewrite, 1200, 400, 8000),
@@ -151,6 +153,8 @@ function debugLog(record) {
       retrieval: ragViews.get(sessionId) ?? { mode: rag.settings.enabled ? 'warming' : 'disabled' },
       debugTheme: presentation.debugTheme,
       components: { ...core.components },
+      assurance: settings.progressProtocol === 'legacy' && !plan?.steps.some(s => s.acceptance) ? 'legacy-unverified' : 'validated',
+      embedding: core.embeddingSnapshot?.() ?? { state: 'disabled' },
     }
   }
 
@@ -171,6 +175,11 @@ function debugLog(record) {
       }
     } catch { models = [] }
     return {
+      progressProtocol: settings.progressProtocol,
+      rag: { enabled: rawConfig.rag.enabled === true, sendContextToGenerator: rawConfig.rag.sendContextToGenerator === true,
+        backend: rawConfig.rag.backend ?? (rawConfig.rag.endpoint ? 'external' : 'llama.cpp'),
+        executablePath: rawConfig.rag.executablePath ?? '', modelPath: rawConfig.rag.modelPath ?? '' },
+      embedding: core.embeddingSnapshot?.() ?? { state: 'disabled' },
       modelPolicy: settings.modelPolicy,
       fixedProvider: settings.fixedProvider,
       fixedModel: settings.fixedModel,
@@ -216,7 +225,7 @@ function debugLog(record) {
         if (!normalized?.ok || !normalized.plan) return
         // Legacy storage remains readable, but unversioned machine status is
         // not promoted to verified completion during migration.
-        normalized.plan.steps = normalized.plan.steps.map(s => s.acceptance || s.source === 'user' ? s : {
+        normalized.plan.steps = normalized.plan.steps.map(s => settings.progressProtocol !== 'strict' || s.acceptance || s.source === 'user' ? s : {
           ...s, status: 'todo', proof: null, evidence: [], lifecycle: 'awaiting_manual_acceptance',
           acceptance: { scope: 'manual', revision: 1, afterSeq: Number(normalized.plan.watermark?.seq ?? -1), dependsOn: [] },
         })
@@ -240,9 +249,21 @@ function debugLog(record) {
   }
 
   // Saved proof is a cache. Only the native journal can refresh completion.
-  async function reconcileSession(sessionId, suppliedEvents) {
+  async function reconcileSession(sessionId, suppliedEvents, { upgradeLegacy = false } = {}) {
     const state = states.get(sessionId)
     if (disposed || !state?.plan) return false
+    if (settings.progressProtocol === 'legacy' && !state.plan.steps.some(s => s.acceptance)) {
+      publishState(sessionId, { stale: false, freshness: 'legacy-unverified' }); return true
+    }
+    if (upgradeLegacy && settings.progressProtocol === 'strict' && state.plan.steps.some(s => !s.acceptance && s.source !== 'user')) {
+      const changes = state.plan.steps.filter(s => !s.acceptance && s.source !== 'user').map(s => ({ id: s.id, status: 'todo', proof: null, evidence: [],
+        lifecycle: 'awaiting_manual_acceptance', acceptance: { scope: 'manual', revision: 1, afterSeq: state.plan.watermark.seq, dependsOn: [] } }))
+      const upgraded = patchPlan(state.plan, changes, { reason: '启用严格验收；旧模型状态待人工核验' })
+      if (!upgraded.ok || !await store.put(upgraded.plan, { cas: state.plan.version, suggestion: state.suggestion })) return false
+      if (states.get(sessionId)?.plan !== state.plan) return false
+      publishState(sessionId, { plan: upgraded.plan, stale: true, freshness: 'journal-unavailable' })
+      return reconcileSession(sessionId, suppliedEvents)
+    }
     let events = suppliedEvents
     if (!events) {
       try { events = sessions.get(sessionId)?.snapshotEvents(resetAfter.get(sessionId) ?? 0) } catch { /* retry persistence */ }
@@ -281,7 +302,7 @@ function debugLog(record) {
       version: { gen: 0, rev: 0 },
       status: 'active',
       intent: fallback?.intent || intent,
-      steps: steps.map(s => ({ ...s, status: 'todo', acceptance: { scope: 'manual', revision: 1, afterSeq: Number(evidence?.watermark?.seq ?? -1), dependsOn: [] }, lifecycle: 'awaiting_manual_acceptance' })),
+      steps: settings.progressProtocol === 'legacy' ? steps : steps.map(s => ({ ...s, status: 'todo', acceptance: { scope: 'manual', revision: 1, afterSeq: Number(evidence?.watermark?.seq ?? -1), dependsOn: [] }, lifecycle: 'awaiting_manual_acceptance' })),
       updatedAt: Date.now(),
       reason: '启发式初始化计划',
       watermark: evidence?.watermark ?? { turn: 0, seq: 0 },

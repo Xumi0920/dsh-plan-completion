@@ -3,13 +3,14 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
-## [Unreleased] — PR #1
+## [0.2.0-canary.1] — unreleased
 
-- Split the same package into a context-scoped core service and independently managed observer, retrieval, generator and API components, with legacy config migration.
-- Fail closed on invalid fixed-model routes; abort generation and verification when settings change.
-- Revalidate persisted completion against current native receipts; mask old proof while journals or observation are unavailable, and page unknown-length journals safely.
-- Require progress/acceptance fields for new model output; retain explicit unverified fallback and safe legacy migration. Stabilize unchanged proof versions.
-- Add regression coverage (250 tests), real DSH component lifecycle/UI validation, and synthetic QQAgent/article state checks. Keep official Q8 and native context.
+- Default to compatible legacy progress behavior, with an explicit unverified label; opt into versioned strict acceptance in Settings. Preserve existing valid receipts on replan and the legacy two-none replan hint.
+- Add authenticated human confirmation/revocation with plan/acceptance CAS and dependent-step invalidation.
+- Keep one package with a root state service and observer, retrieval, generator and API components; honor legacy profile overrides and explicit component disabling.
+- Run official Q8 through a lazy, authenticated, loopback llama.cpp subprocess owned by the retrieval component. No Ollama dependency, automatic downloads, shell launch, or inherited provider credentials. Release on idle/dispose; reap on Host exit; recover from crashes.
+- Fail closed on invalid model routing, cancel stale requests, revalidate restored plans, and follow isolated DSH_HOME for the default store.
+- Exclude archived experiment data and screenshots from npm; add isolated tarball/import checks to all four CI jobs. Validation scope and remaining desktop UI gate are recorded in docs/managed-validation.md. Nothing published or merged.
 
 ## [0.1.8] - 2026-11-03
 

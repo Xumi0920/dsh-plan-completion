@@ -42,7 +42,14 @@ export function deriveProtocol(plan, inputRecords) {
   function evaluate(step) {
     if(cache.has(step.id))return cache.get(step.id);
     const a=normalizeAcceptance(step.acceptance);
-    if(!a || step.source==='user')return {...step,proof:null};
+    if(!a)return {...step,proof:null};
+    if(step.source==='user') {
+      if(a.scope==='manual' && step.confirmation?.revision===a.revision && step.confirmation.actor==='user' && step.status==='done') {
+        const proof={revision:a.revision,firstSeq:step.confirmation.seq,lastSeq:step.confirmation.seq,fingerprint:hash({kind:'human-confirmation',acceptance:a,confirmation:step.confirmation})};
+        return {...step,status:'done',lifecycle:'user_confirmed',proof};
+      }
+      return {...step,proof:null};
+    }
     const finish=(status,lifecycle,evidence=[],proof=null)=>{const out={...step,acceptance:a,status,lifecycle,evidence,proof};cache.set(step.id,out);return out;};
     if(visiting.has(step.id))return finish('blocked','dependency_cycle');
     visiting.add(step.id);

@@ -1,15 +1,20 @@
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 /**
  * Resolve the local plan-store directory. `~` is expanded so a shipped config can point at the
  * user's home without hard-coding an absolute path. Empty means "memory only".
  */
-export function expandStorageDir(value, envValue) {
+export function expandStorageDir(value, envValue, dshHome = process.env.DSH_HOME) {
   const raw = typeof value === 'string' && value.trim() !== ''
     ? value.trim()
     : (typeof envValue === 'string' ? envValue.trim() : '')
   if (raw === '') return ''
+  // The shipped default follows DSH's isolated home; explicit directories keep
+  // their original meaning. Never import another profile's plans implicitly.
+  if (raw.replaceAll('\\', '/') === '~/.dsh/plan-completion-data' && typeof dshHome === 'string' && dshHome.trim()) {
+    return join(resolve(dshHome.trim()), 'plan-completion-data')
+  }
   if (raw === '~' || raw.startsWith('~/') || raw.startsWith('~\\')) {
     try {
       return raw === '~' ? homedir() : join(homedir(), raw.slice(2))

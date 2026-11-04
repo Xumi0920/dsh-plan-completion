@@ -46,7 +46,7 @@ window.__ModuleLoader__.load({
     const STALE_POLL_MS = 15000;
     const STEP_STATUSES = ['todo', 'doing', 'blocked', 'done', 'dropped'];
     // Client build marker surfaced to the Host diagnostic route (proves which bundle is live).
-    const CLIENT_BUILD = 'rag-progress-2026-11-04';
+    const CLIENT_BUILD = 'managed-q8-canary-2026-11-04';
     // TEMP verification flag: auto-open the plan panel shortly after mount so a static
     // screenshot can be taken without synthetic clicks. Set back to false before release.
     const DEV_OPEN_POPOVER = false;
@@ -117,7 +117,7 @@ window.__ModuleLoader__.load({
         'settings.modelCalls': '允许本插件调用模型',
         'settings.modelDesc': '选择插件生成计划与建议时使用的模型来源',
         'settings.providerDesc': '固定使用的 provider',
-        'settings.callsDesc': '关闭后插件只使用启发式，不向模型发送内容',
+        'settings.callsDesc': '关闭计划助手的生成调用；执行回执校验继续，本地检索由独立开关控制',
         'settings.defaultRoute': '宿主默认：{value}',
         'settings.save': '保存',
         'settings.saving': '保存中…',
@@ -179,7 +179,7 @@ window.__ModuleLoader__.load({
         'settings.modelCalls': 'Allow this plugin to call models',
         'settings.modelDesc': 'Model source used for plan and suggestion generation',
         'settings.providerDesc': 'Provider used by the fixed policy',
-        'settings.callsDesc': 'When off, the plugin only uses heuristics and sends nothing',
+        'settings.callsDesc': 'Disables helper generation; receipt validation continues. Local retrieval has its own switch.',
         'settings.defaultRoute': 'Host default: {value}',
         'settings.save': 'Save',
         'settings.saving': 'Saving…',
@@ -434,6 +434,8 @@ window.__ModuleLoader__.load({
           status: STEP_STATUSES.indexOf(step.status) >= 0 ? step.status : 'todo',
           lifecycle: typeof step.lifecycle === 'string' ? step.lifecycle : '',
           acceptanceRevision: Number.isSafeInteger(step.acceptance?.revision) && step.acceptance.revision > 0 ? step.acceptance.revision : null,
+          manual: step.acceptance?.scope === 'manual',
+          confirmed: step.confirmation?.actor === 'user',
           evidence: normalizeEvidence(step.evidence)
         });
       }
@@ -498,6 +500,7 @@ window.__ModuleLoader__.load({
         intent: typeof intent === 'string' ? truncate(intent, 400) : '',
         constraints: Array.isArray(pick('constraints')) ? pick('constraints').filter(v => typeof v === 'string').slice(0, 6) : [],
         retrieval: pick('retrieval') ?? null,
+        assurance: pick('assurance') ?? 'validated',
         steps: normalizeSteps(pick('steps')),
         updatedAt: typeof updatedAt === 'number' && isFinite(updatedAt) ? updatedAt : null,
         reason: typeof reason === 'string' ? truncate(reason, 300) : '',
@@ -1769,7 +1772,7 @@ window.__ModuleLoader__.load({
       );
     }
 
-    function renderPopoverContent(plan, inputActions, t, verify, onVerify) {
+    function renderPopoverContent(plan, inputActions, t, verify, onVerify, confirmation, onConfirm) {
       const children = [];
       if (!plan) {
         children.push(
@@ -1800,6 +1803,7 @@ window.__ModuleLoader__.load({
       if (plan.stale) {
         children.push(h('div', { key: 'stale', className: 'dpc-stale', role: 'status' }, t('popover.stale')));
       }
+      if (plan.assurance === 'legacy-unverified') children.push(h('div', { key: 'assurance', className: 'dpc-evidence' }, '兼容模式 · 完成状态为模型报告，未经执行验收。'));
 
       if (plan.intent) {
         children.push(
@@ -1851,7 +1855,13 @@ window.__ModuleLoader__.load({
       }
 
       children.push(h('details', { key: 'full-plan', className: 'dpc-section' }, h('summary', null, '完整计划 · ' + plan.steps.filter(s => s.status === 'done').length + ' 项已完成'), plan.steps.map(s => h('div', { key: s.id, className: 'dpc-text' }, t('step.' + s.status) + ' · ' + s.title))));
-      children.push(h('div', { key: 'retrieval-note', className: 'dpc-evidence' }, '思考仅作意图参考；完成状态须核对执行回执。' + (plan.retrieval?.mode === 'hybrid' ? ' Q8 混合检索' : plan.retrieval?.mode === 'lexical' ? ' 词法检索（向量暂不可用或预热中）' : '') + (plan.retrieval?.constraintsIncomplete ? ' 部分历史约束未完整保留，请复核。' : '')));
+      const manualSteps = plan.steps.filter(s => s.manual);
+      if (manualSteps.length) children.push(h('details', { key: 'manual', className: 'dpc-section', open: true },
+        h('summary', null, '人工验收（单独记录，不冒充工具验证）'),
+        manualSteps.map(s => h('div', { key: s.id, className: 'dpc-text' }, s.title + (s.confirmed ? ' · 用户已确认 ' : ' '),
+          h('button', { type: 'button', className: 'dpc-button', disabled: confirmation?.loading, onClick: () => onConfirm(s) }, s.confirmed ? '撤回确认' : '确认完成'))),
+        confirmation?.error ? h('div', { role: 'status', className: 'dpc-evidence' }, confirmation.error) : null));
+      children.push(h('div', { key: 'retrieval-note', className: 'dpc-evidence' }, '思考仅作意图参考；严格模式区分执行验收与用户确认。' + (plan.retrieval?.mode === 'hybrid' ? ' Q8 混合检索' : plan.retrieval?.mode === 'lexical' ? ' 词法检索（向量暂不可用或预热中）' : '') + (plan.retrieval?.constraintsIncomplete ? ' 部分历史约束未完整保留，请复核。' : '')));
       if (plan.reason) {
         children.push(
           h(
@@ -2029,11 +2039,24 @@ window.__ModuleLoader__.load({
       const open = state.overlayOpen === true;
       const [heroPos, setHeroPos] = React.useState(null);
       const [verify, setVerify] = React.useState(null);
+      const [confirmation, setConfirmation] = React.useState(null);
 
       // Ephemeral P0-5 verification result: clear it when the active session changes.
       React.useEffect(function resetVerify() {
         setVerify(null);
+        setConfirmation(null);
       }, [state.sessionId]);
+      const onConfirm = React.useCallback(function confirmManual(step) {
+        const sessionId = state.sessionId, owner = store.get().dockOwner;
+        setConfirmation({ loading: true });
+        Promise.resolve(fetch('/plan-completion/confirm', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ sessionId, stepId: step.id, version: state.plan.version, acceptanceRevision: step.acceptanceRevision, confirmed: !step.confirmed }) }))
+          .then(r => r.json()).then(result => {
+            if (store.get().sessionId !== sessionId || store.get().dockOwner !== owner) return;
+            setConfirmation({ loading: false, error: result.ok ? null : result.error === 'version-conflict' ? '计划已更新，请核对后重新确认。' : '确认未生效，请刷新后重试。' });
+            planRefresher?.('manual-confirmation');
+          }).catch(() => { if (store.get().sessionId === sessionId && store.get().dockOwner === owner) setConfirmation({ loading: false, error: '请求失败，未确认完成。' }); });
+      }, [state.sessionId, state.plan]);
 
       const onVerify = React.useCallback(function requestVerifyAction() {
         const sessionId = state.sessionId;
@@ -2147,7 +2170,7 @@ window.__ModuleLoader__.load({
             'data-plan-completion': 'popover',
             style: position
           },
-          renderPopoverContent(state.plan, state.inputActions, t, verify, onVerify)
+          renderPopoverContent(state.plan, state.inputActions, t, verify, onVerify, confirmation, onConfirm)
         )
       );
     }
@@ -2225,7 +2248,9 @@ window.__ModuleLoader__.load({
           modelPolicy: settings.modelPolicy,
           fixedProvider: settings.fixedProvider || '',
           fixedModel: settings.fixedModel || '',
-          modelCalls: settings.modelCalls === true
+          modelCalls: settings.modelCalls === true,
+          progressProtocol: settings.progressProtocol,
+          rag: settings.rag
         }).then(function applied(result) {
           setSaving(false);
           if (!result || result.ok !== true) {
@@ -2257,7 +2282,10 @@ window.__ModuleLoader__.load({
         h('div', { key: 'page', className: 'dpc-settings-page' },
           h('div', { key: 'head', className: 'dpc-settings-head' },
             h('div', { key: 'title', className: 'dpc-settings-title' }, t('settings.title')),
-            h('div', { key: 'sub', className: 'dpc-settings-sub' }, 'v0.1.8 · build ' + CLIENT_BUILD + ' · ' + t('settings.defaultRoute', { value: defaultRoute }))),
+            h('div', { key: 'sub', className: 'dpc-settings-sub' }, 'v0.2.0-canary.1 · build ' + CLIENT_BUILD + ' · ' + t('settings.defaultRoute', { value: defaultRoute }))),
+          row('progress', '计划验收', '兼容模式保留旧行为并标明未验证；已有版本化验收不会被降级。',
+            h('select', { className: 'dpc-settings-select', value: settings.progressProtocol || 'legacy', onChange: e => patch({ progressProtocol: e.target.value }) },
+              h('option', { value: 'legacy' }, '兼容模式'), h('option', { value: 'strict' }, '严格验收'))),
           row('policy', t('settings.model'), t('settings.modelDesc'),
             h('select', { className: 'dpc-settings-select', value: settings.modelPolicy,
               onChange: function onPolicy(event) { patch({ modelPolicy: event.target.value }); } },
@@ -2285,6 +2313,12 @@ window.__ModuleLoader__.load({
               'aria-pressed': settings.modelCalls === true ? 'true' : 'false',
               onClick: function onCalls() { patch({ modelCalls: settings.modelCalls !== true }); } },
               h('span', { key: 'knob' }))),
+          row('rag-enabled', '本地 Q8 检索', '按需加载；关闭后释放插件托管的模型进程。', h('input', { type: 'checkbox', checked: settings.rag?.enabled === true, onChange: e => patch({ rag: { ...settings.rag, enabled: e.target.checked } }) })),
+          row('rag-send', '发送检索片段给计划助手', '片段经当前生成模型路由发送，独立于本地检索开关。', h('input', { type: 'checkbox', checked: settings.rag?.sendContextToGenerator === true, onChange: e => patch({ rag: { ...settings.rag, sendContextToGenerator: e.target.checked } }) })),
+          row('rag-backend', '向量运行方式', '旧端点保留兼容；托管模式无需 Ollama。', h('select', { className: 'dpc-settings-select', value: settings.rag?.backend || 'llama.cpp', onChange: e => patch({ rag: { ...settings.rag, backend: e.target.value } }) }, h('option', { value: 'llama.cpp' }, '插件托管 llama.cpp'), h('option', { value: 'external' }, '已有本机端点'))),
+          settings.rag?.backend !== 'external' ? row('rag-executable', 'llama-server 程序', '已安装程序的绝对路径；不自动下载或更新。', h('input', { className: 'dpc-settings-select', value: settings.rag?.executablePath || '', onChange: e => patch({ rag: { ...settings.rag, executablePath: e.target.value } }) })) : null,
+          settings.rag?.backend !== 'external' ? row('rag-model', '官方 Q8 文件', '官方 Qwen3-Embedding-0.6B-Q8_0.gguf；启动前校验 SHA-256。', h('input', { className: 'dpc-settings-select', value: settings.rag?.modelPath || '', onChange: e => patch({ rag: { ...settings.rag, modelPath: e.target.value } }) })) : null,
+          row('rag-runtime', '向量运行状态', (settings.embedding?.state || 'disabled') + (settings.embedding?.error ? ' · ' + settings.embedding.error : ''), h('button', { type: 'button', className: 'dpc-settings-save', onClick: () => fetchSettings().then(r => { if (r?.settings) setSettings(s => ({ ...s, embedding: r.settings.embedding })); }) }, '刷新状态')),
           h('div', { key: 'footer', className: 'dpc-settings-footer' },
             error ? h('div', { key: 'e', className: 'dpc-settings-error' }, error)
               : saved ? h('div', { key: 's', className: 'dpc-settings-status' }, t('settings.saved')) : null,

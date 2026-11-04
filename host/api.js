@@ -10,6 +10,8 @@ import { runExperiment } from './experiment.js'
 
 import { pickModel, callModel, pickJudgeRoute } from './model-route.js'
 import { normalizeModelPolicy, writeSavedSettings } from './settings.js'
+import { confirmStep } from './confirmation.js'
+import { isAbsolute } from 'node:path'
 
 export const inject = ['planCompletion']
 export function apply(ctx) { return attach(ctx, ctx.get('planCompletion')) }
@@ -202,6 +204,19 @@ function jsonResponse(res, status, value) {
             }
             return
           }
+          if (pathname === `${ROUTE_PREFIX}confirm` && method === 'POST') {
+            const body = (await readJsonBody(req)) ?? {}
+            const sessionId = typeof body.sessionId === 'string' ? body.sessionId : ''
+            await hydrateSession(sessionId)
+            const plan = states.get(sessionId)?.plan
+            const edit = confirmStep(plan, body, { seq: sessions.get(sessionId)?.seq ?? plan?.watermark?.seq ?? 0 })
+            if (!edit.ok) { jsonResponse(res, edit.error === 'version-conflict' ? 409 : 400, edit); return }
+            if (!edit.unchanged && !await store.put(edit.plan, { cas: plan.version, suggestion: null })) { jsonResponse(res, 409, { ok: false, error: 'version-conflict' }); return }
+            inflight.get(sessionId)?.abort(new Error('user-confirmation')); verifyInflight.get(sessionId)?.abort(new Error('user-confirmation'))
+            publishState(sessionId, { plan: edit.plan, suggestion: null })
+            await core.reconcileSession(sessionId)
+            jsonResponse(res, 200, { ok: true, ...publicView(sessionId) }); return
+          }
           if (pathname === `${ROUTE_PREFIX}settings` && method === 'GET') {
             jsonResponse(res, 200, { ok: true, settings: await settingsSnapshot(url?.searchParams?.get('provider') ?? '') })
             return
@@ -209,6 +224,21 @@ function jsonResponse(res, status, value) {
           if (pathname === `${ROUTE_PREFIX}settings` && method === 'POST') {
             const body = (await readJsonBody(req)) ?? {}
             const next = { ...(await settingsSnapshot()) }
+            if (body.progressProtocol !== undefined) {
+              if (!['legacy', 'strict'].includes(body.progressProtocol)) { jsonResponse(res, 400, { ok: false, error: 'bad-progress-policy' }); return }
+              next.progressProtocol = body.progressProtocol
+            }
+            if (body.rag !== undefined) {
+              if (!body.rag || typeof body.rag !== 'object' || Array.isArray(body.rag)) { jsonResponse(res, 400, { ok: false, error: 'bad-rag-settings' }); return }
+              for (const [key, value] of Object.entries(body.rag)) {
+                const valid = ['enabled', 'sendContextToGenerator'].includes(key) ? typeof value === 'boolean'
+                  : key === 'backend' ? ['external', 'llama.cpp'].includes(value)
+                  : ['executablePath', 'modelPath'].includes(key) ? typeof value === 'string' && value.length <= 4096 && !/[\r\n\0]/.test(value) && (!value || isAbsolute(value)) : false
+                if (!valid) { jsonResponse(res, 400, { ok: false, error: 'bad-rag-settings' }); return }
+                next.rag[key] = value
+              }
+              if (next.rag.enabled && next.rag.backend === 'llama.cpp' && (!next.rag.executablePath || !next.rag.modelPath)) { jsonResponse(res, 400, { ok: false, error: 'embedding-paths-required' }); return }
+            }
             if (body.modelPolicy !== undefined) {
               const policy = normalizeModelPolicy(body.modelPolicy)
               if (policy !== String(body.modelPolicy).trim()) {
@@ -241,6 +271,11 @@ function jsonResponse(res, status, value) {
             settings.fixedProvider = next.fixedProvider
             settings.fixedModel = next.fixedModel
             settings.modelCalls = next.modelCalls
+            settings.progressProtocol = next.progressProtocol
+            const ragChanged = JSON.stringify((await settingsSnapshot()).rag) !== JSON.stringify(next.rag)
+            core.rawConfig.rag = { ...core.rawConfig.rag, ...next.rag }
+            if (ragChanged) core.restartRetrieval?.()
+            if (body.progressProtocol === 'strict') for (const id of states.keys()) await core.reconcileSession(id, undefined, { upgradeLegacy: true })
             if (!settings.modelCalls) {
               for (const controller of inflight.values()) controller.abort(new Error('model-disabled'))
               rag.clear(); ragViews.clear()
@@ -250,6 +285,8 @@ function jsonResponse(res, status, value) {
               fixedProvider: settings.fixedProvider,
               fixedModel: settings.fixedModel,
               modelCalls: settings.modelCalls,
+              progressProtocol: settings.progressProtocol,
+              rag: core.rawConfig.rag,
             })
             debugLog({ phase: 'settings-updated', modelPolicy: settings.modelPolicy, saved })
             jsonResponse(res, 200, { ok: true, saved, settings: await settingsSnapshot() })
@@ -572,6 +609,7 @@ function jsonResponse(res, status, value) {
       `${ROUTE_PREFIX}warm`,
       `${ROUTE_PREFIX}verify`,
       `${ROUTE_PREFIX}settings`,
+      `${ROUTE_PREFIX}confirm`,
     ]
     if (settings.enableDebugRoutes) {
       paths.push(

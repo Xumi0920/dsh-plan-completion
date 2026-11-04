@@ -1,6 +1,6 @@
 {
   "name": "dsh-plan-completion",
-  "version": "0.1.8",
+  "version": "0.2.0-canary.1",
   "private": false,
   "type": "module",
   "description": "Implicit session plans with Tab-completable next-message suggestions for DeepSeek Harness",
@@ -23,7 +23,8 @@
     "dsh": ">=0.2.1-rc.5 <0.3.0"
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "check:package": "node scripts/check-package.mjs"
   },
   "exports": {
     ".": "./index.js",
@@ -45,10 +46,8 @@
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
-    "docs/*.md",
-    "docs/screenshots/*.png",
-    "docs/screenshots/*.jpg",
-    "docs/data/*.json"
+    "docs/managed-embedding.md",
+    "docs/security.md"
   ],
   "dsh": {
     "bundle": {

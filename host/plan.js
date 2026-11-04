@@ -155,6 +155,11 @@ export function normalizeSteps(input) {
       if (!acceptance) return fail('bad-acceptance', `步骤 ${id} 的验收版本非法`);
       step.acceptance = acceptance;
     }
+    if (source === 'user' && step.acceptance?.scope === 'manual' && raw.confirmation?.actor === 'user'
+      && raw.confirmation.revision === step.acceptance.revision && Number.isFinite(raw.confirmation.at)
+      && Number.isSafeInteger(raw.confirmation.seq) && raw.confirmation.seq >= 0) {
+      step.confirmation = { actor: 'user', revision: raw.confirmation.revision, at: raw.confirmation.at, seq: raw.confirmation.seq };
+    }
     const proof = normalizeProof(raw.proof);
     if (proof) step.proof = proof;
     if (typeof raw.lifecycle === 'string') step.lifecycle = raw.lifecycle.slice(0, 40);

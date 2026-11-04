@@ -14,6 +14,8 @@
 | event-source.js / rag-evidence.js / evidence.js | 事件来源、原始调用/回执、脱敏及有界提示证据 |
 | constraint-memory.js | 与向量 FIFO 分离的有界用户约束账本 |
 | rag.js / retrieval-policy.js | 本机嵌入、会话索引、冷却恢复、语义/词法检索与目标回执覆盖 |
+| embedding-runtime.js / llama-worker.js | 官方 Q8 校验、托管子进程、临时鉴权、空闲释放和 Host 退出清理 |
+| confirmation.js / legacy-prompt.js | 用户确认与撤销、保留已发布的兼容模式提示契约 |
 | prompt.js / text.js / heuristics.js | 计划助手提示和解析、显示文本处理及无模型降级 |
 | store.js / security.js | 版本化存储、CAS、请求鉴权与输入边界 |
 | config.js / core.js / settings.js | 默认值、实例状态与恢复、配置及设置文件 |
