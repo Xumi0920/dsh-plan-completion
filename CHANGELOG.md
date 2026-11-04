@@ -3,9 +3,9 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
-## [0.2.0-canary.1] — unreleased progress-protocol
+## [0.2.0-canary.1] — unreleased component-split
 
-- Add opt-in strict acceptance, compatible legacy behavior, human confirmation/revocation, fail-closed model routing and isolated default storage.
+- Add managed observer/generator/api rows and explicit lifecycle migration; retain a single npm package.
 - No embedding runtime in this stage. Validate with npm test and npm run check:package.
 
 ## [0.1.8] - 2026-11-03
