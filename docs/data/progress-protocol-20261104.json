@@ -1,0 +1,5439 @@
+{
+  "date": "2026-11-04",
+  "model": {
+    "provider": "deepseek-account",
+    "id": "deepseek-flash",
+    "name": "DeepSeek-V4.1-Flash",
+    "context": {
+      "contextWindow": 1048576
+    },
+    "defaultMaxTokens": 256000
+  },
+  "helper": {
+    "protocol": {
+      "arms": [
+        "old_q8",
+        "protocol_off",
+        "protocol_q8"
+      ],
+      "repeats": 1,
+      "maxTokens": 2500,
+      "reasoningEffort": "off",
+      "samePromptAndGuard": false,
+      "architectureAblation": true,
+      "mainAgentInvoked": false,
+      "baseline": "b9e37da",
+      "fixtureCount": 22
+    },
+    "groups": {
+      "old_q8": {
+        "n": 22,
+        "exact": 7,
+        "falseDone": 26,
+        "missedDone": 1,
+        "nonDoneOpportunities": 68,
+        "doneOpportunities": 64,
+        "errors": 0,
+        "modelEnvelopes": 0,
+        "normalizedEnvelopes": 0,
+        "meanReceiptRecall": 1,
+        "totalMs": {
+          "p50": 2259.22,
+          "p95": 2543.12,
+          "max": 2584.6
+        },
+        "modelMs": {
+          "p50": 2231.17,
+          "p95": 2512.26,
+          "max": 2553.2
+        },
+        "retrievalMs": {
+          "p50": 26.5,
+          "p95": 34,
+          "max": 35
+        },
+        "guardMs": {
+          "p50": 0.82,
+          "p95": 1.47,
+          "max": 3.86
+        },
+        "indexMs": {
+          "p50": 1889.54,
+          "p95": 1956.23,
+          "max": 1980.47
+        },
+        "semanticProbes": {
+          "intent": {
+            "n": 22,
+            "hit": 22,
+            "wrongSource": 0,
+            "constraintsPreserved": 22
+          },
+          "constraints": {
+            "n": 22,
+            "hit": 22,
+            "wrongSource": 0,
+            "constraintsPreserved": 22
+          }
+        }
+      },
+      "protocol_off": {
+        "n": 22,
+        "exact": 22,
+        "falseDone": 0,
+        "missedDone": 0,
+        "nonDoneOpportunities": 68,
+        "doneOpportunities": 64,
+        "errors": 0,
+        "modelEnvelopes": 22,
+        "normalizedEnvelopes": 22,
+        "meanReceiptRecall": 0,
+        "totalMs": {
+          "p50": 1327.06,
+          "p95": 1577.46,
+          "max": 1658.28
+        },
+        "modelMs": {
+          "p50": 1324.1,
+          "p95": 1574.24,
+          "max": 1655.21
+        },
+        "retrievalMs": {
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "guardMs": {
+          "p50": 1.15,
+          "p95": 2,
+          "max": 9.09
+        },
+        "indexMs": null,
+        "semanticProbes": {
+          "intent": {
+            "n": 0,
+            "hit": 0,
+            "wrongSource": 0,
+            "constraintsPreserved": 0
+          },
+          "constraints": {
+            "n": 0,
+            "hit": 0,
+            "wrongSource": 0,
+            "constraintsPreserved": 0
+          }
+        }
+      },
+      "protocol_q8": {
+        "n": 22,
+        "exact": 22,
+        "falseDone": 0,
+        "missedDone": 0,
+        "nonDoneOpportunities": 68,
+        "doneOpportunities": 64,
+        "errors": 0,
+        "modelEnvelopes": 22,
+        "normalizedEnvelopes": 22,
+        "meanReceiptRecall": 1,
+        "totalMs": {
+          "p50": 1459.56,
+          "p95": 2191.42,
+          "max": 2343.45
+        },
+        "modelMs": {
+          "p50": 1422.1,
+          "p95": 2152.01,
+          "max": 2306.37
+        },
+        "retrievalMs": {
+          "p50": 32.5,
+          "p95": 39,
+          "max": 39
+        },
+        "guardMs": {
+          "p50": 1.16,
+          "p95": 1.43,
+          "max": 1.63
+        },
+        "indexMs": {
+          "p50": 1873.31,
+          "p95": 1922.46,
+          "max": 1987.06
+        },
+        "semanticProbes": {
+          "intent": {
+            "n": 22,
+            "hit": 22,
+            "wrongSource": 0,
+            "constraintsPreserved": 22
+          },
+          "constraints": {
+            "n": 22,
+            "hit": 22,
+            "wrongSource": 0,
+            "constraintsPreserved": 22
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "case": "qq-complete",
+        "family": "qq",
+        "mode": "complete",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 35,
+        "modelMs": 2268.5705,
+        "totalMs": 2311.3376,
+        "guardMs": 3.8616000000001804,
+        "promptChars": 19356
+      },
+      {
+        "case": "qq-complete",
+        "family": "qq",
+        "mode": "complete",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1005.2147000000004,
+        "totalMs": 1017.8888000000006,
+        "guardMs": 9.090700000000652,
+        "promptChars": 18599
+      },
+      {
+        "case": "qq-complete",
+        "family": "qq",
+        "mode": "complete",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 26,
+        "modelMs": 1515.3284999999996,
+        "totalMs": 1545.6295,
+        "guardMs": 1.3479999999999563,
+        "promptChars": 24156
+      },
+      {
+        "case": "qq-partial",
+        "family": "qq",
+        "mode": "partial",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "awaiting_execution",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1148.731099999999,
+        "totalMs": 1152.3179999999993,
+        "guardMs": 1.2590000000000146,
+        "promptChars": 18042
+      },
+      {
+        "case": "qq-partial",
+        "family": "qq",
+        "mode": "partial",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "awaiting_execution",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 37,
+        "modelMs": 1347.573699999999,
+        "totalMs": 1388.3246,
+        "guardMs": 1.0913000000000466,
+        "promptChars": 23507
+      },
+      {
+        "case": "qq-partial",
+        "family": "qq",
+        "mode": "partial",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "done",
+          "done",
+          "doing",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "awaiting_confirmation",
+          null,
+          null,
+          null
+        ],
+        "exact": false,
+        "falseCompletion": 0,
+        "missedCompletion": 1,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 26,
+        "modelMs": 2072.734700000001,
+        "totalMs": 2101.1143999999986,
+        "guardMs": 0.7756000000008498,
+        "promptChars": 19237
+      },
+      {
+        "case": "qq-failed",
+        "family": "qq",
+        "mode": "failed",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "latest_receipt_failed",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 32,
+        "modelMs": 1310.7070999999996,
+        "totalMs": 1346.2790999999997,
+        "guardMs": 1.3377000000000407,
+        "promptChars": 23501
+      },
+      {
+        "case": "qq-failed",
+        "family": "qq",
+        "mode": "failed",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "blocked",
+          "done",
+          "done",
+          "done"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "latest_receipt_failed",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt"
+        ],
+        "exact": false,
+        "falseCompletion": 3,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 27,
+        "modelMs": 2239.271999999997,
+        "totalMs": 2268.1479999999974,
+        "guardMs": 0.8708000000005995,
+        "promptChars": 19334
+      },
+      {
+        "case": "qq-failed",
+        "family": "qq",
+        "mode": "failed",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "latest_receipt_failed",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1221.4118000000017,
+        "totalMs": 1224.3634999999995,
+        "guardMs": 0.9442999999992026,
+        "promptChars": 17964
+      },
+      {
+        "case": "qq-unknown",
+        "family": "qq",
+        "mode": "unknown",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "doing"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "outcome_unverified",
+          "awaiting_receipt"
+        ],
+        "exact": false,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 33,
+        "modelMs": 2276.3256999999976,
+        "totalMs": 2310.802099999997,
+        "guardMs": 0.7754000000022643,
+        "promptChars": 19388
+      },
+      {
+        "case": "qq-unknown",
+        "family": "qq",
+        "mode": "unknown",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "awaiting_receipt",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1430.9737999999961,
+        "totalMs": 1434.585500000001,
+        "guardMs": 1.230600000002596,
+        "promptChars": 18265
+      },
+      {
+        "case": "qq-unknown",
+        "family": "qq",
+        "mode": "unknown",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "awaiting_receipt",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 26,
+        "modelMs": 1077.6554000000033,
+        "totalMs": 1107.0069000000003,
+        "guardMs": 1.202900000003865,
+        "promptChars": 23790
+      },
+      {
+        "case": "qq-wrong-target",
+        "family": "qq",
+        "mode": "wrong-target",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "awaiting_execution",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1173.6924999999974,
+        "totalMs": 1177.2232000000004,
+        "guardMs": 1.296699999998964,
+        "promptChars": 18379
+      },
+      {
+        "case": "qq-wrong-target",
+        "family": "qq",
+        "mode": "wrong-target",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "awaiting_execution",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 39,
+        "modelMs": 1171.5109000000011,
+        "totalMs": 1214.1199000000051,
+        "guardMs": 1.6278999999994994,
+        "promptChars": 23940
+      },
+      {
+        "case": "qq-wrong-target",
+        "family": "qq",
+        "mode": "wrong-target",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          null,
+          null
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 26,
+        "modelMs": 2053.538800000002,
+        "totalMs": 2081.6361000000034,
+        "guardMs": 0.7119999999995343,
+        "promptChars": 19454
+      },
+      {
+        "case": "qq-stale",
+        "family": "qq",
+        "mode": "stale",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verification_stale",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 33,
+        "modelMs": 1414.428399999997,
+        "totalMs": 1450.3961999999956,
+        "guardMs": 0.8972999999969034,
+        "promptChars": 23111
+      },
+      {
+        "case": "qq-stale",
+        "family": "qq",
+        "mode": "stale",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "doing",
+          "doing",
+          "doing",
+          "doing",
+          "doing"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verification_stale",
+          "awaiting_confirmation",
+          "awaiting_confirmation",
+          "awaiting_confirmation",
+          "awaiting_confirmation"
+        ],
+        "exact": false,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 25,
+        "modelMs": 1760.0155999999988,
+        "totalMs": 1787.5576999999976,
+        "guardMs": 0.7986000000018976,
+        "promptChars": 19327
+      },
+      {
+        "case": "qq-stale",
+        "family": "qq",
+        "mode": "stale",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verification_stale",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1495.6949999999997,
+        "totalMs": 1498.9763999999996,
+        "guardMs": 1.023800000002666,
+        "promptChars": 17586
+      },
+      {
+        "case": "qq-intent-only",
+        "family": "qq",
+        "mode": "intent-only",
+        "arm": "old_q8",
+        "expected": [
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": null,
+        "retrievalMs": 29,
+        "modelMs": 1841.8206999999966,
+        "totalMs": 1871.6431999999986,
+        "guardMs": 0.41709999999875436,
+        "promptChars": 18830
+      },
+      {
+        "case": "qq-intent-only",
+        "family": "qq",
+        "mode": "intent-only",
+        "arm": "protocol_off",
+        "expected": [
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "awaiting_execution",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": null,
+        "retrievalMs": 0,
+        "modelMs": 1233.1266999999934,
+        "totalMs": 1236.0313000000024,
+        "guardMs": 1.077499999999418,
+        "promptChars": 17216
+      },
+      {
+        "case": "qq-intent-only",
+        "family": "qq",
+        "mode": "intent-only",
+        "arm": "protocol_q8",
+        "expected": [
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "awaiting_execution",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": null,
+        "retrievalMs": 24,
+        "modelMs": 2103.9685000000027,
+        "totalMs": 2131.9005000000034,
+        "guardMs": 0.950700000001234,
+        "promptChars": 22204
+      },
+      {
+        "case": "qq-recovered",
+        "family": "qq",
+        "mode": "recovered",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "dependency_stale",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1431.8171000000002,
+        "totalMs": 1435.1743999999962,
+        "guardMs": 1.0887999999977183,
+        "promptChars": 18102
+      },
+      {
+        "case": "qq-recovered",
+        "family": "qq",
+        "mode": "recovered",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "dependency_stale",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 37,
+        "modelMs": 1530.0662000000011,
+        "totalMs": 1570.4284000000043,
+        "guardMs": 1.4127000000007683,
+        "promptChars": 23670
+      },
+      {
+        "case": "qq-recovered",
+        "family": "qq",
+        "mode": "recovered",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt"
+        ],
+        "exact": false,
+        "falseCompletion": 3,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 25,
+        "modelMs": 2425.4763000000094,
+        "totalMs": 2453.4563999999955,
+        "guardMs": 0.8322000000043772,
+        "promptChars": 19391
+      },
+      {
+        "case": "qq-weak-contract",
+        "family": "qq",
+        "mode": "weak-contract",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "acceptance_scope_mismatch",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 33,
+        "modelMs": 1906.1777000000002,
+        "totalMs": 1942.9409000000014,
+        "guardMs": 1.2274999999935972,
+        "promptChars": 23994
+      },
+      {
+        "case": "qq-weak-contract",
+        "family": "qq",
+        "mode": "weak-contract",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "done"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "outcome_unverified",
+          "verified_receipt"
+        ],
+        "exact": false,
+        "falseCompletion": 1,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 27,
+        "modelMs": 2512.2599000000046,
+        "totalMs": 2543.122299999988,
+        "guardMs": 1.4697000000014668,
+        "promptChars": 19535
+      },
+      {
+        "case": "qq-weak-contract",
+        "family": "qq",
+        "mode": "weak-contract",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "acceptance_scope_mismatch",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1541.3147000000026,
+        "totalMs": 1544.4084000000003,
+        "guardMs": 1.056299999996554,
+        "promptChars": 18376
+      },
+      {
+        "case": "workflow-complete",
+        "family": "workflow",
+        "mode": "complete",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 29,
+        "modelMs": 2553.199800000002,
+        "totalMs": 2584.604800000001,
+        "guardMs": 0.7819000000017695,
+        "promptChars": 19324
+      },
+      {
+        "case": "workflow-complete",
+        "family": "workflow",
+        "mode": "complete",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1104.7752000000037,
+        "totalMs": 1108.353700000007,
+        "guardMs": 1.2300000000104774,
+        "promptChars": 18795
+      },
+      {
+        "case": "workflow-complete",
+        "family": "workflow",
+        "mode": "complete",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 26,
+        "modelMs": 1557.1356000000087,
+        "totalMs": 1585.782600000006,
+        "guardMs": 1.3141000000032363,
+        "promptChars": 24124
+      },
+      {
+        "case": "workflow-partial",
+        "family": "workflow",
+        "mode": "partial",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "awaiting_execution",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1311.9729999999981,
+        "totalMs": 1315.1833000000042,
+        "guardMs": 1.18399999999383,
+        "promptChars": 18238
+      },
+      {
+        "case": "workflow-partial",
+        "family": "workflow",
+        "mode": "partial",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "awaiting_execution",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 36,
+        "modelMs": 1460.5158000000083,
+        "totalMs": 1499.6328999999969,
+        "guardMs": 1.0305999999982305,
+        "promptChars": 23477
+      },
+      {
+        "case": "workflow-partial",
+        "family": "workflow",
+        "mode": "partial",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          null,
+          null,
+          null
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 25,
+        "modelMs": 2200.1592999999993,
+        "totalMs": 2226.6304999999993,
+        "guardMs": 0.7502999999996973,
+        "promptChars": 19207
+      },
+      {
+        "case": "workflow-failed",
+        "family": "workflow",
+        "mode": "failed",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "latest_receipt_failed",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 32,
+        "modelMs": 1301.9591999999975,
+        "totalMs": 1336.9333000000042,
+        "guardMs": 1.0524999999906868,
+        "promptChars": 23473
+      },
+      {
+        "case": "workflow-failed",
+        "family": "workflow",
+        "mode": "failed",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "blocked",
+          "done",
+          "done",
+          "done"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "latest_receipt_failed",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt"
+        ],
+        "exact": false,
+        "falseCompletion": 3,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 24,
+        "modelMs": 2125.145700000008,
+        "totalMs": 2152.032999999996,
+        "guardMs": 1.0927999999985332,
+        "promptChars": 19306
+      },
+      {
+        "case": "workflow-failed",
+        "family": "workflow",
+        "mode": "failed",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "latest_receipt_failed",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1430.2424000000028,
+        "totalMs": 1433.1621000000014,
+        "guardMs": 1.0944000000017695,
+        "promptChars": 18160
+      },
+      {
+        "case": "workflow-unknown",
+        "family": "workflow",
+        "mode": "unknown",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "doing"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "outcome_unverified",
+          "awaiting_receipt"
+        ],
+        "exact": false,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 31,
+        "modelMs": 2405.7483999999968,
+        "totalMs": 2439.1636,
+        "guardMs": 0.8522999999986496,
+        "promptChars": 19358
+      },
+      {
+        "case": "workflow-unknown",
+        "family": "workflow",
+        "mode": "unknown",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "awaiting_receipt",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1391.6225999999879,
+        "totalMs": 1395.0813999999955,
+        "guardMs": 1.2069999999948777,
+        "promptChars": 18461
+      },
+      {
+        "case": "workflow-unknown",
+        "family": "workflow",
+        "mode": "unknown",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "awaiting_receipt",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 24,
+        "modelMs": 1380.6926000000094,
+        "totalMs": 1409.1738999999943,
+        "guardMs": 1.4337999999988824,
+        "promptChars": 23760
+      },
+      {
+        "case": "workflow-wrong-target",
+        "family": "workflow",
+        "mode": "wrong-target",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "awaiting_execution",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1574.2400999999954,
+        "totalMs": 1577.4551999999967,
+        "guardMs": 1.0947999999916647,
+        "promptChars": 18575
+      },
+      {
+        "case": "workflow-wrong-target",
+        "family": "workflow",
+        "mode": "wrong-target",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "awaiting_execution",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 36,
+        "modelMs": 1429.0418999999965,
+        "totalMs": 1468.72570000001,
+        "guardMs": 1.4040999999997439,
+        "promptChars": 23900
+      },
+      {
+        "case": "workflow-wrong-target",
+        "family": "workflow",
+        "mode": "wrong-target",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          null,
+          null
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 26,
+        "modelMs": 1779.1821999999956,
+        "totalMs": 1808.4248999999982,
+        "guardMs": 0.8782000000064727,
+        "promptChars": 19414
+      },
+      {
+        "case": "workflow-stale",
+        "family": "workflow",
+        "mode": "stale",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verification_stale",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 28,
+        "modelMs": 1399.8070000000007,
+        "totalMs": 1431.3995999999897,
+        "guardMs": 0.8620000000082655,
+        "promptChars": 23085
+      },
+      {
+        "case": "workflow-stale",
+        "family": "workflow",
+        "mode": "stale",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "doing",
+          "doing",
+          "doing",
+          "doing",
+          "doing"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verification_stale",
+          "awaiting_confirmation",
+          "awaiting_confirmation",
+          "awaiting_confirmation",
+          "awaiting_confirmation"
+        ],
+        "exact": false,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 26,
+        "modelMs": 1835.5481,
+        "totalMs": 1864.0070000000123,
+        "guardMs": 0.8513999999995576,
+        "promptChars": 19301
+      },
+      {
+        "case": "workflow-stale",
+        "family": "workflow",
+        "mode": "stale",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verification_stale",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1336.2354999999807,
+        "totalMs": 1338.935199999978,
+        "guardMs": 0.879400000005262,
+        "promptChars": 17782
+      },
+      {
+        "case": "workflow-intent-only",
+        "family": "workflow",
+        "mode": "intent-only",
+        "arm": "old_q8",
+        "expected": [
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": null,
+        "retrievalMs": 31,
+        "modelMs": 1603.5144999999902,
+        "totalMs": 1635.5823999999848,
+        "guardMs": 0.4223000000056345,
+        "promptChars": 18609
+      },
+      {
+        "case": "workflow-intent-only",
+        "family": "workflow",
+        "mode": "intent-only",
+        "arm": "protocol_off",
+        "expected": [
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "awaiting_execution",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": null,
+        "retrievalMs": 0,
+        "modelMs": 1093.5864999999758,
+        "totalMs": 1096.2098000000115,
+        "guardMs": 1.0307000000029802,
+        "promptChars": 17412
+      },
+      {
+        "case": "workflow-intent-only",
+        "family": "workflow",
+        "mode": "intent-only",
+        "arm": "protocol_q8",
+        "expected": [
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "status": [
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "lifecycle": [
+          "awaiting_execution",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": null,
+        "retrievalMs": 28,
+        "modelMs": 1268.3570999999938,
+        "totalMs": 1299.4937999999966,
+        "guardMs": 0.9386999999987893,
+        "promptChars": 21983
+      },
+      {
+        "case": "workflow-recovered",
+        "family": "workflow",
+        "mode": "recovered",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "dependency_stale",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1239.1949999999779,
+        "totalMs": 1243.1224999999977,
+        "guardMs": 1.4306000000215136,
+        "promptChars": 18298
+      },
+      {
+        "case": "workflow-recovered",
+        "family": "workflow",
+        "mode": "recovered",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "dependency_stale",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 39,
+        "modelMs": 1372.0338000000047,
+        "totalMs": 1414.0054999999993,
+        "guardMs": 1.133800000010524,
+        "promptChars": 23636
+      },
+      {
+        "case": "workflow-recovered",
+        "family": "workflow",
+        "mode": "recovered",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "doing",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt"
+        ],
+        "exact": false,
+        "falseCompletion": 3,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 26,
+        "modelMs": 2440.0333999999857,
+        "totalMs": 2468.560599999997,
+        "guardMs": 0.8467000000237022,
+        "promptChars": 19357
+      },
+      {
+        "case": "workflow-weak-contract",
+        "family": "workflow",
+        "mode": "weak-contract",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "acceptance_scope_mismatch",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 33,
+        "modelMs": 1502.5426999999909,
+        "totalMs": 1539.745500000019,
+        "guardMs": 1.1355000000039581,
+        "promptChars": 23952
+      },
+      {
+        "case": "workflow-weak-contract",
+        "family": "workflow",
+        "mode": "weak-contract",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "done"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "outcome_unverified",
+          "verified_receipt"
+        ],
+        "exact": false,
+        "falseCompletion": 1,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 24,
+        "modelMs": 2228.198700000008,
+        "totalMs": 2254.1045999999915,
+        "guardMs": 0.7814999999827705,
+        "promptChars": 19493
+      },
+      {
+        "case": "workflow-weak-contract",
+        "family": "workflow",
+        "mode": "weak-contract",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "acceptance_scope_mismatch",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1040.6941000000224,
+        "totalMs": 1044.411300000007,
+        "guardMs": 1.2163000000000466,
+        "promptChars": 18572
+      },
+      {
+        "case": "qq-explicit-weak",
+        "family": "qq",
+        "mode": "explicit-weak",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt"
+        ],
+        "exact": false,
+        "falseCompletion": 2,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 34,
+        "modelMs": 2294.005600000004,
+        "totalMs": 2330.566300000006,
+        "guardMs": 0.8136999999987893,
+        "promptChars": 19529
+      },
+      {
+        "case": "qq-explicit-weak",
+        "family": "qq",
+        "mode": "explicit-weak",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "acceptance_scope_mismatch",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1655.2065000000002,
+        "totalMs": 1658.2772000000114,
+        "guardMs": 1.1104000000050291,
+        "promptChars": 18420
+      },
+      {
+        "case": "qq-explicit-weak",
+        "family": "qq",
+        "mode": "explicit-weak",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "acceptance_scope_mismatch",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 25,
+        "modelMs": 1612.498099999997,
+        "totalMs": 1640.949099999998,
+        "guardMs": 1.3870999999926426,
+        "promptChars": 24032
+      },
+      {
+        "case": "qq-revised",
+        "family": "qq",
+        "mode": "revised",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "acceptance_revision_pending",
+          "dependency_revision_mismatch",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1484.6921000000148,
+        "totalMs": 1488.7840000000142,
+        "guardMs": 2.0015000000130385,
+        "promptChars": 17651
+      },
+      {
+        "case": "qq-revised",
+        "family": "qq",
+        "mode": "revised",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "acceptance_revision_pending",
+          "dependency_revision_mismatch",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 36,
+        "modelMs": 2152.0070000000123,
+        "totalMs": 2191.4189999999944,
+        "guardMs": 1.1193999999959487,
+        "promptChars": 23197
+      },
+      {
+        "case": "qq-revised",
+        "family": "qq",
+        "mode": "revised",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt"
+        ],
+        "exact": false,
+        "falseCompletion": 5,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 26,
+        "modelMs": 2181.7917999999772,
+        "totalMs": 2210.6052999999956,
+        "guardMs": 1.167699999990873,
+        "promptChars": 19321
+      },
+      {
+        "case": "workflow-explicit-weak",
+        "family": "workflow",
+        "mode": "explicit-weak",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "acceptance_scope_mismatch",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 33,
+        "modelMs": 2306.371299999999,
+        "totalMs": 2343.4456000000064,
+        "guardMs": 1.0976999999838881,
+        "promptChars": 23990
+      },
+      {
+        "case": "workflow-explicit-weak",
+        "family": "workflow",
+        "mode": "explicit-weak",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "doing"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "awaiting_confirmation",
+          "awaiting_confirmation"
+        ],
+        "exact": false,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 27,
+        "modelMs": 2234.1506999999983,
+        "totalMs": 2264.338300000003,
+        "guardMs": 1.440600000001723,
+        "promptChars": 19487
+      },
+      {
+        "case": "workflow-explicit-weak",
+        "family": "workflow",
+        "mode": "explicit-weak",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "acceptance_scope_mismatch",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1358.828600000008,
+        "totalMs": 1362.5325000000012,
+        "guardMs": 1.1112999999895692,
+        "promptChars": 18616
+      },
+      {
+        "case": "workflow-revised",
+        "family": "workflow",
+        "mode": "revised",
+        "arm": "old_q8",
+        "expected": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt",
+          "verified_receipt"
+        ],
+        "exact": false,
+        "falseCompletion": 5,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": false,
+        "protocolEnvelope": false,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 34,
+        "modelMs": 2437.542300000001,
+        "totalMs": 2474.4222999999765,
+        "guardMs": 0.7942000000039116,
+        "promptChars": 19291
+      },
+      {
+        "case": "workflow-revised",
+        "family": "workflow",
+        "mode": "revised",
+        "arm": "protocol_off",
+        "expected": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "acceptance_revision_pending",
+          "dependency_revision_mismatch",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 0,
+        "retrievalMs": 0,
+        "modelMs": 1026.815900000016,
+        "totalMs": 1030.8224000000046,
+        "guardMs": 1.407199999986915,
+        "promptChars": 17847
+      },
+      {
+        "case": "workflow-revised",
+        "family": "workflow",
+        "mode": "revised",
+        "arm": "protocol_q8",
+        "expected": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "status": [
+          "done",
+          "doing",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ],
+        "lifecycle": [
+          "verified_receipt",
+          "acceptance_revision_pending",
+          "dependency_revision_mismatch",
+          "dependency_unverified",
+          "dependency_unverified",
+          "dependency_unverified"
+        ],
+        "exact": true,
+        "falseCompletion": 0,
+        "missedCompletion": 0,
+        "parsed": true,
+        "modelEnvelope": true,
+        "protocolEnvelope": true,
+        "protocolRejected": 0,
+        "receiptRecall": 1,
+        "retrievalMs": 25,
+        "modelMs": 1415.159799999994,
+        "totalMs": 1443.5039000000106,
+        "guardMs": 1.1920000000100117,
+        "promptChars": 23167
+      }
+    ],
+    "peakRssMiB": 150.92,
+    "productionUnchanged": true,
+    "allowedExternalHosts": [
+      "api.deepseek.com"
+    ]
+  },
+  "native": {
+    "off": {
+      "finished": true,
+      "error": null,
+      "stages": 18,
+      "exact": 18,
+      "falseDone": 0,
+      "rows": [
+        {
+          "label": "qq-partial",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 18803.82,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 22
+        },
+        {
+          "label": "qq-unconfirmed",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 10062.29,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 9
+        },
+        {
+          "label": "qq-failed",
+          "status": [
+            "done",
+            "done",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 8043.28,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 4
+        },
+        {
+          "label": "qq-recovered",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 13080.3,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 13
+        },
+        {
+          "label": "qq-upstream-rewrite",
+          "status": [
+            "done",
+            "done",
+            "doing",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "doing",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 9015.1,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 6
+        },
+        {
+          "label": "qq-downstream-reverify",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 12061.67,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 13
+        },
+        {
+          "label": "qq-revise-acceptance",
+          "status": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            2,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 11057.76,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 2
+        },
+        {
+          "label": "qq-rebind-dependencies",
+          "status": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 13070.76,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 2
+        },
+        {
+          "label": "qq-new-revision-execution",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 17118,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 18
+        },
+        {
+          "label": "workflow-partial",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 20081.87,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 22
+        },
+        {
+          "label": "workflow-unconfirmed",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 11072.64,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 10
+        },
+        {
+          "label": "workflow-failed",
+          "status": [
+            "done",
+            "done",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 7015.46,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 4
+        },
+        {
+          "label": "workflow-recovered",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 13051.89,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 14
+        },
+        {
+          "label": "workflow-upstream-rewrite",
+          "status": [
+            "done",
+            "done",
+            "doing",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "doing",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 9056.52,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 6
+        },
+        {
+          "label": "workflow-downstream-reverify",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 11051.32,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 13
+        },
+        {
+          "label": "workflow-revise-acceptance",
+          "status": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            2,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 10016.63,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 2
+        },
+        {
+          "label": "workflow-rebind-dependencies",
+          "status": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 12078.42,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 2
+        },
+        {
+          "label": "workflow-new-revision-execution",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 15097.18,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 16
+        }
+      ],
+      "toolExecutions": 74,
+      "modelCalls": 178,
+      "cancelledCalls": 65,
+      "otherErrors": [],
+      "stageMs": {
+        "p50": 11567.15,
+        "p95": 20081.87,
+        "max": 20081.87
+      },
+      "mainCallMs": {
+        "p50": 990.41,
+        "p95": 4696.37,
+        "max": 6771.28
+      },
+      "helperCallMs": {
+        "p50": 1328.34,
+        "p95": 2461.14,
+        "max": 2840.78
+      },
+      "peakRssMiB": 228.08,
+      "productionUnchanged": true,
+      "syntheticSentinelUnchanged": true,
+      "allowedExternalHosts": [
+        "api.deepseek.com"
+      ],
+      "seededAcceptance": true,
+      "outputCap": 256000
+    },
+    "q8": {
+      "finished": true,
+      "error": null,
+      "stages": 18,
+      "exact": 18,
+      "falseDone": 0,
+      "rows": [
+        {
+          "label": "qq-partial",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 18067.74,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 20
+        },
+        {
+          "label": "qq-unconfirmed",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 11059.6,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 9
+        },
+        {
+          "label": "qq-failed",
+          "status": [
+            "done",
+            "done",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 6014.2,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 4
+        },
+        {
+          "label": "qq-recovered",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 14069.79,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 12
+        },
+        {
+          "label": "qq-upstream-rewrite",
+          "status": [
+            "done",
+            "done",
+            "doing",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "doing",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 9061.06,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 6
+        },
+        {
+          "label": "qq-downstream-reverify",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 13068.49,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 14
+        },
+        {
+          "label": "qq-revise-acceptance",
+          "status": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            2,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 13053,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 2
+        },
+        {
+          "label": "qq-rebind-dependencies",
+          "status": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 19076.26,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 2
+        },
+        {
+          "label": "qq-new-revision-execution",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 18120.28,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 16
+        },
+        {
+          "label": "workflow-partial",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 14065.53,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 19
+        },
+        {
+          "label": "workflow-unconfirmed",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 11053.67,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 10
+        },
+        {
+          "label": "workflow-failed",
+          "status": [
+            "done",
+            "done",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 8015.82,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 4
+        },
+        {
+          "label": "workflow-recovered",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 13074.11,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 12
+        },
+        {
+          "label": "workflow-upstream-rewrite",
+          "status": [
+            "done",
+            "done",
+            "doing",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "doing",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 10059.5,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 6
+        },
+        {
+          "label": "workflow-downstream-reverify",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 13070.94,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 13
+        },
+        {
+          "label": "workflow-revise-acceptance",
+          "status": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            2,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 11043.38,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 2
+        },
+        {
+          "label": "workflow-rebind-dependencies",
+          "status": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 13060.66,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 2
+        },
+        {
+          "label": "workflow-new-revision-execution",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": true,
+          "falseDone": 0,
+          "elapsedMs": 16126.15,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 14
+        }
+      ],
+      "toolExecutions": 74,
+      "modelCalls": 167,
+      "cancelledCalls": 51,
+      "otherErrors": [],
+      "stageMs": {
+        "p50": 13064.58,
+        "p95": 19076.26,
+        "max": 19076.26
+      },
+      "mainCallMs": {
+        "p50": 963.07,
+        "p95": 3773.13,
+        "max": 12792.94
+      },
+      "helperCallMs": {
+        "p50": 1483.21,
+        "p95": 2676,
+        "max": 3088.04
+      },
+      "peakRssMiB": 236.31,
+      "productionUnchanged": true,
+      "syntheticSentinelUnchanged": true,
+      "allowedExternalHosts": [
+        "api.deepseek.com"
+      ],
+      "seededAcceptance": true,
+      "outputCap": 256000
+    }
+  },
+  "pilots": {
+    "helperInitial": {
+      "protocol": {
+        "arms": [
+          "old_q8",
+          "protocol_off",
+          "protocol_q8"
+        ],
+        "repeats": 2,
+        "maxTokens": 2500,
+        "reasoningEffort": "off",
+        "samePromptAndGuard": false,
+        "architectureAblation": true,
+        "mainAgentInvoked": false,
+        "baseline": "b9e37da",
+        "fixtureCount": 22
+      },
+      "groups": {
+        "old_q8": {
+          "n": 44,
+          "exact": 16,
+          "falseDone": 55,
+          "missedDone": 0,
+          "nonDoneOpportunities": 136,
+          "doneOpportunities": 128,
+          "errors": 0,
+          "modelEnvelopes": 0,
+          "normalizedEnvelopes": 0,
+          "meanReceiptRecall": 1,
+          "totalMs": {
+            "p50": 2238.39,
+            "p95": 2906.59,
+            "max": 3119.88
+          },
+          "modelMs": {
+            "p50": 2220.41,
+            "p95": 2877.59,
+            "max": 3093.36
+          },
+          "retrievalMs": {
+            "p50": 14,
+            "p95": 33,
+            "max": 36
+          },
+          "guardMs": {
+            "p50": 0.86,
+            "p95": 1.67,
+            "max": 2.71
+          },
+          "indexMs": {
+            "p50": 1917.44,
+            "p95": 1980.21,
+            "max": 3839.61
+          },
+          "semanticProbes": {
+            "intent": {
+              "n": 22,
+              "hit": 22,
+              "wrongSource": 0,
+              "constraintsPreserved": 22
+            },
+            "constraints": {
+              "n": 22,
+              "hit": 22,
+              "wrongSource": 0,
+              "constraintsPreserved": 22
+            }
+          }
+        },
+        "protocol_off": {
+          "n": 44,
+          "exact": 44,
+          "falseDone": 0,
+          "missedDone": 0,
+          "nonDoneOpportunities": 136,
+          "doneOpportunities": 128,
+          "errors": 0,
+          "modelEnvelopes": 0,
+          "normalizedEnvelopes": 0,
+          "meanReceiptRecall": 0,
+          "totalMs": {
+            "p50": 1188.33,
+            "p95": 1628.98,
+            "max": 1868.78
+          },
+          "modelMs": {
+            "p50": 1184.74,
+            "p95": 1626.44,
+            "max": 1865.9
+          },
+          "retrievalMs": {
+            "p50": 0,
+            "p95": 0,
+            "max": 0
+          },
+          "guardMs": {
+            "p50": 1.08,
+            "p95": 1.89,
+            "max": 8.54
+          },
+          "indexMs": null,
+          "semanticProbes": {
+            "intent": {
+              "n": 0,
+              "hit": 0,
+              "wrongSource": 0,
+              "constraintsPreserved": 0
+            },
+            "constraints": {
+              "n": 0,
+              "hit": 0,
+              "wrongSource": 0,
+              "constraintsPreserved": 0
+            }
+          }
+        },
+        "protocol_q8": {
+          "n": 44,
+          "exact": 44,
+          "falseDone": 0,
+          "missedDone": 0,
+          "nonDoneOpportunities": 136,
+          "doneOpportunities": 128,
+          "errors": 0,
+          "modelEnvelopes": 0,
+          "normalizedEnvelopes": 0,
+          "meanReceiptRecall": 1,
+          "totalMs": {
+            "p50": 1425.65,
+            "p95": 1847.14,
+            "max": 2128.52
+          },
+          "modelMs": {
+            "p50": 1402.73,
+            "p95": 1809.56,
+            "max": 2088.04
+          },
+          "retrievalMs": {
+            "p50": 14,
+            "p95": 39,
+            "max": 45
+          },
+          "guardMs": {
+            "p50": 1.06,
+            "p95": 1.56,
+            "max": 1.67
+          },
+          "indexMs": {
+            "p50": 1908.22,
+            "p95": 1969.5,
+            "max": 1969.86
+          },
+          "semanticProbes": {
+            "intent": {
+              "n": 22,
+              "hit": 22,
+              "wrongSource": 0,
+              "constraintsPreserved": 22
+            },
+            "constraints": {
+              "n": 22,
+              "hit": 22,
+              "wrongSource": 0,
+              "constraintsPreserved": 22
+            }
+          }
+        }
+      },
+      "peakRssMiB": 159.94,
+      "productionUnchanged": true,
+      "allowedExternalHosts": [
+        "api.deepseek.com"
+      ]
+    },
+    "nativeInitialOff": {
+      "finished": true,
+      "error": null,
+      "stages": 18,
+      "exact": 13,
+      "falseDone": 10,
+      "toolExecutions": 74,
+      "modelCalls": 173,
+      "cancelledCalls": 55,
+      "otherErrors": [],
+      "stageMs": {
+        "p50": 12578.38,
+        "p95": 40190.12,
+        "max": 40190.12
+      },
+      "mainCallMs": {
+        "p50": 925.89,
+        "p95": 3138.93,
+        "max": 33697.56
+      },
+      "helperCallMs": {
+        "p50": 1357.87,
+        "p95": 2354.4,
+        "max": 2374.06
+      },
+      "peakRssMiB": 230.3,
+      "productionUnchanged": true,
+      "syntheticSentinelUnchanged": true,
+      "allowedExternalHosts": [
+        "api.deepseek.com"
+      ],
+      "seededAcceptance": true,
+      "outputCap": 256000,
+      "failedRows": [
+        {
+          "label": "qq-revise-acceptance",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            1,
+            1,
+            1,
+            1
+          ],
+          "exact": false,
+          "falseDone": 5,
+          "elapsedMs": 26126.22,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 3
+        },
+        {
+          "label": "qq-rebind-dependencies",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": false,
+          "falseDone": 5,
+          "elapsedMs": 40190.12,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 3
+        },
+        {
+          "label": "qq-new-revision-execution",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": false,
+          "falseDone": 0,
+          "elapsedMs": 15102.38,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 17
+        },
+        {
+          "label": "workflow-rebind-dependencies",
+          "status": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            2,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": false,
+          "falseDone": 0,
+          "elapsedMs": 18091.54,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 3
+        },
+        {
+          "label": "workflow-new-revision-execution",
+          "status": [
+            "done",
+            "done",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            2,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": false,
+          "falseDone": 0,
+          "elapsedMs": 14105.85,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 15
+        }
+      ]
+    },
+    "nativeSchemaFixQ8": {
+      "finished": true,
+      "error": null,
+      "stages": 18,
+      "exact": 16,
+      "falseDone": 0,
+      "toolExecutions": 74,
+      "modelCalls": 161,
+      "cancelledCalls": 44,
+      "otherErrors": [],
+      "stageMs": {
+        "p50": 12548.08,
+        "p95": 19115.79,
+        "max": 19115.79
+      },
+      "mainCallMs": {
+        "p50": 953.49,
+        "p95": 3809.99,
+        "max": 10681.58
+      },
+      "helperCallMs": {
+        "p50": 1520.11,
+        "p95": 2189.12,
+        "max": 2525.72
+      },
+      "peakRssMiB": 223.1,
+      "productionUnchanged": true,
+      "syntheticSentinelUnchanged": true,
+      "allowedExternalHosts": [
+        "api.deepseek.com"
+      ],
+      "seededAcceptance": true,
+      "outputCap": 256000,
+      "failedRows": [
+        {
+          "label": "qq-rebind-dependencies",
+          "status": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            2,
+            2,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": false,
+          "falseDone": 0,
+          "elapsedMs": 11041.44,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 2
+        },
+        {
+          "label": "qq-new-revision-execution",
+          "status": [
+            "done",
+            "done",
+            "done",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            2,
+            2,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": false,
+          "falseDone": 0,
+          "elapsedMs": 15084.54,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 15
+        }
+      ]
+    },
+    "nativeSchemaFixOff": {
+      "finished": true,
+      "error": null,
+      "stages": 18,
+      "exact": 16,
+      "falseDone": 0,
+      "toolExecutions": 74,
+      "modelCalls": 173,
+      "cancelledCalls": 58,
+      "otherErrors": [],
+      "stageMs": {
+        "p50": 12082.99,
+        "p95": 20119.05,
+        "max": 20119.05
+      },
+      "mainCallMs": {
+        "p50": 897.04,
+        "p95": 2918.19,
+        "max": 15065.92
+      },
+      "helperCallMs": {
+        "p50": 1284.28,
+        "p95": 2237.66,
+        "max": 2350.09
+      },
+      "peakRssMiB": 214.06,
+      "productionUnchanged": true,
+      "syntheticSentinelUnchanged": true,
+      "allowedExternalHosts": [
+        "api.deepseek.com"
+      ],
+      "seededAcceptance": true,
+      "outputCap": 256000,
+      "failedRows": [
+        {
+          "label": "workflow-rebind-dependencies",
+          "status": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "revisions": [
+            1,
+            2,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": false,
+          "falseDone": 0,
+          "elapsedMs": 20119.05,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 2
+        },
+        {
+          "label": "workflow-new-revision-execution",
+          "status": [
+            "done",
+            "done",
+            "blocked",
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ],
+          "revisions": [
+            1,
+            2,
+            1,
+            1,
+            1,
+            1
+          ],
+          "expectedRevisions": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "exact": false,
+          "falseDone": 0,
+          "elapsedMs": 15085.98,
+          "nativeLogValid": true,
+          "compactions": 0,
+          "calls": 17
+        }
+      ]
+    }
+  },
+  "regression": {
+    "passed": 221,
+    "failed": 0,
+    "skipped": 0
+  },
+  "scope": [
+    "Synthetic tasks only; DSH/DeepSeek executes, Codex tasks are scenario material",
+    "Helper ablation changes architecture vs b9e37da; no causal RAG-only quality claim",
+    "Native acceptance definitions are seeded, not autonomous criterion design",
+    "Stage latency includes 3 seconds stabilization; main/helper overlap",
+    "No native near-1M or real business end-to-end run in this round",
+    "Legacy steps without acceptance are not automatically migrated"
+  ],
+  "localRawSha256": {
+    "results-final.json": "44abd41a788f4f2030971bfb71430b0fa839aaa0ebba7dbceb59167a4b5f2c2b",
+    "native-off-validated-result.json": "ed4db2dcfeb51b36f6fbe3eeef03474700427e436363ad28a32a61004aad5ed7",
+    "native-q8-validated-result.json": "43bbb45c18e1f7540eef54f32f2700c1ae6fbab769c9a72ef647fdeece9ef255",
+    "results.json": "9fb4c9065e4e6c36b54df3d1c00ea719247d9fef068f3a634973194bfed81f74",
+    "native-off-result.json": "63215623f0953faa740520657471821317444a1c8222fe956220fd3b2723cbcc",
+    "native-q8-result.json": "3b4f79ac950b8b2fac1676808889d2b9be38f85dc524407770dc51adc7b80847",
+    "native-off-final-result.json": "9c836e262bd1a599088d1d117a48fa75d393684db08c7d5f69fced3e5671d937"
+  },
+  "budgetProbe": {
+    "rows": [
+      {
+        "family": "qq",
+        "stage": "revise",
+        "maxTokens": 800,
+        "initialParsed": true,
+        "finalParsed": true,
+        "rejected": 0,
+        "revisions": [
+          1,
+          2,
+          1,
+          1,
+          1,
+          1
+        ],
+        "expected": [
+          1,
+          2,
+          1,
+          1,
+          1,
+          1
+        ],
+        "exact": true,
+        "ms": 1775.455
+      },
+      {
+        "family": "qq",
+        "stage": "batch",
+        "maxTokens": 800,
+        "initialParsed": true,
+        "finalParsed": true,
+        "rejected": 0,
+        "revisions": [
+          1,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "expected": [
+          1,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "exact": true,
+        "ms": 3308.1962000000003
+      },
+      {
+        "family": "workflow",
+        "stage": "revise",
+        "maxTokens": 800,
+        "initialParsed": true,
+        "finalParsed": true,
+        "rejected": 0,
+        "revisions": [
+          1,
+          2,
+          1,
+          1,
+          1,
+          1
+        ],
+        "expected": [
+          1,
+          2,
+          1,
+          1,
+          1,
+          1
+        ],
+        "exact": true,
+        "ms": 2252.1555
+      },
+      {
+        "family": "workflow",
+        "stage": "batch",
+        "maxTokens": 800,
+        "initialParsed": true,
+        "finalParsed": true,
+        "rejected": 0,
+        "revisions": [
+          1,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "expected": [
+          1,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "exact": true,
+        "ms": 2648.745000000001
+      }
+    ],
+    "calls": [
+      {
+        "elapsedMs": 1769.4852,
+        "usage": {
+          "inputTokens": 5406,
+          "outputTokens": 225,
+          "cacheReadTokens": 2688,
+          "cacheWriteTokens": 0,
+          "totalTokens": 8319
+        },
+        "finish": {
+          "kind": "stop"
+        },
+        "maxTokens": 800
+      },
+      {
+        "elapsedMs": 3305.8426999999997,
+        "usage": {
+          "inputTokens": 5833,
+          "outputTokens": 576,
+          "cacheReadTokens": 2304,
+          "cacheWriteTokens": 0,
+          "totalTokens": 8713
+        },
+        "finish": {
+          "kind": "stop"
+        },
+        "maxTokens": 800
+      },
+      {
+        "elapsedMs": 2250.4759000000004,
+        "usage": {
+          "inputTokens": 5435,
+          "outputTokens": 244,
+          "cacheReadTokens": 2688,
+          "cacheWriteTokens": 0,
+          "totalTokens": 8367
+        },
+        "finish": {
+          "kind": "stop"
+        },
+        "maxTokens": 800
+      },
+      {
+        "elapsedMs": 2646.5562,
+        "usage": {
+          "inputTokens": 5807,
+          "outputTokens": 528,
+          "cacheReadTokens": 2304,
+          "cacheWriteTokens": 0,
+          "totalTokens": 8639
+        },
+        "finish": {
+          "kind": "stop"
+        },
+        "maxTokens": 800
+      }
+    ],
+    "productionUnchanged": true
+  },
+  "ollamaResident": {
+    "name": "dsh-qwen3-embedding:q8_0",
+    "size_vram": 2857191341,
+    "size": 2857191341,
+    "digest": "8776d02bf621c440939bccb86e546f437e7168b30dceb70cb83593a677d65669"
+  },
+  "baselineVerification": {
+    "files": 16,
+    "mismatches": []
+  },
+  "security": {
+    "pass": true,
+    "scope": "All PR files: exact current credential values, private-key markers and known source thread/account identifiers. One exact dummy PEM literal in an existing redaction test is reviewed separately; not general PII detection.",
+    "credentialMatches": 0,
+    "privateThreadIdentifiers": false,
+    "privateAccountIds": false,
+    "unreviewedPrivateKeyMarkers": false,
+    "reviewedDummyFixture": {
+      "path": "test/rag-progress.test.js",
+      "line": 60,
+      "description": "Literal PEM marker with the word secret, used to test redaction; no key material."
+    }
+  }
+}

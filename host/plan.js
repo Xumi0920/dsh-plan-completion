@@ -12,6 +12,7 @@
  */
 
 import { normalizeCompletion, normalizeConstraints } from './progress.js';
+import { normalizeAcceptance, normalizeProof } from './progress-protocol.js';
 import { DEFAULTS } from './config.js';
 import { clampChars, oneLine } from './text.js';
 
@@ -149,6 +150,13 @@ export function normalizeSteps(input) {
     const step = { id, title: clampTitle(raw.title), status, source };
     const completion = normalizeCompletion(raw.completion);
     if (completion) step.completion = completion;
+    if (raw.acceptance !== undefined) {
+      const acceptance = normalizeAcceptance(raw.acceptance);
+      if (!acceptance) return fail('bad-acceptance', `步骤 ${id} 的验收版本非法`);
+      step.acceptance = acceptance;
+    }
+    const proof = normalizeProof(raw.proof);
+    if (proof) step.proof = proof;
     if (typeof raw.lifecycle === 'string') step.lifecycle = raw.lifecycle.slice(0, 40);
     const evidence = normalizeEvidence(raw.evidence);
     if (evidence.length) step.evidence = evidence;
@@ -375,8 +383,17 @@ export function patchPlan(plan, changes, meta = {}) {
       if (!step) return fail('unknown-step', `changes 引用了不存在的步骤 id：${id}`);
       let applied = false;
 
-      if (change.title && change.title !== step.title) { delete step.completion; delete step.lifecycle; delete step.evidence; }
+      if (change.title && change.title !== step.title) {
+        if (step.acceptance) { step.acceptance = { ...step.acceptance, revision: step.acceptance.revision + 1, scope: 'manual', afterSeq: meta.watermark?.seq ?? cur.watermark.seq }; delete step.proof; }
+        delete step.completion; delete step.lifecycle; delete step.evidence;
+      }
       if (change.completion !== undefined) { step.completion = normalizeCompletion(change.completion); applied = true; }
+      if (change.acceptance !== undefined) {
+        const acceptance = normalizeAcceptance(change.acceptance);
+        if (!acceptance) return fail('bad-change-acceptance', `步骤 ${id} 的验收版本非法`);
+        step.acceptance = acceptance; applied = true;
+      }
+      if (change.proof !== undefined) { const proof = normalizeProof(change.proof); if(proof) step.proof=proof;else delete step.proof; applied=true; }
       if (change.lifecycle !== undefined) { step.lifecycle = String(change.lifecycle).slice(0, 40); applied = true; }
       if (change.status !== undefined) {
         if (!STEP_STATUSES.includes(change.status)) {
@@ -528,6 +545,10 @@ export function applyUserEdit(plan, next, meta = {}) {
       const old = oldById.get(step.id);
       // 「未改动」只看用户可编辑字段（标题/状态）；evidence 是模型追加的证据链，不算用户编辑。
       const unchanged = old && old.title === step.title && old.status === step.status;
+      if (old?.acceptance) {
+        step.acceptance = unchanged ? old.acceptance : { ...old.acceptance, revision: old.acceptance.revision + 1, afterSeq: meta.watermark?.seq ?? cur.watermark.seq };
+        if (!unchanged) { delete step.proof; delete step.evidence; }
+      }
       return { ...step, source: unchanged ? old.source : 'user' };
     });
 

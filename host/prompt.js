@@ -13,6 +13,7 @@
 
 import { normalizeCompletion, normalizeConstraints, PROGRESS_RULES } from './progress.js';
 import { redactData } from './rag-evidence.js';
+import { normalizeAcceptanceProposal, normalizeProgressEnvelope, progressSnapshot } from './progress-protocol.js';
 import { DEFAULTS } from './config.js';
 import { clampChars, clampSuggestion, oneLine, sanitizeSuggestion } from './text.js';
 import { normalizeEvidence, PLAN_STATUSES, STEP_SOURCES, STEP_STATUSES, validVersion } from './plan.js';
@@ -30,6 +31,15 @@ export const SYSTEM_PROMPT = [
   '  changes:   op=patch 时必填，[{id, status?, title?, evidence?, completion?}]（只引用已有步骤 id）',
   '  steps:     op=rewrite 时必填，3~7 个 [{id, title, status, completion?}]，status ∈ todo/doing/blocked/done/dropped',
   '  completion: 原子步骤 {tool,args,expect?}；复合步骤 {all:[{tool,args,expect?},...]}，2至6项按执行依赖排序。expect 为 {field,equals}，精确核对回执 JSON 顶层标量。未知验收不编造。',
+  '  acceptance: 新计划每步必填 {scope,dependsOn:[{stepId,revision}]}。scope 为 execution/submission/delivery/deployment/assertion/manual；未知验收用 manual。revision、afterSeq、proof 由宿主生成，不得填写。',
+  '  progress: 必填 {version:1,events:[{step_id,acceptance_revision,event,evidence_ids?}]}。无新事件输出 {version:1,events:[]}。event 只允许 evidence_added/step_started/step_blocked/acceptance_proposed。同一步每次最多一项，总计最多7项。',
+  '版本化步骤的状态由 progressProtocol.steps 中宿主原始回执校验决定，不通过 changes.status 改写。无条件修改时用 op=none，progress.events 可为空，补充建议即可。',
+  '修改验收用 acceptance_proposed，提供当前 acceptance_revision（首次0）、acceptance:{scope,dependsOn} 和 completion；宿主递增版本，修改当次不能完成。不得降级 scope、删除依赖或弱化目标。',
+  '验收修订时 op=none，完整的新 acceptance 与 completion 必须放在 progress.events 的同一事件内部，不能放进 changes；acceptance_proposed 事件禁止 evidence_ids。仅有事件名称的空提案会被拒绝。',
+  '同一轮要求修订多个步骤时，必须在一个 progress.events 中按依赖拓扑顺序提交全部事件，不能只提交第一项后建议下轮继续。每个 acceptance_revision 填该步骤当前版本；dependsOn.revision 可引用本批前面事件提交后将生成的新版本。修改依赖也属于验收修订，不得自动把下游绑定到新版本。',
+  '带 acceptance 的步骤以 progressProtocol 的状态、版本和依赖为唯一依据；后文旧版回执规则仅适用于没有 acceptance 的步骤。若版本不匹配或旧回执失效，即使回执成功也不能说已完成或建议收尾，必须先修订依赖，再执行新版验收。',
+  '验收修订结构示例（内容必须替换为本任务的实际目标）：{"op":"none","reason":"修订验收","progress":{"version":1,"events":[{"step_id":"s2","acceptance_revision":1,"event":"acceptance_proposed","acceptance":{"scope":"assertion","dependsOn":[{"stepId":"s1","revision":2}]},"completion":{"tool":"exec","args":{"command":"test-new-version"},"expect":{"field":"passed","equals":true}}}]},"suggestion":"执行新版验收"}。依赖只有实际需要时才建立，不能仅按步骤顺序默认串联。',
+  'delivery 必须验证 delivered=true；deployment 必须有 installed=true 和末项 installed/ready=true；assertion 需要明确内容、测试或其他非受理字段。execution 只表示工具操作执行，不证明业务交付；无法确定业务验收时选 manual。',
   '  constraints: 必填字符串数组，保留仍有效的关键约束（最多6条）。',
   '  intent:    op=rewrite 时可选，计划目标（一句话）',
   '  suggestion: 下一条建议（≤40 字，单行，无 Markdown，可直接作为用户消息发送）',
@@ -50,11 +60,11 @@ export const SYSTEM_PROMPT = [
 ].join('\n');
 
 const OP_SCHEMA = {
-  none: '{"op":"none","reason":"<无需变更的一句话原因>","suggestion":"<≤40字建议>"}',
+  none: '{"op":"none","reason":"<无需变更的一句话原因>","progress":{"version":1,"events":[]},"suggestion":"<≤40字建议>"}',
   patch:
-    '{"op":"patch","reason":"<一句话原因>","changes":[{"id":"s2","status":"doing","completion":{"tool":"exec","args":{"command":"npm test"}}}],"constraints":["<仍有效的约束>"],"suggestion":"<≤40字建议>"}',
+    '{"op":"patch","reason":"<一句话原因>","changes":[{"id":"<仅未版本化的步骤>","status":"doing"}],"progress":{"version":1,"events":[]},"constraints":["<仍有效的约束>"],"suggestion":"<≤40字建议>"}',
   rewrite:
-    '{"op":"rewrite","reason":"<一句话原因>","intent":"<计划目标>","steps":[{"id":"s1","title":"<具体里程碑>","status":"todo","completion":{"tool":"write_file","args":{"path":"src/cache.ts"}}}],"constraints":["<仍有效的约束>"],"suggestion":"<≤40字建议>"}',
+    '{"op":"rewrite","reason":"<一句话原因>","intent":"<计划目标>","steps":[{"id":"s1","title":"<具体里程碑>","status":"todo","acceptance":{"scope":"execution","dependsOn":[]},"completion":{"tool":"write_file","args":{"path":"src/cache.ts"}}}],"progress":{"version":1,"events":[]},"constraints":["<仍有效的约束>"],"suggestion":"<≤40字建议>"}',
 };
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -75,6 +85,7 @@ export function evidenceForModel(evidence = {}) {
   const source = isObj(evidence) ? evidence : {};
   const plan = isObj(source.plan) ? source.plan : null;
   const payload = {
+    progressProtocol: source.progressProtocol ?? progressSnapshot(plan, source.progressRecords ?? []),
     progressRecords: source.progressRecords ?? [],
     retrieval: source.retrieval ?? { mode: 'disabled', records: [] },
     turn: Number.isInteger(source.turn) ? source.turn : 0,
@@ -115,6 +126,7 @@ export function evidenceForModel(evidence = {}) {
             const evidenceList = normalizeEvidence(step?.evidence);
             if (evidenceList.length) item.evidence = evidenceList;
             if (step.completion) item.completion = normalizeCompletion(step.completion);
+            if (step.acceptance) item.acceptance = step.acceptance;
             return item;
           })
         : [],
@@ -291,6 +303,11 @@ function normalizeRewriteSteps(rawSteps) {
     const step = { id, title: clampChars(oneLine(raw.title), DEFAULTS.maxTitleChars), status };
     const completion = normalizeCompletion(raw.completion);
     if (completion) step.completion = completion;
+    if (raw.acceptance !== undefined) {
+      const acceptance = normalizeAcceptanceProposal(raw.acceptance);
+      if (!acceptance || Object.keys(raw.acceptance).some(k=>!['scope','dependsOn'].includes(k))) return {ok:false,error:`步骤 ${id} 的 acceptance 提案非法`};
+      step.acceptance = acceptance;
+    }
     const evidence = raw.evidence === undefined ? [] : normalizeEvidence(raw.evidence);
     if (evidence.length) step.evidence = evidence;
     steps.push(step);
@@ -349,6 +366,14 @@ export function parseModelOutput(text) {
     const flags = { op: normalizedOp, repaired: false, suggestionFiltered: false, suggestionTruncated: false, alternatesFiltered: 0, ignoredIntent: false };
     // suggestion 恒为 string（缺失/被过滤都是 ''），方便 index.js 直接消费。
     const output = { ...(Array.isArray(parsed.constraints) ? { constraints: normalizeConstraints(parsed.constraints) } : {}), op: normalizedOp, reason, changes: [], steps: [], intent: '', suggestion: '' };
+    // Legacy responses are explicitly normalized to no protocol events. Their
+    // status claims still cannot control a versioned step.
+    output.progress = { version: 1, events: [] };
+    if (parsed.progress !== undefined) {
+      const progress = normalizeProgressEnvelope(parsed.progress);
+      if (!progress) return fail('bad-progress-protocol', 'progress 必须为 {version:1,events:[]}；acceptance_proposed 事件内部必须同时提供 step_id、acceptance_revision、acceptance:{scope,dependsOn} 和完整 completion，禁止 evidence_ids；不要把验收修订放入 changes');
+      output.progress = progress;
+    }
 
     // suggestion（缺失不算错；危险形态只丢弃建议、不丢计划）
     if (parsed.suggestion !== undefined) {

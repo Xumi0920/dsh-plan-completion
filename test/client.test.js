@@ -9,6 +9,12 @@ assert.equal(original.split(marker).length, 2, 'client test seam must be unique'
 const source = original.replace(marker,
   '    globalThis.__clientTest = { store, Dock, handleKeyDown, normalizePlan, planSignature, renderPopoverContent, fetchPlanState, warmPlanState, requestVerify, fetchSettings, saveSettings, handlePlanFetch };\n' + marker);
 
+test('acceptance revision participates in UI refresh identity',()=>{
+ const {api}=fixture();const raw={sessionId:'p',version:{gen:1,rev:0},status:'active',steps:[{id:'s1',title:'验证',status:'doing',acceptance:{revision:1},lifecycle:'dependency_stale'}]};
+ const first=api.normalizePlan(raw);raw.steps[0].acceptance.revision=2;const next=api.normalizePlan(raw);
+ assert.equal(first.steps[0].acceptanceRevision,1);assert.equal(next.steps[0].acceptanceRevision,2);assert.notEqual(api.planSignature(first),api.planSignature(next));
+});
+
 function fixture() {
   let effects = [], refs = [], plugin;
   let timerId = 0;

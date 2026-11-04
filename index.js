@@ -18,6 +18,7 @@ import { randomUUID } from 'node:crypto'
 import { createRag } from './host/rag.js'
 import { collectRetrievalRecords, redactData } from './host/rag-evidence.js'
 import { validateProgress, lifecycleChanges, normalizeConstraints } from './host/progress.js'
+import { progressSnapshot } from './host/progress-protocol.js'
 import { DEFAULTS } from './host/config.js'
 import { requestRejection, safeDebugRecord, safeDiagnostics } from './host/security.js'
 import { join } from 'node:path'
@@ -734,6 +735,7 @@ export function apply(ctx, config = {}) {
       // Recent lifecycle records are always checked; semantic retrieval cannot hide a failure.
       const relevant = records.filter(r => r.kind === 'tool_call' || r.kind === 'tool_result').slice(-24)
       evidence.progressRecords = relevant
+      evidence.progressProtocol = progressSnapshot(basePlan, records)
       evidence.retrieval = retrieval
 
       // Round-2 isolation test: the patch path is most accurate with a compact evidence
@@ -742,6 +744,7 @@ export function apply(ctx, config = {}) {
       const modelEvidence = force || !basePlan ? evidence : sliceEvidence(evidence, settings.evidenceChars)
 
       modelEvidence.progressRecords = evidence.progressRecords
+      modelEvidence.progressProtocol = evidence.progressProtocol
       modelEvidence.retrieval = evidence.retrieval
       modelEvidence.lastUserMessages = evidence.lastUserMessages
       let nextPlan = basePlan ?? seedPlan(sessionId, evidence)
@@ -842,6 +845,7 @@ export function apply(ctx, config = {}) {
           }
           if (parsed?.ok && parsed.output) {
             const checked = validateProgress(parsed.output, basePlan, records)
+            if (checked.protocolRejected) debugLog({ phase: 'progress-protocol-rejected', sessionId, count: checked.protocolRejected })
             const output = checked.output
             // A valid no-change review is expected while waiting or discussing.
             // Repeated step/turn boundaries must not turn that into a stale plan.
@@ -887,6 +891,7 @@ export function apply(ctx, config = {}) {
             }
           } else {
             debugLog({ phase: 'parse-failed', sessionId, code: parsed?.code, error: parsed?.error, textHead: String(text).slice(0, 240) })
+            if (parsed?.code === 'bad-progress-protocol') suggestion = { text: '进度报告格式未通过，请核对验收版本', alternates: [] }
           }
         } catch (error) {
           debugLog({ phase: 'model-error', sessionId, error: String(error) })

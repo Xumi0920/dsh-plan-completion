@@ -65,3 +65,7 @@ accepted=true 或 status/state=accepted/submitted 仅表示受理时，必须有
 完整 DSH 任务、真实仓库修复、近 1M 输入与 75 轮事件模拟，以及大文件回执修复见 [完整任务验证](dsh-full-task-validation.md)。
 
 QQAgent 图像任务及文章/工作流复杂任务的脱敏模拟、RAG 三组对照和剩余语义缺口见 [复杂任务验证](complex-task-validation.md)。
+# 统一进度协议补充
+
+当前候选增加了验收版本与跨步骤依赖失效，见 [协议说明](progress-protocol.md) 和 [隔离验证](progress-protocol-validation.md)。原生 Agent 回复与上下文保持不变，RAG 继续辅助检索；版本化计划的完成状态由宿主原始回执校验。历史计划需显式建立验收定义才能获得版本化保证。
+
