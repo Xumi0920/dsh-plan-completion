@@ -26,6 +26,7 @@
 
 import { DEFAULTS } from './config.js';
 import { clampChars, looksLikeQuestion, oneLine, toText } from './text.js';
+import { isGeneratedUserMessage, isDerivedToolResult } from './event-source.js';
 
 const TYPE_SETS = {
   turnStart: new Set(['turn/start', 'turn.start', 'turn_start', 'turn/started']),
@@ -286,6 +287,7 @@ export function collectFromEvents(params = {}) {
 
     for (let i = 0; i < events.length; i += 1) {
       const event = events[i];
+      if (isGeneratedUserMessage(event)) continue;
       const type = typeOf(event);
       const payload = payloadOf(event);
       const isUser = TYPE_SETS.user.has(type) || (!TYPE_SETS.assistant.has(type) && messageRecord(payload).role === 'user');
@@ -309,6 +311,7 @@ export function collectFromEvents(params = {}) {
     const callIndex = new Map();
     for (let i = scopeStart; i < events.length; i += 1) {
       const event = events[i];
+      if (isDerivedToolResult(event)) continue;
       const type = typeOf(event);
       const payload = payloadOf(event);
       if (TYPE_SETS.toolCall.has(type)) {

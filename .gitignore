@@ -15,3 +15,4 @@ Thumbs.db
 # Build artifacts (the client bundle is authored directly, no build output expected)
 dist/
 coverage/
+managed-runtime-result.json

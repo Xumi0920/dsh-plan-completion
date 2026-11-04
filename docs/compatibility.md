@@ -1,0 +1,11 @@
+# Plan Completion — progress-protocol canary
+
+同一个 DSH 插件，保留原生长上下文、回复和 Tab 草稿补全。版本 0.2.0-canary.1，Draft；不合并、不发布。
+
+默认 progressProtocol: legacy 保留 0.1.8 的状态 patch、连续两次 none 后 /replan 和 rewrite 语义，并明确标注模型报告未经执行验收。Settings 可显式选择 strict：仅已建立验收版本的原始执行回执或用户手动确认可推进完成；旧计划迁移为待验收。已经版本化的计划不能通过关闭 strict 绕过校验。
+
+计划面板提供人工确认/撤销；请求绑定计划版本与验收版本。重新定义或撤销前置验收会使后续步骤失效。固定模型路由失败时停止调用，不回落其他供应商；修改设置取消旧调用。
+
+本阶段不包含向量引擎，不运行 Ollama 或 llama.cpp。只有一个 Cordis 根条目；host 文件拆分仅为内部职责组织，尚未迁移独立组件。
+
+验证：npm test；npm run check:package。历史实验与截图保留在集成 PR，npm 包不带实验数据。

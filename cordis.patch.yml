@@ -2,14 +2,15 @@
     - id: plan-completion
       name: 'dsh-plan-completion'
       config:
+        progressProtocol: legacy # existing UX; opt into strict receipt/human acceptance in Settings
         evidenceChars: 1500
-        maxTokensPatch: 400
+        maxTokensPatch: 800
         maxTokensRewrite: 1200
         warmBackfill: true
-        modelCalls: true # false: heuristic-only; no plugin model requests
+        modelCalls: true # false: no helper generation; receipt validation remains active
         # Plans + last suggestion are persisted per session so a DSH restart restores the UI.
         persistPlans: true
-        storageDir: '~/.dsh/plan-completion-data'
+        storageDir: '~/.dsh/plan-completion-data' # follows DSH_HOME when explicitly set
         # Debug endpoints (debug/diag/theme/experiment/autojob/steps/reset) stay off in production.
         enableDebugRoutes: false
         # Optional: set a local directory to persist debug logs / experiment data.
