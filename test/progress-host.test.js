@@ -46,3 +46,28 @@ test('long native conversation is never truncated or rewritten by helper generat
  s.events.push({type:'user/message',seq:0,data:{role:'user',content:[{type:'text',text:long}]}});
  h.startTurn(s,1);const original=JSON.stringify(s.events);await flushJobs();assert.equal(JSON.stringify(s.events),original);assert.ok(original.length>1000000);
 });
+
+test('host reconciles old composite done on generator failure and recovers after actual readback',async t=>{
+ const s=sessionFixture('composite-recovery'),initial=structuredClone(seed);
+ initial.steps[0]={id:'s1',title:'写入并回读校验',status:'todo',completion:{all:[
+  {tool:'write_file',args:{path:'fixture.txt'}},{tool:'read_file',args:{path:'fixture.txt'},expect:{field:'content',equals:'expected'}}]}};
+ const h=setup(t,[initial,()=>{throw Error('synthetic provider unavailable');},()=>({op:'patch',reason:'verified',changes:[{id:'s1',status:'done',evidence:collectRetrievalRecords(s.id,s.events).filter(r=>r.kind==='tool_result').map(r=>r.id)}],suggestion:'整理报告'})]);
+ h.startTurn(s,1);await flushJobs();
+ Object.assign(h.state(s.id).plan.steps[0],{status:'done',lifecycle:'verified_receipt',evidence:['stale']});
+ s.events.push({seq:11,type:'tool/call',data:{turn:2,callId:'w',name:'write_file',arguments:{path:'fixture.txt'}}},
+  {seq:12,type:'tool/result',data:{turn:2,message:{toolCallId:'w',content:[{type:'text',text:'{"ok":true}'}]}}});
+ h.startTurn(s,2);await flushJobs();assert.equal(h.state(s.id).plan.steps[0].status,'doing');assert.equal(h.state(s.id).plan.steps[0].lifecycle,'acceptance_partial');
+ s.events.push({seq:21,type:'tool/call',data:{turn:3,callId:'r',name:'read_file',arguments:{path:'fixture.txt'}}},
+  {seq:22,type:'tool/result',data:{turn:3,message:{toolCallId:'r',content:[{type:'text',text:'{"ok":true,"content":"expected"}'}]}}});
+ h.startTurn(s,3);await flushJobs();assert.equal(h.state(s.id).plan.steps[0].status,'done');assert.equal(h.state(s.id).plan.steps[0].lifecycle,'verified_receipt');
+ assert.equal(h.calls.length,3);
+});
+
+test('legacy composite completion is invalidated when generation returns none',async t=>{
+ const initial=structuredClone(seed);initial.steps[0]={id:'s1',title:'写入并回读校验',status:'todo',completion:{tool:'write_file',args:{path:'fixture.txt'}}};
+ const h=setup(t,[initial,none]),s=sessionFixture('legacy-composite');h.startTurn(s,1);await flushJobs();
+ Object.assign(h.state(s.id).plan.steps[0],{status:'done',lifecycle:'verified_receipt'});
+ s.events.push({seq:11,type:'tool/call',data:{turn:2,callId:'w',name:'write_file',arguments:{path:'fixture.txt'}}},
+ {seq:12,type:'tool/result',data:{turn:2,message:{toolCallId:'w',content:[{type:'text',text:'{"ok":true}'}]}}});
+ h.startTurn(s,2);await flushJobs();assert.equal(h.state(s.id).plan.steps[0].status,'doing');assert.equal(h.state(s.id).plan.steps[0].lifecycle,'acceptance_missing');
+});

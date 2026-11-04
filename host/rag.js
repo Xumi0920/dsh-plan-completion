@@ -5,12 +5,14 @@ import { isAbsolute } from 'node:path';
 import { createHash } from 'node:crypto';
 import { collectRetrievalRecords, redactSecrets } from './rag-evidence.js';
 import { collectConstraintAnchors } from './constraint-memory.js';
+import { eligibleForPurpose, queryInstruction, retrievalPurpose, targetRecords } from './retrieval-policy.js';
 
 const bounded = (v, d, min, max) => Number.isFinite(v) ? Math.min(max, Math.max(min, Math.floor(v))) : d;
 export function ragSettings(raw = {}) {
   return {
     enabled: raw?.enabled === true,
     sendContextToGenerator: raw?.sendContextToGenerator === true,
+    strategy: raw?.strategy === 'typed' ? 'typed' : 'hybrid',
     endpoint: raw?.endpoint ?? 'http://127.0.0.1:11434/v1/embeddings',
     model: typeof raw?.model === 'string' ? raw.model.slice(0, 120) : 'dsh-qwen3-embedding:q8_0',
     apiKeyFile: typeof raw?.apiKeyFile === 'string' ? raw.apiKeyFile : '',
@@ -114,7 +116,7 @@ const instruction = query => `Instruct: Given a user question, retrieve relevant
 
 /** Apply-scoped, session-scoped, bounded RAM index. Never writes transcripts/vectors to disk. */
 export function createRag(config = {}, dependencies = {}) {
-  const settings = ragSettings(config), now = dependencies.now ?? Date.now, sessions = new Map();
+  const settings = ragSettings(config), now = dependencies.now ?? Date.now, sessions = new Map(), termCache = new WeakMap();
   let closed = false, worker = null, client = null, invalidConfig = false, retryTimer = null;
   if (settings.enabled) {
     try { client = dependencies.client ?? createEmbeddingClient(settings); }
@@ -150,7 +152,7 @@ export function createRag(config = {}, dependencies = {}) {
         }
         state.error = false; state.retries = 0;
       } catch { if (sessions.get(id) === state) {
-        state.error = true; state.retries++; state.retryAt = now() + 1000;
+        state.error = true; state.retries++; state.retryAt = now() + (state.retries >= 3 ? 30000 : 1000);
         if (!closed && state.retries < 3 && !retryTimer) { retryTimer = setTimeout(() => { retryTimer = null; schedule(); }, 1100); retryTimer.unref?.(); }
       } }
       finally { state.controllers.delete(controller); }
@@ -181,32 +183,46 @@ export function createRag(config = {}, dependencies = {}) {
     schedule();
     return records;
   }
-  async function retrieve(sessionId, query, { signal } = {}) {
+  async function retrieve(sessionId, query, { signal, purpose, completions = [] } = {}) {
     const started = now(); sweep();
     const state = sessions.get(sessionId);
     if (!settings.enabled || closed || !state || signal?.aborted) return empty('disabled');
     state.at = now();
+    // A restored endpoint must recover without requiring a new history record.
+    // Only a user query after cooldown restarts the bounded background retries.
+    if (state.retries >= 3 && now() >= state.retryAt) { state.retries = 0; schedule(); }
     const text = redactSecrets(query).trim().slice(0, 1000);
     if (!text) return { ...empty('empty'), constraints: state.constraints };
     const controller = new AbortController(), abort = () => controller.abort();
     signal?.addEventListener('abort', abort, { once: true }); state.controllers.add(controller);
     const timer = setTimeout(abort, settings.retrievalTimeoutMs);
-    let vector = state.queries.get(digest(text)), mode = 'lexical';
+    const typed = settings.strategy === 'typed';
+    const task = retrievalPurpose(text, purpose);
+    const queryText = typed ? queryInstruction(text, task) : instruction(text);
+    const queryKey = digest(queryText);
+    let vector = state.queries.get(queryKey), mode = 'lexical';
     try {
       if (!vector && client && [...state.records.values()].some(r => r.vector)) {
-        [vector] = await client.embed([instruction(text)], controller.signal);
+        [vector] = await client.embed([queryText], controller.signal);
         if (!controller.signal.aborted && sessions.get(sessionId) === state && !closed) {
           if (state.queries.size >= 16) state.queries.delete(state.queries.keys().next().value);
-          state.queries.set(digest(text), vector);
+          state.queries.set(queryKey, vector);
         }
       }
       if (vector) mode = 'hybrid';
     } catch { mode = 'lexical'; }
     finally { clearTimeout(timer); state.controllers.delete(controller); signal?.removeEventListener('abort', abort); }
     if (closed || sessions.get(sessionId) !== state || signal?.aborted) return empty('cancelled');
-    const candidates = [...state.records.values()];
+    const all = [...state.records.values()];
+    const candidates = typed ? all.filter(r => eligibleForPurpose(r, task)) : all;
     const ranks = new Map();
-    const rankedLexical = candidates.map(r => [r, lexical(text, r.text)]).filter(([, s]) => s > 0).sort((a, b) => b[1] - a[1]);
+    const q = terms(text);
+    const cachedLexical = r => {
+      let d = termCache.get(r); if (!d) { d = terms(r.text); termCache.set(r, d); }
+      let hits = 0; for (const t of q) if (d.has(t)) hits++;
+      return hits / Math.sqrt(Math.max(1, q.size * d.size));
+    };
+    const rankedLexical = candidates.map(r => [r, typed ? cachedLexical(r) : lexical(text, r.text)]).filter(([, s]) => s > 0).sort((a, b) => b[1] - a[1]);
     // Equal-weight RRF gave every weak Chinese lexical hit two votes, drowning
     // out cross-language matches (English reasoning has no Chinese word overlap).
     // Cosine supplies the primary semantic score; lexical overlap is a bounded
@@ -218,13 +234,15 @@ export function createRag(config = {}, dependencies = {}) {
       semantic.forEach(([r, score]) => ranks.set(r.id, (ranks.get(r.id) ?? 0) + score));
     }
     let remaining = settings.contextChars;
-    const records = candidates.filter(r => ranks.has(r.id)).sort((a, b) => ranks.get(b.id) - ranks.get(a.id) || b.seq - a.seq)
-      .slice(0, settings.topK).flatMap(({ vector: _vector, ...r }) => {
+    const anchored = typed && (task === 'evidence' || task === 'mixed') ? targetRecords(all, Array.isArray(completions) ? completions : []) : [];
+    const ranked = candidates.filter(r => ranks.has(r.id)).sort((a, b) => ranks.get(b.id) - ranks.get(a.id) || b.seq - a.seq);
+    const unique = [...new Map([...anchored, ...ranked].map(r => [r.id, r])).values()];
+    const records = unique.slice(0, settings.topK).flatMap(({ vector: _vector, ...r }) => {
         if (remaining <= 0) return [];
         const part = { ...r, text: r.text.slice(0, remaining) }; remaining -= part.text.length;
         return [part];
       });
-    return { mode, records, constraints: state.constraints, elapsedMs: now() - started, indexed: candidates.filter(r => r.vector).length };
+    return { mode, records, strategy: settings.strategy, purpose: typed ? task : 'mixed', constraints: state.constraints, elapsedMs: now() - started, indexed: all.filter(r => r.vector).length };
   }
   return {
     settings, sync, retrieve, forget,

@@ -727,7 +727,7 @@ export function apply(ctx, config = {}) {
       })())
       if (instruction) evidence.instruction = instruction
       const retrieval = settings.modelCalls && rag.settings.sendContextToGenerator
-        ? await rag.retrieve(sessionId, [evidence.intent, ...(evidence.lastUserMessages ?? []).slice(-1), ...(basePlan?.steps ?? []).filter(s => s.status !== 'done').map(s => s.title)].join(' '), { signal: controller.signal })
+        ? await rag.retrieve(sessionId, [evidence.intent, ...(evidence.lastUserMessages ?? []).slice(-1), ...(basePlan?.steps ?? []).filter(s => s.status !== 'done').map(s => s.title)].join(' '), { signal: controller.signal, purpose: 'mixed', completions: (basePlan?.steps ?? []).map(s => s.completion).filter(Boolean) })
         : { mode: 'disabled', records: [], elapsedMs: 0, indexed: 0 }
       if (!isCurrent()) return
       ragViews.set(sessionId, { mode: retrieval.mode, elapsedMs: retrieval.elapsedMs, indexed: retrieval.indexed, count: retrieval.records.length, kinds: [...new Set(retrieval.records.map(r => r.kind))], constraintCount: retrieval.constraints?.records.length ?? 0, constraintsIncomplete: retrieval.constraints?.incomplete === true })

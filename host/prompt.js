@@ -29,7 +29,7 @@ export const SYSTEM_PROMPT = [
   '  reason:    一句话说明本次更新原因（必须，非空）',
   '  changes:   op=patch 时必填，[{id, status?, title?, evidence?, completion?}]（只引用已有步骤 id）',
   '  steps:     op=rewrite 时必填，3~7 个 [{id, title, status, completion?}]，status ∈ todo/doing/blocked/done/dropped',
-  '  completion: 可执行步骤若工具和目标参数已知，必须提供 {tool,args}。目标未知则省略，不编造。',
+  '  completion: 原子步骤 {tool,args,expect?}；复合步骤 {all:[{tool,args,expect?},...]}，2至6项按执行依赖排序。expect 为 {field,equals}，精确核对回执 JSON 顶层标量。未知验收不编造。',
   '  constraints: 必填字符串数组，保留仍有效的关键约束（最多6条）。',
   '  intent:    op=rewrite 时可选，计划目标（一句话）',
   '  suggestion: 下一条建议（≤40 字，单行，无 Markdown，可直接作为用户消息发送）',

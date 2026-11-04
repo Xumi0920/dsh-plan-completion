@@ -1825,7 +1825,8 @@ window.__ModuleLoader__.load({
               activeSteps.slice(0, 3).map(function renderStep(step) {
                 const glyph =
                   step.status === 'blocked' ? '!' : step.status === 'done' ? '✓' : step.status === 'doing' ? '●' : step.status === 'dropped' ? '✕' : '○';
-                const mainChildren = [h('span', { key: 'title', className: 'dpc-step-title' }, step.title), h('span', { key: 'state', className: 'dpc-evidence' }, step.lifecycle === 'awaiting_receipt' ? '等待工具回执' : step.lifecycle === 'outcome_unverified' ? '结果待核验' : t('step.' + step.status))];
+                const acceptanceLabel = { acceptance_missing: '验收项未拆分', acceptance_partial: '部分验收未执行', acceptance_updated: '验收项已更新，待复核', verification_stale: '需重新验证', acceptance_failed: '验收内容不符' }[step.lifecycle];
+                const mainChildren = [h('span', { key: 'title', className: 'dpc-step-title' }, step.title), h('span', { key: 'state', className: 'dpc-evidence' }, acceptanceLabel || (step.lifecycle === 'awaiting_receipt' ? '等待工具回执' : step.lifecycle === 'outcome_unverified' ? '结果待核验' : t('step.' + step.status)))];
                 if (step.evidence.length > 0) {
                   mainChildren.push(
                     h('details', { key: 'evidence', className: 'dpc-evidence' }, h('summary', null, '查看回执编号'), step.evidence.join(' · '))

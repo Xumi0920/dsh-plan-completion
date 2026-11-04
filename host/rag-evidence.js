@@ -46,6 +46,20 @@ function resultStatus(data, text) {
     || /(?:exit(?:ed)? (?:with )?(?:exit )?code|exit[_ ]code)\s*[:=]?\s*0\b/i.test(text) ? 'success' : 'unknown';
 }
 
+function receiptFacts(text) {
+  try {
+    const parsed = JSON.parse(text);
+    if (!object(parsed)) return {};
+    let remaining = 2048;
+    return Object.fromEntries(Object.entries(redactData(parsed)).slice(0, 16).filter(([key, value]) => {
+      if (!/^[a-zA-Z_][a-zA-Z0-9_]{0,79}$/.test(key) || ['__proto__','constructor','prototype'].includes(key)
+        || !['string','number','boolean'].includes(typeof value) || (typeof value === 'number' && !Number.isFinite(value)) || String(value).length > 400) return false;
+      remaining -= key.length + String(value).length;
+      return remaining >= 0;
+    }));
+  } catch { return {}; }
+}
+
 /** Only committed DSH event types are accepted; assistant prose cannot forge a tool result. */
 export function collectRetrievalRecords(sessionId, events, { chunkChars = 800, maxRecords = 8192 } = {}) {
   if (!sessionId || !Array.isArray(events)) return [];
@@ -89,7 +103,7 @@ export function collectRetrievalRecords(sessionId, events, { chunkChars = 800, m
       const text = blocks(d.message ?? d.content, 'text');
       const outcome = resultStatus(d, text);
       add(e, 'tool_result', `Tool: ${call?.tool ?? 'unmatched-tool'}\nResult: ${text}`, {
-        tool: call?.tool ?? 'unmatched-tool', callSeq: call?.seq, callId, outcome,
+        tool: call?.tool ?? 'unmatched-tool', callSeq: call?.seq, callId, outcome, facts: receiptFacts(text),
         completionEligible: Boolean(call && call.seq < e.seq && outcome === 'success' && !incompleteTurns.has(turn)),
       });
     }

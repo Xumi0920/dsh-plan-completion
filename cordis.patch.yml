@@ -15,6 +15,7 @@
         rag:
           enabled: false
           sendContextToGenerator: false
+          strategy: 'typed' # source-aware retrieval + established acceptance targets
           endpoint: 'http://127.0.0.1:11434/v1/embeddings'
           model: 'dsh-qwen3-embedding:q8_0'
         # Optional: set a local directory to persist debug logs / experiment data.

@@ -375,9 +375,9 @@ export function patchPlan(plan, changes, meta = {}) {
       if (!step) return fail('unknown-step', `changes 引用了不存在的步骤 id：${id}`);
       let applied = false;
 
+      if (change.title && change.title !== step.title) { delete step.completion; delete step.lifecycle; delete step.evidence; }
       if (change.completion !== undefined) { step.completion = normalizeCompletion(change.completion); applied = true; }
       if (change.lifecycle !== undefined) { step.lifecycle = String(change.lifecycle).slice(0, 40); applied = true; }
-      if (change.title && change.title !== step.title) { delete step.completion; delete step.lifecycle; delete step.evidence; }
       if (change.status !== undefined) {
         if (!STEP_STATUSES.includes(change.status)) {
           return fail('bad-change-status', `步骤 ${id} 的 status 非法：${String(change.status)}`);
