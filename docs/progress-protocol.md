@@ -46,8 +46,11 @@ flowchart LR
 | evidence_added | 当前验收版本与本会话 tool_result 的 evidence_ids |
 | step_blocked | 当前验收版本与失败 tool_result 的 evidence_ids |
 | acceptance_proposed | 当前版本，以及放在该事件内部的完整 acceptance、completion；禁止 evidence_ids |
+| dependencies_proposed | 仅修改依赖：当前版本及 depends_on:[{stepId,revision}]；宿主复用既有 scope/completion，不允许模型在此事件改写它们 |
 
 前三类仅是引用与提示，不是写状态命令；宿主仍独立核对最新原始事件。版本号不匹配、跨会话 ID、错误类型和伪造 ID 拒绝。修订例：
+
+后两类修改验收定义，是计划元数据提案，不执行工具，也不需要新的工具回执。用户明确要求修改时，计划助手在当前响应的 `progress.events` 中提交；`op=none` 不代表必须没有事件。原生 Agent 无法调用计划接口、或用户要求本轮不调用工具，都不能成为延后定义提案的理由。宿主接受后会升级版本并清除旧证明；步骤完成仍须等待新边界之后的实际执行回执。没有明确修改要求时不自行升级验收。
 
 ```json
 {
@@ -70,6 +73,10 @@ flowchart LR
 
 修改没有实质变化时不升版。有效修订按当前版本比较后递增，不能降级 scope、删除依赖、丢失原有工具/参数键或弱化布尔要求；允许更新明确目标/版本。对旧条件已不符合其 scope 的情况，允许修正为满足该 scope 的明确字段。循环、缺失前置步骤和错误版本拒绝。
 
+长上下文验证增加了 `dependencies_proposed`：只改前置版本时，不再要求计划助手重复抄写所有验收条件。它不能用于首次定义（版本 0），不能夹带 completion/acceptance/evidence_ids，仍受版本比较、禁止删依赖和循环检查。原有完整 `acceptance_proposed` 保持兼容。计划字段来自宿主，原生助手声称“我看不到插件定义”不能否定 plan.steps 已提供的数据。
+
+协议数据规范已从执行计算中分离为 `host/progress-schema.js`；`progress-protocol.js` 保留兼容导出。Plan 类型与检索策略不再通过执行校验器取得规范化函数，仍由一个插件提供服务。
+
 批量修订必须在同一 events 内按依赖顺序提交全部事件。事件的 acceptance_revision 是该步骤提交前版本；dependsOn 可引用本批前面已生成的新版本。宿主不自动为所有下游升级依赖，避免把“上游变更”误当作“下游已接受新目标”。部分事件失败时，已通过的事件可能生效；这是顺序处理，**不是事务型全有或全无**，界面明确提示仍有未生效项。
 
 ## 跨步骤失效与展示
@@ -88,4 +95,4 @@ flowchart LR
 - 快照只含版本、状态、来源 ID、依赖和指纹，不增加正文或工具参数副本。既有计划条件仍会按原来的脱敏与预算规则进入计划模型。
 - Q8 嵌入仍仅允许 loopback；嵌入与向生成器发送检索内容分别默认关闭。开启外部 DeepSeek 计划模型后，脱敏后的证据会沿授权模型路由发送，不能称为全本地或零外发。脱敏不是通用个人信息识别。
 
-实测、失败记录、性能和复现入口见 [本轮验证](progress-protocol-validation.md)。此前 [复杂任务报告](complex-task-validation.md) 是旧提交的历史结果，不应当作本协议现状。
+最新实测、失败记录、性能和复现入口见 [接近1M与连续自动压缩验证](protocol-long-validation.md)。此前的 [短任务协议验证](progress-protocol-validation.md) 与 [复杂任务报告](complex-task-validation.md) 是旧提交的历史结果，不应当作当前代码的完整验收。

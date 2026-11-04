@@ -561,7 +561,9 @@ async function commitPlan(ports, plan, cas, meta = {}) {
 }
 
 /**
- * 执行一次计划作业（一条流水线：证据 → 模型 → 校验 → 落盘 → 发布建议）。
+ * Legacy runner for unversioned plans only. Production uses index.js.
+ * This runner does not own the raw-journal/progress-protocol trust boundary and
+ * must not be substituted for the production pipeline during modularization.
  *
  * @param {{job:object, ports:object, suggestionDeadlineMs?:number, commitDeadlineMs?:number}} params
  * @returns {Promise<{ok:boolean, committed:boolean, published:boolean, reason:string, plan:object|null, suggestion:string, op:string|null, version:object|null, fallback:boolean, attempts:number, durationMs:number, error:string, userMessage?:string}>}
@@ -621,6 +623,9 @@ export async function runJob(params = {}) {
 
     const evidence = isObj(job.evidence) ? job.evidence : {};
     let plan = isObj(job.plan) ? job.plan : isObj(evidence.plan) ? evidence.plan : null;
+    if (Array.isArray(plan?.steps) && plan.steps.some(step => step?.acceptance !== undefined)) {
+      return finish({ ok: false, reason: 'unsupported-versioned-plan', error: 'Legacy runJob cannot validate versioned acceptance; use the production progress pipeline' });
+    }
     const watermark = isObj(job.watermark)
       ? job.watermark
       : isObj(evidence.watermark)
@@ -880,7 +885,8 @@ async function maybePublish(params) {
 }
 
 /**
- * 便捷 runner：把 createQueue 与 runJob 串起来（index.js 可直接用）。
+ * Legacy convenience runner. Production index.js must not switch to this
+ * without extracting and preserving its current receipt/protocol validation.
  *
  * @param {{ports:object, limit?:number, dedupeTtlMs?:number, now?:()=>number, gate?:object, suggestionDeadlineMs?:number, commitDeadlineMs?:number}} options
  * @returns {{queue:object, submit:(job:object)=>Promise<object>}}

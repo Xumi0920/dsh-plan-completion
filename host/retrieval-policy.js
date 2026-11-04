@@ -1,4 +1,4 @@
-import { completionRequirements, matchesCall, unscopedAcknowledgement } from './progress.js';
+import { completionRequirements, matchesCall, unscopedAcknowledgement } from './acceptance.js';
 
 export function retrievalPurpose(query, purpose) {
   if (['intent','evidence','constraints','mixed'].includes(purpose)) return purpose;

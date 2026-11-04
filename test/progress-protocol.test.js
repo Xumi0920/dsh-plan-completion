@@ -25,6 +25,29 @@ const none={op:'none',reason:'reviewed',progress:{version:1,events:[]}};
 const states=steps=>steps.map(s=>s.status);
 const revise=(id,version,acceptance,completion)=>({op:'none',reason:'revision proposal',progress:{version:1,events:[{step_id:id,acceptance_revision:version,event:'acceptance_proposed',acceptance,completion}]}});
 
+test('dependency-only proposals reuse host contracts and revise a batch without old evidence',()=>{
+ const f=fixture();f.all();const initial=revise('s1',1,{scope:'execution',dependsOn:[]},{tool:'write_file',args:{path:'source',revision:'r2'}});
+ const p=patchPlan(f.plan,validateProgress(initial,f.plan,f.records()).output.changes,{reason:'r2'}).plan,before=JSON.stringify(p);
+ const events=[{step_id:'s2',acceptance_revision:1,event:'dependencies_proposed',depends_on:[{stepId:'s1',revision:2}]},{step_id:'s3',acceptance_revision:1,event:'dependencies_proposed',depends_on:[{stepId:'s2',revision:2}]}];
+ const parsed=parseModelOutput(JSON.stringify({...none,progress:{version:1,events}}));assert.equal(parsed.ok,true);
+ const checked=validateProgress(parsed.output,p,f.records());assert.equal(checked.protocolRejected,0);assert.equal(JSON.stringify(p),before);
+ const next=patchPlan(p,checked.output.changes,{reason:'rebind'}).plan;
+ assert.deepEqual(next.steps.map(s=>s.acceptance.revision),[2,2,2]);
+ for(const i of [1,2]){assert.deepEqual(next.steps[i].completion,p.steps[i].completion);assert.equal(next.steps[i].acceptance.scope,p.steps[i].acceptance.scope);assert.notEqual(next.steps[i].status,'done');}
+ assert.equal(validateProgress(parsed.output,next,f.records()).protocolRejected,2,'stale batch cannot replay');
+});
+
+test('dependency-only proposals cannot drop dependencies, change contracts or create a cycle',()=>{
+ const f=fixture();f.all();const event={step_id:'s2',acceptance_revision:1,event:'dependencies_proposed',depends_on:[{stepId:'s1',revision:1}]};
+ for(const extra of [{completion:f.plan.steps[1].completion},{acceptance:{scope:'execution',dependsOn:[]}},{evidence_ids:['rag:'+'a'.repeat(24)]}])
+  assert.equal(normalizeProgressEnvelope({version:1,events:[{...event,...extra}]}),undefined);
+ for(const depends_on of [[],[{stepId:'s3',revision:1}],[{stepId:'missing',revision:1}],[{stepId:'s1',revision:99}]])
+  assert.equal(validateProgress({...none,progress:{version:1,events:[{...event,depends_on}]}},f.plan,f.records()).protocolRejected,1);
+ assert.equal(normalizeProgressEnvelope({version:1,events:[{...event,acceptance_revision:0}]}),undefined);
+ const same=validateProgress({...none,progress:{version:1,events:[event]}},f.plan,f.records());
+ assert.equal(same.protocolRejected,0);assert.equal(same.output.changes.find(s=>s.id==='s2').acceptance.revision,1,'same pins are a no-op');
+});
+
 test('structured host receipts determine completion without a model done claim or RAG',()=>{
  const f=fixture();f.all();const result=validateProgress(none,f.plan,f.records());
  assert.deepEqual(states(result.output.changes),['done','done','done']);
@@ -99,6 +122,26 @@ test('real host persists deterministic progress during generator failure and ign
  assert.ok(h.calls[2].messages.some(m=>m.content.some(c=>c.text?.includes('progressProtocol'))));
  assert.equal(h.handlers.has('agent/pre-step'),false);assert.equal(h.calls.length,3);
 });
+test('host commits requested definition revisions without tool execution, then awaits new receipts',async t=>{
+ delete globalThis[HOST_KEY];const f=fixture(),s=sessionFixture('protocol-definition-only');
+ const initial={op:'rewrite',reason:'declare',steps:f.plan.steps.map(step=>({...step,acceptance:{scope:step.acceptance.scope,dependsOn:step.acceptance.dependsOn}}))};
+ const proposal={op:'none',reason:'requested definition changes only',progress:{version:1,events:[
+  {step_id:'s1',acceptance_revision:1,event:'acceptance_proposed',acceptance:{scope:'execution',dependsOn:[]},completion:{tool:'write_file',args:{path:'source',revision:'r2'}}},
+  {step_id:'s2',acceptance_revision:1,event:'dependencies_proposed',depends_on:[{stepId:'s1',revision:2}]},
+  {step_id:'s3',acceptance_revision:1,event:'dependencies_proposed',depends_on:[{stepId:'s2',revision:2}]}
+ ]}};
+ const h=createHostFixture(apply,[initial,proposal,none],{persistPlans:false});
+ t.after(()=>{h.dispose();delete globalThis[HOST_KEY];});h.startTurn(s,1);await flushJobs();
+ s.events.push({seq:10,type:'user/message',data:{source:{kind:'user'},content:'本轮不执行工具，仅修改 source 为 r2 并修订全部下游依赖。'}});
+ h.startTurn(s,2);await flushJobs();
+ assert.deepEqual(h.state(s.id).plan.steps.map(step=>step.acceptance.revision),[2,2,2]);
+ assert.ok(h.state(s.id).plan.steps.every(step=>step.status!=='done'&&!step.proof));
+ assert.equal(s.events.some(e=>e.type==='tool/call'||e.type==='tool/result'),false);
+ h.startTurn(s,3);await flushJobs();
+ assert.deepEqual(h.state(s.id).plan.steps.map(step=>step.acceptance.revision),[2,2,2]);
+ assert.ok(h.state(s.id).plan.steps.every(step=>step.status!=='done'));
+});
+
 test('model cannot drop, rename, delete or downgrade a versioned step or remove dependencies',()=>{
  const f=fixture();f.all();
  const result=validateProgress({op:'rewrite',reason:'bypass',steps:[{id:'s1',title:'renamed',status:'dropped'},{id:'new1',title:'other',status:'todo'},{id:'new2',title:'other2',status:'todo'}]},f.plan,f.records());

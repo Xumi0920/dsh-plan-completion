@@ -123,6 +123,16 @@ function baseJob(overrides = {}) {
 
 /* ─────────────────────── 双截止线 / 提交 ─────────────────────── */
 
+test('legacy runJob refuses versioned plans instead of bypassing receipt validation',async()=>{
+ const plan=makePlan();plan.steps[1].acceptance={scope:'manual',revision:1,afterSeq:10,dependsOn:[]};
+ for(const source of ['plan','evidence']){
+  const rec=recorder();let calls=0;
+  const result=await runJob({job:baseJob({plan:source==='plan'?plan:null,evidence:makeEvidence({plan})}),ports:{...rec.ports,callModel:async()=>{calls++;return patchJson();}}});
+  assert.equal(result.reason,'unsupported-versioned-plan');assert.equal(result.committed,false);assert.equal(calls,0);
+  assert.equal(rec.calls.commits.length,0);assert.equal(rec.calls.publishes.length,0);
+ }
+});
+
 test('双截止线：建议超时（3000ms > 2500ms）但计划仍提交', async () => {
   const clock = createClock();
   const rec = recorder();

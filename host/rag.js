@@ -117,7 +117,7 @@ const instruction = query => `Instruct: Given a user question, retrieve relevant
 /** Apply-scoped, session-scoped, bounded RAM index. Never writes transcripts/vectors to disk. */
 export function createRag(config = {}, dependencies = {}) {
   const settings = ragSettings(config), now = dependencies.now ?? Date.now, sessions = new Map(), termCache = new WeakMap();
-  let closed = false, worker = null, client = null, invalidConfig = false, retryTimer = null;
+  let closed = false, worker = null, client = null, invalidConfig = false, retryTimer = null, lastServed = null;
   if (settings.enabled) {
     try { client = dependencies.client ?? createEmbeddingClient(settings); }
     catch { invalidConfig = true; }
@@ -139,9 +139,13 @@ export function createRag(config = {}, dependencies = {}) {
     for (;;) {
       if (closed || !client) return;
       sweep();
-      const pair = [...sessions].find(([, s]) => s.retries < 3 && now() >= s.retryAt && [...s.records.values()].some(r => !r.vector));
+      // One bounded batch per session before returning to a large backlog.
+      // Keep TTL/LRU timestamps unchanged: scheduling is not user activity.
+      const entries = [...sessions], start = entries.findIndex(([id]) => id === lastServed) + 1;
+      const pair = entries.slice(start).concat(entries.slice(0, start)).find(([, s]) => s.retries < 3 && now() >= s.retryAt && [...s.records.values()].some(r => !r.vector));
       if (!pair) return;
       const [id, state] = pair;
+      lastServed = id;
       const batch = [...state.records.values()].filter(r => !r.vector).slice(0, 4);
       const controller = new AbortController(); state.controllers.add(controller);
       try {

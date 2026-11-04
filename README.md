@@ -11,6 +11,8 @@ DSH 插件：为每个会话维护一份**隐式计划**，在每个回合结束
 
 本候选进一步加入[统一进度协议、验收版本与跨步骤失效](docs/progress-protocol.md)：计划助手提交结构化提案，宿主用原始回执决定完成状态；保留 DSH 主 Agent 的原生回复和长上下文。独立隔离对照结果见[协议验证报告](docs/progress-protocol-validation.md)。
 
+新协议的[近 1M 与连续自动压缩对照](docs/protocol-long-validation.md)和[单插件组件审查](docs/component-audit.md)单独记录。协议数据规范已拆为内部模块；计划、检索和界面仍属于同一个插件。
+
 - 设计文档：`docs/design-v1.2.md`
 - **交付说明（一期）**：`docs/delivery-notes.md`
 - **实验数据归档**：`docs/experiment-archive.md`

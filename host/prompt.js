@@ -13,7 +13,8 @@
 
 import { normalizeCompletion, normalizeConstraints, PROGRESS_RULES } from './progress.js';
 import { redactData } from './rag-evidence.js';
-import { normalizeAcceptanceProposal, normalizeProgressEnvelope, progressSnapshot } from './progress-protocol.js';
+import { normalizeAcceptanceProposal, normalizeProgressEnvelope } from './progress-schema.js';
+import { progressSnapshot } from './progress-protocol.js';
 import { DEFAULTS } from './config.js';
 import { clampChars, clampSuggestion, oneLine, sanitizeSuggestion } from './text.js';
 import { normalizeEvidence, PLAN_STATUSES, STEP_SOURCES, STEP_STATUSES, validVersion } from './plan.js';
@@ -22,6 +23,8 @@ import { normalizeEvidence, PLAN_STATUSES, STEP_SOURCES, STEP_STATUSES, validVer
 export const SYSTEM_PROMPT = [
   '你是「会话计划补全」插件的计划助手。你的唯一任务是阅读用户提供的会话证据，',
   '更新这个会话的里程碑计划，并给出下一条用户可直接发送的建议。',
+  '协议区分定义修订与执行证明：用户明确要求修改验收/依赖时，由你现在提交 progress.events 提案；这不调用工具、不需要新的执行回执，也不表示任何步骤已完成。',
+  'acceptance_proposed/dependencies_proposed 是宿主解析你返回 JSON 的接口，不是原生 Agent 的 exec 工具。原生回复声称接口不可用、或用户要求本轮不调用工具，不阻止按明确要求提交定义提案。没有修改要求时不得自行升级验收。',
   '',
   '【输出格式：只输出一个 JSON 对象】',
   '不要输出任何解释文字，不要输出 Markdown 代码块标记，不要输出 JSON 以外的内容。',
@@ -32,8 +35,11 @@ export const SYSTEM_PROMPT = [
   '  steps:     op=rewrite 时必填，3~7 个 [{id, title, status, completion?}]，status ∈ todo/doing/blocked/done/dropped',
   '  completion: 原子步骤 {tool,args,expect?}；复合步骤 {all:[{tool,args,expect?},...]}，2至6项按执行依赖排序。expect 为 {field,equals}，精确核对回执 JSON 顶层标量。未知验收不编造。',
   '  acceptance: 新计划每步必填 {scope,dependsOn:[{stepId,revision}]}。scope 为 execution/submission/delivery/deployment/assertion/manual；未知验收用 manual。revision、afterSeq、proof 由宿主生成，不得填写。',
-  '  progress: 必填 {version:1,events:[{step_id,acceptance_revision,event,evidence_ids?}]}。无新事件输出 {version:1,events:[]}。event 只允许 evidence_added/step_started/step_blocked/acceptance_proposed。同一步每次最多一项，总计最多7项。',
-  '版本化步骤的状态由 progressProtocol.steps 中宿主原始回执校验决定，不通过 changes.status 改写。无条件修改时用 op=none，progress.events 可为空，补充建议即可。',
+  '  progress: 必填 {version:1,events:[{step_id,acceptance_revision,event,...}]}。无新事件输出 {version:1,events:[]}。event 只允许 evidence_added/step_started/step_blocked/acceptance_proposed/dependencies_proposed。同一步每次最多一项，总计最多7项。',
+  'plan.steps 是宿主提供的当前定义，包含 acceptance 与 completion，是修订依据。lastAssistantText 只是原生回复，可能看不到插件状态；不得因为它声称缺少定义或接口，就忽略 plan.steps 已提供的字段。',
+  '只修改依赖版本时必须用 dependencies_proposed，不重复 scope/completion。事件格式 {step_id,acceptance_revision,event:"dependencies_proposed",depends_on:[{stepId,revision}]}；宿主复用完整既有验收条件并递增版本。不得在该事件中填写 completion、acceptance 或 evidence_ids。',
+  '依赖批量示例：progress.events=[{step_id:"s3",acceptance_revision:1,event:"dependencies_proposed",depends_on:[{stepId:"s2",revision:2}]},{step_id:"s4",acceptance_revision:1,event:"dependencies_proposed",depends_on:[{stepId:"s3",revision:2}]}]。按实际请求列出全部受影响步骤，不需要向用户索取宿主已有的验收定义。',
+  '版本化步骤的状态由 progressProtocol.steps 中宿主原始回执校验决定，不通过 changes.status 改写。op=none 仍可以提交定义修订事件；只有没有验收修改且没有证据事件时，progress.events 才为空。',
   '修改验收用 acceptance_proposed，提供当前 acceptance_revision（首次0）、acceptance:{scope,dependsOn} 和 completion；宿主递增版本，修改当次不能完成。不得降级 scope、删除依赖或弱化目标。',
   '验收修订时 op=none，完整的新 acceptance 与 completion 必须放在 progress.events 的同一事件内部，不能放进 changes；acceptance_proposed 事件禁止 evidence_ids。仅有事件名称的空提案会被拒绝。',
   '同一轮要求修订多个步骤时，必须在一个 progress.events 中按依赖拓扑顺序提交全部事件，不能只提交第一项后建议下轮继续。每个 acceptance_revision 填该步骤当前版本；dependsOn.revision 可引用本批前面事件提交后将生成的新版本。修改依赖也属于验收修订，不得自动把下游绑定到新版本。',
@@ -61,6 +67,7 @@ export const SYSTEM_PROMPT = [
 
 const OP_SCHEMA = {
   none: '{"op":"none","reason":"<无需变更的一句话原因>","progress":{"version":1,"events":[]},"suggestion":"<≤40字建议>"}',
+  proposal: '{"op":"none","reason":"<用户明确要求的依赖修订>","progress":{"version":1,"events":[{"step_id":"<需修订步骤>","acceptance_revision":1,"event":"dependencies_proposed","depends_on":[{"stepId":"<既有前置步骤>","revision":2}]}]},"suggestion":"<修订后执行新版验收的建议>"}',
   patch:
     '{"op":"patch","reason":"<一句话原因>","changes":[{"id":"<仅未版本化的步骤>","status":"doing"}],"progress":{"version":1,"events":[]},"constraints":["<仍有效的约束>"],"suggestion":"<≤40字建议>"}',
   rewrite:
@@ -157,13 +164,15 @@ function buildMessages(evidence, task) {
  */
 export function buildPatchPrompt(evidence = {}) {
   const hasPlan = isObj(evidence) && isObj(evidence.plan);
-  const schema = hasPlan ? `${OP_SCHEMA.patch}\n或 ${OP_SCHEMA.none}` : `${OP_SCHEMA.rewrite}\n或 ${OP_SCHEMA.none}`;
+  const hasAcceptance = hasPlan && Array.isArray(evidence.plan.steps) && evidence.plan.steps.some(step => step?.acceptance);
+  const schema = hasPlan ? `${OP_SCHEMA.patch}\n或 ${OP_SCHEMA.none}${hasAcceptance ? `\n或（仅修改依赖定义，按实际版本和全部受影响步骤填写）${OP_SCHEMA.proposal}` : ''}` : `${OP_SCHEMA.rewrite}\n或 ${OP_SCHEMA.none}`;
   const task = [
     '【任务】',
     hasPlan
       ? '根据本回合证据更新现有计划：有实质变化用 patch；阶段边界或议题明显变化可用 rewrite；没有实质变化用 none。'
       : '当前还没有计划：请用 rewrite 输出首个计划（3~7 个步骤）。',
     '同时给出下一条建议 suggestion（≤40 字、单行、可直接发送；提问回合给倾向性决策；全部完成则转验收）。',
+    '明确的验收/依赖修改要求应在本次 progress.events 提交，不因没有新回执而推迟。执行回执只决定完成状态，不是修改定义的前提。',
     '严格按以下 schema 输出单个 JSON 对象：',
     schema,
   ].join('\n');
@@ -371,7 +380,7 @@ export function parseModelOutput(text) {
     output.progress = { version: 1, events: [] };
     if (parsed.progress !== undefined) {
       const progress = normalizeProgressEnvelope(parsed.progress);
-      if (!progress) return fail('bad-progress-protocol', 'progress 必须为 {version:1,events:[]}；acceptance_proposed 事件内部必须同时提供 step_id、acceptance_revision、acceptance:{scope,dependsOn} 和完整 completion，禁止 evidence_ids；不要把验收修订放入 changes');
+      if (!progress) return fail('bad-progress-protocol', 'progress 必须为 {version:1,events:[]}；只改依赖用 dependencies_proposed，仅提供 step_id、当前 acceptance_revision、depends_on:[{stepId,revision}]；改其他条件用 acceptance_proposed，事件内部提供完整 acceptance:{scope,dependsOn} 和 completion，禁止 evidence_ids；不要把验收修订放入 changes');
       output.progress = progress;
     }
 

@@ -11,8 +11,8 @@
  *  - 只保留最近 N 版由存储层（store.js）负责，本模块只打版本号。
  */
 
-import { normalizeCompletion, normalizeConstraints } from './progress.js';
-import { normalizeAcceptance, normalizeProof } from './progress-protocol.js';
+import { normalizeCompletion, normalizeConstraints } from './acceptance.js';
+import { normalizeAcceptance, normalizeProof } from './progress-schema.js';
 import { DEFAULTS } from './config.js';
 import { clampChars, oneLine } from './text.js';
 
