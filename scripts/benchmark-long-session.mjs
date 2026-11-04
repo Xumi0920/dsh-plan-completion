@@ -32,5 +32,5 @@ try {
     events:fixture.events.length,measuredBoundaries:boundaries.length,serializedBytes:Buffer.byteLength(JSON.stringify(fixture.events)),
     scanMedianMs:samples[Math.floor(samples.length/2)],scanP95Ms:samples[Math.ceil(samples.length*.95)-1],scanMaxMs:samples.at(-1),
     totalScanMs:rows.reduce((a,r)=>a+r.scanMs,0),rssDeltaMiB:(process.memoryUsage().rss-rss0)/2**20,
-    records:rag.stats().records,firstConstraintRetained:rag.records('load').some(r=>r.seq===1),rows},null,2));
+    records:rag.stats().records,firstConstraintRetained:(await rag.retrieve('load','')).constraints.records.some(r=>r.seq===1),rows},null,2));
 }finally{rag.close();}

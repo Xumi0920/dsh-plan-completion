@@ -1848,7 +1848,7 @@ window.__ModuleLoader__.load({
       }
 
       children.push(h('details', { key: 'full-plan', className: 'dpc-section' }, h('summary', null, '完整计划 · ' + plan.steps.filter(s => s.status === 'done').length + ' 项已完成'), plan.steps.map(s => h('div', { key: s.id, className: 'dpc-text' }, t('step.' + s.status) + ' · ' + s.title))));
-      children.push(h('div', { key: 'retrieval-note', className: 'dpc-evidence' }, '思考仅作意图参考；完成状态须核对执行回执。' + (plan.retrieval?.mode === 'hybrid' ? ' Q8 混合检索' : plan.retrieval?.mode === 'lexical' ? ' 词法检索（向量暂不可用或预热中）' : '')));
+      children.push(h('div', { key: 'retrieval-note', className: 'dpc-evidence' }, '思考仅作意图参考；完成状态须核对执行回执。' + (plan.retrieval?.mode === 'hybrid' ? ' Q8 混合检索' : plan.retrieval?.mode === 'lexical' ? ' 词法检索（向量暂不可用或预热中）' : '') + (plan.retrieval?.constraintsIncomplete ? ' 部分历史约束未完整保留，请复核。' : '')));
       if (plan.reason) {
         children.push(
           h(

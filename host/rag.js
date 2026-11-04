@@ -4,6 +4,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { isAbsolute } from 'node:path';
 import { createHash } from 'node:crypto';
 import { collectRetrievalRecords, redactSecrets } from './rag-evidence.js';
+import { collectConstraintAnchors } from './constraint-memory.js';
 
 const bounded = (v, d, min, max) => Number.isFinite(v) ? Math.min(max, Math.max(min, Math.floor(v))) : d;
 export function ragSettings(raw = {}) {
@@ -125,7 +126,7 @@ export function createRag(config = {}, dependencies = {}) {
     if (!state) return;
     sessions.delete(sessionId);
     for (const c of state.controllers) c.abort();
-    state.records.clear(); state.queries.clear();
+    state.records.clear(); state.queries.clear(); state.constraints = null;
   }
   function sweep() {
     for (const [id, state] of sessions) if (now() - state.at > settings.ttlMs) forget(id);
@@ -171,6 +172,7 @@ export function createRag(config = {}, dependencies = {}) {
       sessions.set(sessionId, state);
     }
     const records = collectRetrievalRecords(sessionId, events, settings);
+    state.constraints = collectConstraintAnchors(sessionId, events);
     const next = new Map(records.map(r => [r.id, state.records.get(r.id) ?? r]));
     // Same text can acquire a failure/interruption classification on turn/end.
     for (const r of records) Object.assign(next.get(r.id), r);
@@ -185,7 +187,7 @@ export function createRag(config = {}, dependencies = {}) {
     if (!settings.enabled || closed || !state || signal?.aborted) return empty('disabled');
     state.at = now();
     const text = redactSecrets(query).trim().slice(0, 1000);
-    if (!text) return empty('empty');
+    if (!text) return { ...empty('empty'), constraints: state.constraints };
     const controller = new AbortController(), abort = () => controller.abort();
     signal?.addEventListener('abort', abort, { once: true }); state.controllers.add(controller);
     const timer = setTimeout(abort, settings.retrievalTimeoutMs);
@@ -222,7 +224,7 @@ export function createRag(config = {}, dependencies = {}) {
         const part = { ...r, text: r.text.slice(0, remaining) }; remaining -= part.text.length;
         return [part];
       });
-    return { mode, records, elapsedMs: now() - started, indexed: candidates.filter(r => r.vector).length };
+    return { mode, records, constraints: state.constraints, elapsedMs: now() - started, indexed: candidates.filter(r => r.vector).length };
   }
   return {
     settings, sync, retrieve, forget,

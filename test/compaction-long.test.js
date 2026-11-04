@@ -54,12 +54,16 @@ test('native tool-result pruning cannot replace a failed receipt with apparent s
   assert.equal(collectRetrievalRecords('long',[replacement]).length,0,'a derived-only export cannot invent execution evidence');
 });
 
-test('bounded long-session index explicitly evicts old chunks and remains session scoped',async()=>{
+test('bounded long-session index evicts ordinary chunks but preserves user constraints outside top-K',async()=>{
   const rag=createRag({enabled:true},{client:{async embed(){throw Error('offline fixture');},close(){}}});
   try {
     rag.sync('long',fixture.events);await rag.idle();
     assert.equal(rag.stats().records,8192);
     assert.equal(rag.records('long').some(r=>r.seq===1),false,'bounded history is not unlimited recall');
+    const retrieved=await rag.retrieve('long','unrelated query with no lexical hits');
+    assert.match(JSON.stringify(retrieved.constraints.records),/只操作隔离副本/);
+    assert.equal(retrieved.constraints.incomplete,false);
+    assert.ok(retrieved.constraints.records.every(r=>r.completionEligible===false));
     assert.equal((await rag.retrieve('different','隔离')).records.length,0);
     assert.ok(rag.records('long').some(r=>r.seq===fixture.lastReceipt.seq));
   } finally {rag.close();}
@@ -78,4 +82,17 @@ test('compaction end schedules a review without treating checkpoint text as the 
   await new Promise(r=>setTimeout(r,120));await waitFor(()=>h.calls.length===2);await flushJobs();
   assert.doesNotMatch(JSON.stringify(h.calls[1].messages),/COMPACTION_FAKE_USER_ORDER/);
   assert.equal(h.state(s.id).stale,false);
+});
+
+test('host sends protected constraints after FIFO eviction even when embeddings are offline',async t=>{
+  delete globalThis[HOST_KEY];
+  const h=createHostFixture(apply,[{op:'none',reason:'No execution',suggestion:'核对约束'}],{rag:{enabled:true,sendContextToGenerator:true,endpoint:'http://127.0.0.1:1/v1/embeddings',maxRecords:8}});
+  t.after(()=>{h.dispose();delete globalThis[HOST_KEY];});
+  const s=sessionFixture('protected');
+  s.events.push({seq:0,type:'user/message',data:{source:{kind:'user'},content:'禁止修改生产配置；不合并 PR'}});
+  for(let seq=1;seq<25;seq++)s.events.push({seq,type:'assistant/message',data:{message:{content:[{type:'text',text:'合成普通历史 '+seq}]}}});
+  const end={seq:25,type:'turn/end',data:{turn:1,reason:{kind:'completed'}}};s.events.push(end);s.seq=end.seq;
+  h.handlers.get('session/event')(s,end);await waitFor(()=>h.calls.length===1);await flushJobs();
+  const prompt=JSON.stringify(h.calls[0].messages);
+  assert.match(prompt,/user_constraint/);assert.match(prompt,/禁止修改生产配置/);assert.match(prompt,/不合并 PR/);
 });
