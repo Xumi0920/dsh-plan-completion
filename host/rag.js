@@ -5,7 +5,7 @@ import { isAbsolute } from 'node:path';
 import { createHash } from 'node:crypto';
 import { collectRetrievalRecords, redactSecrets } from './rag-evidence.js';
 import { collectConstraintAnchors } from './constraint-memory.js';
-import { eligibleForPurpose, queryInstruction, retrievalPurpose, targetRecords } from './retrieval-policy.js';
+import { eligibleForPurpose, queryInstruction, retrievalPurpose, targetRecords, targetCoverage } from './retrieval-policy.js';
 
 const bounded = (v, d, min, max) => Number.isFinite(v) ? Math.min(max, Math.max(min, Math.floor(v))) : d;
 export function ragSettings(raw = {}) {
@@ -242,7 +242,8 @@ export function createRag(config = {}, dependencies = {}) {
         const part = { ...r, text: r.text.slice(0, remaining) }; remaining -= part.text.length;
         return [part];
       });
-    return { mode, records, strategy: settings.strategy, purpose: typed ? task : 'mixed', constraints: state.constraints, elapsedMs: now() - started, indexed: all.filter(r => r.vector).length };
+    const targets = typed && (task === 'evidence' || task === 'mixed') ? targetCoverage(all, completions) : undefined;
+    return { mode, records, ...(targets ? { targets } : {}), strategy: settings.strategy, purpose: typed ? task : 'mixed', constraints: state.constraints, elapsedMs: now() - started, indexed: all.filter(r => r.vector).length };
   }
   return {
     settings, sync, retrieve, forget,

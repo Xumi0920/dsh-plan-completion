@@ -1,0 +1,5183 @@
+{
+  "protocol": {
+    "arms": [
+      "off",
+      "current",
+      "optimized"
+    ],
+    "repeats": 2,
+    "maxTokens": 2500,
+    "reasoningEffort": "off",
+    "samePromptAndGuard": true,
+    "mainAgentInvoked": false,
+    "baseline": "ee082c62",
+    "fixtureCount": 18
+  },
+  "model": {
+    "provider": "deepseek-account",
+    "model": "deepseek-flash",
+    "modelName": "DeepSeek-V4.1-Flash",
+    "selectedReasoningEffort": "max",
+    "pluginReasoningEffort": "off",
+    "runtimeVersion": "0.2.1-rc.5"
+  },
+  "arms": {
+    "off": {
+      "runs": 36,
+      "exactPlans": 4,
+      "exactSteps": 64,
+      "totalSteps": 216,
+      "falseCompletion": 0,
+      "notDoneOpportunities": 64,
+      "missedCompletion": 152,
+      "doneOpportunities": 152,
+      "receiptRecallMean": 0,
+      "pipelineMedianMs": 1158.6,
+      "pipelineP95Ms": 1558.8,
+      "retrievalMedianMs": 0.0,
+      "indexMedianMs": null,
+      "indexP95Ms": null,
+      "intentHits": 0,
+      "intentCases": 0,
+      "constraintHits": 0,
+      "wrongSource": 0,
+      "errors": 0,
+      "failedCases": [
+        {
+          "case": "qq-complete",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-complete",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-partial",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "qq-partial",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "qq-failed",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "blocked",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "blocked",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-failed",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "blocked",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "blocked",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-unknown",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "doing"
+          ]
+        },
+        {
+          "case": "qq-unknown",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "doing"
+          ]
+        },
+        {
+          "case": "qq-wrong-target",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "qq-wrong-target",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "qq-stale",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "doing",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-stale",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "doing",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-recovered",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-recovered",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-weak-contract",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-weak-contract",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-complete",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-complete",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-partial",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "workflow-partial",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "workflow-failed",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "blocked",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "blocked",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-failed",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "blocked",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "blocked",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-unknown",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "doing"
+          ]
+        },
+        {
+          "case": "workflow-unknown",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "doing"
+          ]
+        },
+        {
+          "case": "workflow-wrong-target",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "workflow-wrong-target",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "workflow-stale",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "doing",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-stale",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "doing",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-recovered",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-recovered",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-weak-contract",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-weak-contract",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "done"
+          ]
+        }
+      ]
+    },
+    "current": {
+      "runs": 36,
+      "exactPlans": 4,
+      "exactSteps": 64,
+      "totalSteps": 216,
+      "falseCompletion": 0,
+      "notDoneOpportunities": 64,
+      "missedCompletion": 152,
+      "doneOpportunities": 152,
+      "receiptRecallMean": 0.2315,
+      "pipelineMedianMs": 1319.1,
+      "pipelineP95Ms": 1831.3,
+      "retrievalMedianMs": 14.0,
+      "indexMedianMs": 1827.9,
+      "indexP95Ms": 1958.5,
+      "intentHits": 18,
+      "intentCases": 18,
+      "constraintHits": 18,
+      "wrongSource": 0,
+      "errors": 0,
+      "failedCases": [
+        {
+          "case": "qq-complete",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-complete",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-partial",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "qq-partial",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "qq-failed",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "blocked",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "blocked",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-failed",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "blocked",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "blocked",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-unknown",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "doing"
+          ]
+        },
+        {
+          "case": "qq-unknown",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "doing"
+          ]
+        },
+        {
+          "case": "qq-wrong-target",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "qq-wrong-target",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "qq-stale",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "doing",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-stale",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "doing",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-recovered",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-recovered",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-weak-contract",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-weak-contract",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-complete",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-complete",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-partial",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "workflow-partial",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "workflow-failed",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "blocked",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "blocked",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-failed",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "blocked",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "blocked",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-unknown",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "doing"
+          ]
+        },
+        {
+          "case": "workflow-unknown",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "doing"
+          ]
+        },
+        {
+          "case": "workflow-wrong-target",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "workflow-wrong-target",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "todo",
+            "todo"
+          ]
+        },
+        {
+          "case": "workflow-stale",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "doing",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-stale",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "doing",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-recovered",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-recovered",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-weak-contract",
+          "repeat": 0,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-weak-contract",
+          "repeat": 1,
+          "status": [
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done",
+            "done",
+            "doing",
+            "done"
+          ]
+        }
+      ]
+    },
+    "optimized": {
+      "runs": 36,
+      "exactPlans": 33,
+      "exactSteps": 204,
+      "totalSteps": 216,
+      "falseCompletion": 0,
+      "notDoneOpportunities": 64,
+      "missedCompletion": 12,
+      "doneOpportunities": 152,
+      "receiptRecallMean": 1,
+      "pipelineMedianMs": 2102.9,
+      "pipelineP95Ms": 2400.2,
+      "retrievalMedianMs": 13.5,
+      "indexMedianMs": 1820.8,
+      "indexP95Ms": 1905.3,
+      "intentHits": 18,
+      "intentCases": 18,
+      "constraintHits": 18,
+      "wrongSource": 0,
+      "errors": 0,
+      "failedCases": [
+        {
+          "case": "qq-stale",
+          "repeat": 0,
+          "status": [
+            "done",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "doing",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "qq-stale",
+          "repeat": 1,
+          "status": [
+            "done",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "doing",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        },
+        {
+          "case": "workflow-stale",
+          "repeat": 0,
+          "status": [
+            "done",
+            "doing",
+            "doing",
+            "doing",
+            "doing",
+            "doing"
+          ],
+          "expected": [
+            "done",
+            "doing",
+            "done",
+            "done",
+            "done",
+            "done"
+          ]
+        }
+      ]
+    }
+  },
+  "rows": [
+    {
+      "case": "qq-complete",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0,
+      "totalMs": 1448.6203,
+      "retrievalMs": 0,
+      "promptChars": 13799,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-complete",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0,
+      "totalMs": 1307.6869000000006,
+      "retrievalMs": 0,
+      "promptChars": 13799,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-partial",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 3,
+      "receiptRecall": 0,
+      "totalMs": 1019.4255999999987,
+      "retrievalMs": 0,
+      "promptChars": 13772,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-partial",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 3,
+      "receiptRecall": 0,
+      "totalMs": 1083.8580999999976,
+      "retrievalMs": 0,
+      "promptChars": 13772,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-failed",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "blocked",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0,
+      "totalMs": 1190.2986999999994,
+      "retrievalMs": 0,
+      "promptChars": 13797,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-failed",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "blocked",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0,
+      "totalMs": 1461.4978999999948,
+      "retrievalMs": 0,
+      "promptChars": 13797,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-unknown",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0,
+      "totalMs": 1003.9899000000005,
+      "retrievalMs": 0,
+      "promptChars": 13863,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-unknown",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0,
+      "totalMs": 1125.5829999999987,
+      "retrievalMs": 0,
+      "promptChars": 13863,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-wrong-target",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0,
+      "totalMs": 1531.708200000001,
+      "retrievalMs": 0,
+      "promptChars": 13893,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-wrong-target",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0,
+      "totalMs": 1315.617999999995,
+      "retrievalMs": 0,
+      "promptChars": 13893,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-stale",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "doing",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0,
+      "totalMs": 1444.1306999999942,
+      "retrievalMs": 0,
+      "promptChars": 13802,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-stale",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "doing",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0,
+      "totalMs": 1133.0289000000048,
+      "retrievalMs": 0,
+      "promptChars": 13802,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-intent-only",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": null,
+      "totalMs": 1065.1122999999934,
+      "retrievalMs": 0,
+      "promptChars": 13842,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-intent-only",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": null,
+      "totalMs": 973.5690000000031,
+      "retrievalMs": 0,
+      "promptChars": 13842,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-recovered",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0,
+      "totalMs": 1111.4593000000023,
+      "retrievalMs": 0,
+      "promptChars": 13823,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-recovered",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0,
+      "totalMs": 943.1650999999983,
+      "retrievalMs": 0,
+      "promptChars": 13823,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-weak-contract",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0,
+      "totalMs": 964.4519,
+      "retrievalMs": 0,
+      "promptChars": 13917,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-weak-contract",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0,
+      "totalMs": 1140.5806000000011,
+      "retrievalMs": 0,
+      "promptChars": 13917,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-complete",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0,
+      "totalMs": 1300.9251999999979,
+      "retrievalMs": 0,
+      "promptChars": 13995,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-complete",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0,
+      "totalMs": 980.6324999999924,
+      "retrievalMs": 0,
+      "promptChars": 13995,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-partial",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 3,
+      "receiptRecall": 0,
+      "totalMs": 1119.1852000000072,
+      "retrievalMs": 0,
+      "promptChars": 13968,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-partial",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 3,
+      "receiptRecall": 0,
+      "totalMs": 1670.7627999999968,
+      "retrievalMs": 0,
+      "promptChars": 13968,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-failed",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "blocked",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0,
+      "totalMs": 1413.2658999999985,
+      "retrievalMs": 0,
+      "promptChars": 13993,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-failed",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "blocked",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0,
+      "totalMs": 1396.874199999991,
+      "retrievalMs": 0,
+      "promptChars": 13993,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-unknown",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0,
+      "totalMs": 1487.8945999999996,
+      "retrievalMs": 0,
+      "promptChars": 14059,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-unknown",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0,
+      "totalMs": 1245.9215999999724,
+      "retrievalMs": 0,
+      "promptChars": 14059,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-wrong-target",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0,
+      "totalMs": 1309.868599999987,
+      "retrievalMs": 0,
+      "promptChars": 14089,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-wrong-target",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0,
+      "totalMs": 1031.9039999999804,
+      "retrievalMs": 0,
+      "promptChars": 14089,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-stale",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "doing",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0,
+      "totalMs": 1104.568900000013,
+      "retrievalMs": 0,
+      "promptChars": 13998,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-stale",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "doing",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0,
+      "totalMs": 1558.7986999999848,
+      "retrievalMs": 0,
+      "promptChars": 13998,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-intent-only",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": null,
+      "totalMs": 1148.9061999999976,
+      "retrievalMs": 0,
+      "promptChars": 14038,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-intent-only",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": null,
+      "totalMs": 1168.356300000014,
+      "retrievalMs": 0,
+      "promptChars": 14038,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-recovered",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0,
+      "totalMs": 1422.165799999988,
+      "retrievalMs": 0,
+      "promptChars": 14019,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-recovered",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0,
+      "totalMs": 1041.6442000000097,
+      "retrievalMs": 0,
+      "promptChars": 14019,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-weak-contract",
+      "arm": "off",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0,
+      "totalMs": 1059.9670000000042,
+      "retrievalMs": 0,
+      "promptChars": 14113,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-weak-contract",
+      "arm": "off",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0,
+      "totalMs": 1327.9105999999738,
+      "retrievalMs": 0,
+      "promptChars": 14113,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-complete",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1313.0085,
+      "retrievalMs": 36,
+      "promptChars": 16454,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-complete",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1291.8474000000006,
+      "retrievalMs": 4,
+      "promptChars": 16453,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-partial",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 3,
+      "receiptRecall": 0.3,
+      "totalMs": 1253.2547999999988,
+      "retrievalMs": 29,
+      "promptChars": 16416,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-partial",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 3,
+      "receiptRecall": 0.3,
+      "totalMs": 1831.3129000000008,
+      "retrievalMs": 3,
+      "promptChars": 16415,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-failed",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "blocked",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1592.4135999999999,
+      "retrievalMs": 26,
+      "promptChars": 16430,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-failed",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "blocked",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1712.0502999999953,
+      "retrievalMs": 3,
+      "promptChars": 16429,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-unknown",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0.23076923076923078,
+      "totalMs": 1193.0083999999988,
+      "retrievalMs": 35,
+      "promptChars": 16507,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-unknown",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0.23076923076923078,
+      "totalMs": 1237.815300000002,
+      "retrievalMs": 2,
+      "promptChars": 16506,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-wrong-target",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0.25,
+      "totalMs": 1418.4411000000036,
+      "retrievalMs": 33,
+      "promptChars": 16592,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-wrong-target",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0.25,
+      "totalMs": 1416.6944000000003,
+      "retrievalMs": 2,
+      "promptChars": 16591,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-stale",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "doing",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1165.6909999999916,
+      "retrievalMs": 25,
+      "promptChars": 16424,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-stale",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "doing",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1857.3318,
+      "retrievalMs": 3,
+      "promptChars": 16423,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-intent-only",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": null,
+      "totalMs": 1397.7602999999945,
+      "retrievalMs": 34,
+      "promptChars": 16208,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-intent-only",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": null,
+      "totalMs": 1086.8963999999978,
+      "retrievalMs": 1,
+      "promptChars": 16207,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-recovered",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1591.559500000003,
+      "retrievalMs": 31,
+      "promptChars": 16489,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-recovered",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1246.3271000000095,
+      "retrievalMs": 2,
+      "promptChars": 16488,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-weak-contract",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1251.8006000000023,
+      "retrievalMs": 25,
+      "promptChars": 16627,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-weak-contract",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1355.4180000000051,
+      "retrievalMs": 2,
+      "promptChars": 16626,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-complete",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1383.289499999999,
+      "retrievalMs": 36,
+      "promptChars": 16422,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-complete",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1201.4591000000073,
+      "retrievalMs": 2,
+      "promptChars": 16421,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-partial",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 3,
+      "receiptRecall": 0.3,
+      "totalMs": 1417.2868000000017,
+      "retrievalMs": 28,
+      "promptChars": 16386,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-partial",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 3,
+      "receiptRecall": 0.3,
+      "totalMs": 1232.3608999999997,
+      "retrievalMs": 2,
+      "promptChars": 16385,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-failed",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "blocked",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1416.215199999977,
+      "retrievalMs": 24,
+      "promptChars": 16402,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-failed",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "blocked",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1462.8465000000142,
+      "retrievalMs": 2,
+      "promptChars": 16401,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-unknown",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0.23076923076923078,
+      "totalMs": 1225.729400000011,
+      "retrievalMs": 35,
+      "promptChars": 16477,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-unknown",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0.23076923076923078,
+      "totalMs": 1493.9843999999866,
+      "retrievalMs": 2,
+      "promptChars": 16476,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-wrong-target",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0.25,
+      "totalMs": 1263.9036000000197,
+      "retrievalMs": 31,
+      "promptChars": 16552,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-wrong-target",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "todo",
+        "todo"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 0.25,
+      "totalMs": 1487.2594999999856,
+      "retrievalMs": 2,
+      "promptChars": 16551,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-stale",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "doing",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1323.6248999999953,
+      "retrievalMs": 24,
+      "promptChars": 16398,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-stale",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "doing",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1185.780000000028,
+      "retrievalMs": 2,
+      "promptChars": 16397,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-intent-only",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": null,
+      "totalMs": 1281.051700000011,
+      "retrievalMs": 35,
+      "promptChars": 15987,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-intent-only",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": null,
+      "totalMs": 1314.6024000000034,
+      "retrievalMs": 2,
+      "promptChars": 15986,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-recovered",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 991.1749999999884,
+      "retrievalMs": 28,
+      "promptChars": 16455,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-recovered",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 6,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1302.0807000000204,
+      "retrievalMs": 2,
+      "promptChars": 16454,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-weak-contract",
+      "arm": "current",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1658.333799999993,
+      "retrievalMs": 24,
+      "promptChars": 16585,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "workflow-weak-contract",
+      "arm": "current",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "status": [
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 5,
+      "receiptRecall": 0.21428571428571427,
+      "totalMs": 1393.4002000000037,
+      "retrievalMs": 2,
+      "promptChars": 16584,
+      "targetsChars": 0,
+      "error": null
+    },
+    {
+      "case": "qq-complete",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2377.8322000000007,
+      "retrievalMs": 26,
+      "promptChars": 19356,
+      "targetsChars": 2891,
+      "error": null
+    },
+    {
+      "case": "qq-complete",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2035.413199999999,
+      "retrievalMs": 3,
+      "promptChars": 19355,
+      "targetsChars": 2891,
+      "error": null
+    },
+    {
+      "case": "qq-partial",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 1832.9477000000006,
+      "retrievalMs": 25,
+      "promptChars": 19237,
+      "targetsChars": 2810,
+      "error": null
+    },
+    {
+      "case": "qq-partial",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 1984.9807999999975,
+      "retrievalMs": 3,
+      "promptChars": 19236,
+      "targetsChars": 2810,
+      "error": null
+    },
+    {
+      "case": "qq-failed",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2327.663099999998,
+      "retrievalMs": 32,
+      "promptChars": 19334,
+      "targetsChars": 2893,
+      "error": null
+    },
+    {
+      "case": "qq-failed",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2073.6028000000006,
+      "retrievalMs": 2,
+      "promptChars": 19333,
+      "targetsChars": 2893,
+      "error": null
+    },
+    {
+      "case": "qq-unknown",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2220.1221000000005,
+      "retrievalMs": 25,
+      "promptChars": 19388,
+      "targetsChars": 2870,
+      "error": null
+    },
+    {
+      "case": "qq-unknown",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2214.1758000000045,
+      "retrievalMs": 2,
+      "promptChars": 19387,
+      "targetsChars": 2870,
+      "error": null
+    },
+    {
+      "case": "qq-wrong-target",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2127.380400000002,
+      "retrievalMs": 25,
+      "promptChars": 19454,
+      "targetsChars": 2851,
+      "error": null
+    },
+    {
+      "case": "qq-wrong-target",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 1999.1461999999956,
+      "retrievalMs": 3,
+      "promptChars": 19453,
+      "targetsChars": 2851,
+      "error": null
+    },
+    {
+      "case": "qq-stale",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "doing",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 1,
+      "totalMs": 2237.6266000000032,
+      "retrievalMs": 32,
+      "promptChars": 19327,
+      "targetsChars": 2892,
+      "error": null
+    },
+    {
+      "case": "qq-stale",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "doing",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 1,
+      "totalMs": 2148.8733999999968,
+      "retrievalMs": 2,
+      "promptChars": 19326,
+      "targetsChars": 2892,
+      "error": null
+    },
+    {
+      "case": "qq-intent-only",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": null,
+      "totalMs": 1168.3742999999959,
+      "retrievalMs": 25,
+      "promptChars": 18830,
+      "targetsChars": 2611,
+      "error": null
+    },
+    {
+      "case": "qq-intent-only",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": null,
+      "totalMs": 1356.0780000000086,
+      "retrievalMs": 2,
+      "promptChars": 18829,
+      "targetsChars": 2611,
+      "error": null
+    },
+    {
+      "case": "qq-recovered",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2306.0867,
+      "retrievalMs": 25,
+      "promptChars": 19391,
+      "targetsChars": 2891,
+      "error": null
+    },
+    {
+      "case": "qq-recovered",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2343.968000000008,
+      "retrievalMs": 3,
+      "promptChars": 19390,
+      "targetsChars": 2891,
+      "error": null
+    },
+    {
+      "case": "qq-weak-contract",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2400.2016000000003,
+      "retrievalMs": 30,
+      "promptChars": 19535,
+      "targetsChars": 2897,
+      "error": null
+    },
+    {
+      "case": "qq-weak-contract",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2320.36069999999,
+      "retrievalMs": 3,
+      "promptChars": 19534,
+      "targetsChars": 2897,
+      "error": null
+    },
+    {
+      "case": "workflow-complete",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2317.5141999999905,
+      "retrievalMs": 25,
+      "promptChars": 19324,
+      "targetsChars": 2891,
+      "error": null
+    },
+    {
+      "case": "workflow-complete",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2009.9229999999952,
+      "retrievalMs": 3,
+      "promptChars": 19323,
+      "targetsChars": 2891,
+      "error": null
+    },
+    {
+      "case": "workflow-partial",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2003.3918000000122,
+      "retrievalMs": 25,
+      "promptChars": 19207,
+      "targetsChars": 2810,
+      "error": null
+    },
+    {
+      "case": "workflow-partial",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 1808.4211000000068,
+      "retrievalMs": 2,
+      "promptChars": 19206,
+      "targetsChars": 2810,
+      "error": null
+    },
+    {
+      "case": "workflow-failed",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2168.5991000000213,
+      "retrievalMs": 29,
+      "promptChars": 19306,
+      "targetsChars": 2893,
+      "error": null
+    },
+    {
+      "case": "workflow-failed",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "blocked",
+        "done",
+        "done",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2093.9616000000096,
+      "retrievalMs": 3,
+      "promptChars": 19305,
+      "targetsChars": 2893,
+      "error": null
+    },
+    {
+      "case": "workflow-unknown",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2013.4612999999954,
+      "retrievalMs": 54,
+      "promptChars": 19358,
+      "targetsChars": 2870,
+      "error": null
+    },
+    {
+      "case": "workflow-unknown",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "doing"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2254.6492000000144,
+      "retrievalMs": 2,
+      "promptChars": 19357,
+      "targetsChars": 2870,
+      "error": null
+    },
+    {
+      "case": "workflow-wrong-target",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 1658.9189999999944,
+      "retrievalMs": 27,
+      "promptChars": 19414,
+      "targetsChars": 2851,
+      "error": null
+    },
+    {
+      "case": "workflow-wrong-target",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 1847.5062000000034,
+      "retrievalMs": 2,
+      "promptChars": 19413,
+      "targetsChars": 2851,
+      "error": null
+    },
+    {
+      "case": "workflow-stale",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "doing",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "doing",
+        "doing",
+        "doing",
+        "doing",
+        "doing"
+      ],
+      "exact": false,
+      "falseCompletion": 0,
+      "missedCompletion": 4,
+      "receiptRecall": 1,
+      "totalMs": 1821.2000999999873,
+      "retrievalMs": 33,
+      "promptChars": 19301,
+      "targetsChars": 2892,
+      "error": null
+    },
+    {
+      "case": "workflow-stale",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "doing",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "doing",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2111.9151999999885,
+      "retrievalMs": 2,
+      "promptChars": 19300,
+      "targetsChars": 2892,
+      "error": null
+    },
+    {
+      "case": "workflow-intent-only",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": null,
+      "totalMs": 1457.774000000005,
+      "retrievalMs": 24,
+      "promptChars": 18609,
+      "targetsChars": 2611,
+      "error": null
+    },
+    {
+      "case": "workflow-intent-only",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "status": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": null,
+      "totalMs": 1214.8396000000066,
+      "retrievalMs": 1,
+      "promptChars": 18608,
+      "targetsChars": 2611,
+      "error": null
+    },
+    {
+      "case": "workflow-recovered",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 1946.8383999999787,
+      "retrievalMs": 25,
+      "promptChars": 19357,
+      "targetsChars": 2891,
+      "error": null
+    },
+    {
+      "case": "workflow-recovered",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2273.6866000000155,
+      "retrievalMs": 2,
+      "promptChars": 19356,
+      "targetsChars": 2891,
+      "error": null
+    },
+    {
+      "case": "workflow-weak-contract",
+      "arm": "optimized",
+      "repeat": 0,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2247.9916000000085,
+      "retrievalMs": 30,
+      "promptChars": 19493,
+      "targetsChars": 2897,
+      "error": null
+    },
+    {
+      "case": "workflow-weak-contract",
+      "arm": "optimized",
+      "repeat": 1,
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "status": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "doing",
+        "done"
+      ],
+      "exact": true,
+      "falseCompletion": 0,
+      "missedCompletion": 0,
+      "receiptRecall": 1,
+      "totalMs": 2619.5898999999918,
+      "retrievalMs": 2,
+      "promptChars": 19492,
+      "targetsChars": 2897,
+      "error": null
+    }
+  ],
+  "privacy": {
+    "accountAndConfigUnchanged": true,
+    "nativeAccountAndConfigUnchanged": true,
+    "syntheticOnly": true,
+    "externalMessageToolsAvailable": false,
+    "generationHosts": [
+      "api.deepseek.com"
+    ]
+  },
+  "resources": {
+    "abPeakRssMiB": 150.4,
+    "ollamaReportedVramGiB": 2.661
+  },
+  "regressions": {
+    "pass": 206,
+    "fail": 0,
+    "skip": 0
+  },
+  "knownSemanticGap": {
+    "case": "explicit-but-semantically-wrong-acceptance",
+    "title": "确认指定图像送达",
+    "contract": {
+      "tool": "submit_delivery",
+      "args": {
+        "task": "image-A",
+        "room": "room-demo"
+      },
+      "expect": {
+        "field": "accepted",
+        "equals": true
+      }
+    },
+    "actual": "done",
+    "businessExpected": "doing",
+    "gapConfirmed": true,
+    "note": "A pre-existing accepted=true contract is internally valid but weaker than delivery. Generic receipt matching does not validate that mapping. No model call or real send occurred."
+  },
+  "preFix": {
+    "v2FalseCompletion": 3,
+    "v2WeakContractCases": 4,
+    "retainedLocally": true
+  },
+  "outputBudget": {
+    "maxTokens": 800,
+    "rows": [
+      {
+        "case": "qq-complete",
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "exact": true,
+        "error": null
+      },
+      {
+        "case": "qq-weak-contract",
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "done"
+        ],
+        "exact": true,
+        "error": null
+      },
+      {
+        "case": "workflow-complete",
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "exact": true,
+        "error": null
+      },
+      {
+        "case": "workflow-weak-contract",
+        "status": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "doing"
+        ],
+        "exact": false,
+        "error": null
+      }
+    ],
+    "finishes": [
+      {
+        "kind": "stop"
+      },
+      {
+        "kind": "stop"
+      },
+      {
+        "kind": "stop"
+      },
+      {
+        "kind": "stop"
+      }
+    ]
+  },
+  "native": {
+    "finished": true,
+    "error": null,
+    "phases": [
+      {
+        "label": "qq-partial",
+        "elapsedMs": 18101.978600000002,
+        "statuses": [
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "exact": true,
+        "nativeLogValid": true,
+        "compactions": 0,
+        "calls": 19
+      },
+      {
+        "label": "qq-unconfirmed",
+        "elapsedMs": 12060.4271,
+        "statuses": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "doing"
+        ],
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "doing"
+        ],
+        "exact": true,
+        "nativeLogValid": true,
+        "compactions": 0,
+        "calls": 9
+      },
+      {
+        "label": "qq-failed",
+        "elapsedMs": 8021.8663000000015,
+        "statuses": [
+          "done",
+          "done",
+          "blocked",
+          "done",
+          "doing",
+          "doing"
+        ],
+        "expected": [
+          "done",
+          "done",
+          "blocked",
+          "done",
+          "doing",
+          "doing"
+        ],
+        "exact": true,
+        "nativeLogValid": true,
+        "compactions": 0,
+        "calls": 4
+      },
+      {
+        "label": "qq-recovered",
+        "elapsedMs": 10064.950400000002,
+        "statuses": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "exact": true,
+        "nativeLogValid": true,
+        "compactions": 0,
+        "calls": 8
+      },
+      {
+        "label": "workflow-partial",
+        "elapsedMs": 18123.580299999994,
+        "statuses": [
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "exact": true,
+        "nativeLogValid": true,
+        "compactions": 0,
+        "calls": 19
+      },
+      {
+        "label": "workflow-unconfirmed",
+        "elapsedMs": 10044.516199999998,
+        "statuses": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "doing"
+        ],
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "doing",
+          "doing"
+        ],
+        "exact": true,
+        "nativeLogValid": true,
+        "compactions": 0,
+        "calls": 9
+      },
+      {
+        "label": "workflow-failed",
+        "elapsedMs": 8035.041700000002,
+        "statuses": [
+          "done",
+          "done",
+          "blocked",
+          "done",
+          "doing",
+          "doing"
+        ],
+        "expected": [
+          "done",
+          "done",
+          "blocked",
+          "done",
+          "doing",
+          "doing"
+        ],
+        "exact": true,
+        "nativeLogValid": true,
+        "compactions": 0,
+        "calls": 4
+      },
+      {
+        "label": "workflow-recovered",
+        "elapsedMs": 11054.934699999998,
+        "statuses": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "expected": [
+          "done",
+          "done",
+          "done",
+          "done",
+          "done",
+          "done"
+        ],
+        "exact": true,
+        "nativeLogValid": true,
+        "compactions": 0,
+        "calls": 8
+      }
+    ],
+    "toolCalls": 39,
+    "protectedUnchanged": true,
+    "peakRssMiB": 237.5,
+    "modelCalls": 80,
+    "errors": [
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      },
+      {
+        "code": "ABORTED",
+        "route": {
+          "provider": "deepseek-account",
+          "model": "deepseek-flash",
+          "maxTokens": 2500,
+          "reasoningEffort": "off"
+        }
+      }
+    ]
+  }
+}

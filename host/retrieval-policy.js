@@ -1,4 +1,4 @@
-import { completionRequirements, matchesCall } from './progress.js';
+import { completionRequirements, matchesCall, unscopedAcknowledgement } from './progress.js';
 
 export function retrievalPurpose(query, purpose) {
   if (['intent','evidence','constraints','mixed'].includes(purpose)) return purpose;
@@ -34,4 +34,38 @@ export function targetRecords(records, completions) {
     selected.set(call.id, call);
   }
   return [...selected.values()];
+}
+
+/** Bounded pointers for EVERY established criterion, independently of semantic
+ * top-K. No receipt bodies, user text, or raw facts are copied here. This is a
+ * lookup over the current session's retained records, not a completion verdict;
+ * progress.js still checks identity, ordering, eligibility and all citations. */
+export function targetCoverage(records, completions, { maxChars = 12000 } = {}) {
+  const budget = Number.isFinite(maxChars) ? Math.max(80, Math.min(12000, Math.floor(maxChars))) : 12000;
+  const groups = [], source = Array.isArray(completions) ? completions : [];
+  let omitted = Math.max(0, source.length - 7);
+  for (const [completionIndex, completion] of source.slice(0, 7).entries()) {
+    const requirements = completionRequirements(completion);
+    if (!requirements.length) continue;
+    const checks = requirements.map((requirement, criterionIndex) => {
+      const call = records.findLast(r => r.kind === 'tool_call' && matchesCall(r, requirement));
+      const receipt = call && records.findLast(r => r.kind === 'tool_result' && r.callSeq === call.seq && r.turn === call.turn && r.seq > call.seq);
+      const check = { criterionIndex, callSeq: call?.seq ?? null, interrupted: call?.interrupted === true,
+        receiptId: receipt?.id ?? null, receiptSeq: receipt?.seq ?? null,
+        outcome: receipt?.outcome ?? 'unknown', completionEligible: receipt?.completionEligible === true };
+      if (requirement.expect) check.expectation = !Object.hasOwn(receipt?.facts ?? {}, requirement.expect.field)
+        ? 'unknown' : receipt.facts[requirement.expect.field] === requirement.expect.equals ? 'matched' : 'mismatch';
+      if (unscopedAcknowledgement(receipt, requirement)) check.acceptanceUnspecified = true;
+      return check;
+    });
+    const receiptReady = checks.every((c, i) => c.callSeq !== null && !c.interrupted && c.receiptId !== null
+      && c.outcome === 'success' && c.completionEligible && !c.acceptanceUnspecified && (!c.expectation || c.expectation === 'matched')
+      && (!i || c.callSeq > checks[i - 1].receiptSeq));
+    const group = { completionIndex, receiptReady, checks };
+    // Keep a whole criterion group or mark the omission explicitly. Never
+    // silently truncate an ID or make a partial checklist look complete.
+    if (JSON.stringify({ groups: [...groups, group], incomplete: true, omitted: 999 }).length <= budget) groups.push(group);
+    else omitted++;
+  }
+  return { groups, incomplete: omitted > 0, omitted };
 }
