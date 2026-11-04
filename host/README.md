@@ -1,6 +1,6 @@
 # Host 组件与生产接线
 
-当前插件只有一个宿主入口 `index.js::apply`。DSH 服务、事件观察、模型路由、作业取消、CAS 存储与 HTTP 路由在这个入口装配；客户端通过同一个插件的 HTTP 接口读取状态。
+同一个包通过根入口提供 planCompletion 服务，由 observer、retrieval、generator、api 四个 Cordis 组件注入。旧单行配置仍兼容。配置迁移及启停语义见[组件说明](../docs/component-audit.md)；客户端仍通过同一套鉴权 HTTP 接口读取状态。
 
 `host/` 不依赖 DSH 包，便于 Node 回归，但不是所有文件都无副作用：`store.js` 读写文件，`rag.js` 使用本机 HTTP 与文件 API；其余领域逻辑与运行时适配需要保持明确边界。
 
@@ -16,13 +16,14 @@
 | rag.js / retrieval-policy.js | 本机嵌入、会话索引、冷却恢复、语义/词法检索与目标回执覆盖 |
 | prompt.js / text.js / heuristics.js | 计划助手提示和解析、显示文本处理及无模型降级 |
 | store.js / security.js | 版本化存储、CAS、请求鉴权与输入边界 |
-| config.js | 默认值；实际配置解析仍在 index.js |
+| config.js / core.js / settings.js | 默认值、实例状态与恢复、配置及设置文件 |
+| model-route.js / evidence-budget.js | 唯一模型路由、生产与实验共用的证据预算 |
 | experiment.js | 调试实验逻辑，不能替代生产验收 |
 | job.js | 历史未接线的 runJob/createRunner，以及独立队列工具；不是当前生产流水线 |
 
 ## 生产路径与信任边界
 
-`index.js::runGeneration` 的顺序是：
+`host/generator.js::runGeneration` 的顺序是：
 
 1. 按会话和当前作业身份读取原始事件及已持久化计划。
 2. 从原始回执重建生命周期与版本依赖；不依赖模型声明完成。

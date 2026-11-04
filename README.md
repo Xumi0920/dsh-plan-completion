@@ -11,7 +11,7 @@ DSH 插件：为每个会话维护一份**隐式计划**，在每个回合结束
 
 本候选进一步加入[统一进度协议、验收版本与跨步骤失效](docs/progress-protocol.md)：计划助手提交结构化提案，宿主用原始回执决定完成状态；保留 DSH 主 Agent 的原生回复和长上下文。独立隔离对照结果见[协议验证报告](docs/progress-protocol-validation.md)。
 
-新协议的[近 1M 与连续自动压缩对照](docs/protocol-long-validation.md)和[单插件组件审查](docs/component-audit.md)单独记录。协议数据规范已拆为内部模块；计划、检索和界面仍属于同一个插件。
+新协议的[近 1M 与连续自动压缩对照](docs/protocol-long-validation.md)保留为此前验证记录。本轮已落实[同插件多组件](docs/component-audit.md)：根服务、观察器、检索、生成、API 可由 DSH 分别管理，仍共用一套配置和一个客户端。[本轮隔离验证](docs/components-validation.md)包含迁移、启停、界面、状态、延迟和隐私检查。
 
 - 设计文档：`docs/design-v1.2.md`
 - **交付说明（一期）**：`docs/delivery-notes.md`
@@ -43,9 +43,10 @@ DSH 插件：为每个会话维护一份**隐式计划**，在每个回合结束
 
 | 文件 | 作用 |
 |---|---|
-| `index.js` | Host 半：三条触发路径 → 计划作业 → 内存状态 → `GET /plan-completion/state`；`/roadmap`、`/replan` 命令 |
+| `index.js` / `host/core.js` | 根服务、配置和唯一状态；兼容旧单行加载 |
+| `host/observer.js` / `generator.js` / `retrieval.js` / `api.js` | 同包四个 Cordis 组件：观察、生成、检索、鉴权接口；可分别启停 |
 | `client.js` | Client 半：`conversation.input.dock` 建议条 + 常驻入口；`shell.overlay` 计划 Popover；Tab/Esc/Alt+1..3/Ctrl+Alt+P |
-| `host/*.js` | 与 DSH 解耦的纯逻辑：计划模型、prompt、启发式、证据、作业队列、存储（有单测） |
+| 其他 `host/*.js` | 计划、协议、验收、证据、存储等内部模块；文件和网络模块有副作用 |
 | `test/*.test.js` | `node --test` 单测（含 Host 接线、Client 生命周期与安全回归） |
 | `locale/*.json` | Plugin Manager / Settings 显示用标题与描述 |
 
@@ -57,7 +58,7 @@ DSH 插件：为每个会话维护一份**隐式计划**，在每个回合结束
 | `agent/status → idle` | 代理转空闲，回读日志里最后一条 turn/end | 是 |
 | `idle-log-scan` | 会话日志安静 2 秒后回读日志里的 turn/end（只认 5 分钟内的，避免重放旧回合） | **否** |
 
-三条路径同时命中只跑一次。作业在 ~2 秒内完成（模型调用 + 提交），建议先由启发式「首帧」立即发布，模型返回后在 6 秒内覆盖。
+三条路径同时命中按作业身份去重。先发布安全的启发式建议，再等待模型结果；延迟取决于路由和任务，不保证固定 2 秒或 6 秒。本轮助手完成调用为 0.97–1.85 秒，完整合成任务阶段为 4.56–20.26 秒，详见验证报告。
 
 ## 数据通道（已实测）
 
@@ -86,7 +87,7 @@ Client 侧关键 API（实测）：`inputActions.captureInsertion()` 返回 `{st
 ## 计划持久化（v0.1.2）
 
 - 计划 + 最近一条建议按会话持久化到本地文件（`storageDir/plans/<base64url(sessionId)>.json`，原子写）；
-- 插件启动/打开会话时按需恢复（`GET /state` 前 hydrate），**DSH 重启后仍能看到原计划与版本**，无需等下一回合；
+- 插件启动/打开会话时按需恢复（`GET /state` 前 hydrate），保留计划与版本，并用当前原始日志重验；日志不可用时标记待核验、隐藏旧完成状态，恢复读取后再更新；
 - 每次成功提交（含用户编辑、reset）同步落盘；`reset` 会同时删除磁盘记录；
 - 默认目录 `~/.dsh/plan-completion-data`；可用 `storageDir` 改到别处，`persistPlans: false` 退回纯内存；
 - 注意：存储为本地明文 JSON（含计划/建议文本，可能来自会话）；不加密、不自动清理，不适合多用户共享机器。

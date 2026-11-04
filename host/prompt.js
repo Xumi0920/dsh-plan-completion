@@ -343,7 +343,7 @@ function normalizeAlternates(raw) {
  * @param {unknown} text 模型原始文本
  * @returns {{ok:true, output:object, flags:object, raw:object}|{ok:false, code:string, error:string}}
  */
-export function parseModelOutput(text) {
+export function parseModelOutput(text, { requireProtocol = false } = {}) {
   try {
     if (typeof text !== 'string') return fail('not-string', '模型输出不是字符串');
     const cleaned = text.replace(/^\uFEFF/, '').trim();
@@ -378,6 +378,7 @@ export function parseModelOutput(text) {
     // Legacy responses are explicitly normalized to no protocol events. Their
     // status claims still cannot control a versioned step.
     output.progress = { version: 1, events: [] };
+    if (requireProtocol && parsed.progress === undefined) return fail('bad-progress-protocol', '新输出必须包含 progress:{version:1,events:[]}')
     if (parsed.progress !== undefined) {
       const progress = normalizeProgressEnvelope(parsed.progress);
       if (!progress) return fail('bad-progress-protocol', 'progress 必须为 {version:1,events:[]}；只改依赖用 dependencies_proposed，仅提供 step_id、当前 acceptance_revision、depends_on:[{stepId,revision}]；改其他条件用 acceptance_proposed，事件内部提供完整 acceptance:{scope,dependsOn} 和 completion，禁止 evidence_ids；不要把验收修订放入 changes');
@@ -422,6 +423,7 @@ export function parseModelOutput(text) {
     } else if (normalizedOp === 'rewrite') {
       const res = normalizeRewriteSteps(parsed.steps);
       if (!res.ok) return fail('bad-steps', res.error);
+      if (requireProtocol && res.steps.some(s => !s.acceptance)) return fail('bad-progress-protocol', '新计划每一步必须提供 acceptance:{scope,dependsOn}；未知条件使用 scope:manual，由用户确认')
       output.steps = res.steps;
     }
 

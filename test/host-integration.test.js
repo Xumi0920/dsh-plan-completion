@@ -1,3 +1,4 @@
+import {protocolOutput} from '../support/host-fixture.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { apply } from '../index.js';
@@ -22,14 +23,14 @@ test('production host: cold-start rewrite and next-turn patch advance the same p
   const first = await completeTurn(host, session, 1);
   assert.deepEqual(first.version, { gen: 1, rev: 0 });
   const second = await completeTurn(host, session, 2);
-  assert.deepEqual(second.version, { gen: 1, rev: 1 });
-  assert.equal(second.steps[1].status, 'doing');
+  assert.deepEqual(second.version, { gen: 1, rev: 0 });
+  assert.equal(second.steps[1].status, 'todo');
   assert.equal(host.calls.length, 2);
 });
 
 test('production host: /replan forces a rewrite and advances the plan', async t => {
-  const rewritten = {
-    op: 'rewrite',
+  const rewritten = protocolOutput({
+    progress: {version:1,events:[]}, op: 'rewrite',
     reason: '按最新进展重排二期计划',
     intent: '二期收尾',
     steps: [
@@ -40,7 +41,7 @@ test('production host: /replan forces a rewrite and advances the plan', async t 
       { id: 's5', title: '[二期] 右栏计划页', status: 'todo' },
     ],
     suggestion: '开始做模型设置页',
-  };
+  });
   const host = setup(t, [initialOutput(), rewritten]);
   const session = sessionFixture('replan-route');
   const first = await completeTurn(host, session, 1);
@@ -55,11 +56,11 @@ test('production host: /replan forces a rewrite and advances the plan', async t 
   assert.equal(after.steps.length, 5);
   assert.equal(after.steps[3].title, '[二期] 模型设置页');
   assert.equal(after.steps[0].status, 'todo', 'a rewrite has no execution receipts');
-  assert.equal(host.state(session.id).suggestion.text, '先核对实际执行回执，再更新完成状态');
+  assert.equal(host.state(session.id).suggestion.text, '验收提案有未生效项，请核对版本和条件');
 });
 
 test('production host: repeated valid op=none reviews keep the plan current', async t => {
-  const noneOutput = { op: 'none', reason: '没有实质变化', suggestion: '继续推进当前计划' };
+  const noneOutput = { progress: {version:1,events:[]}, op: 'none', reason: '没有实质变化', suggestion: '继续推进当前计划' };
   const host = setup(t, [initialOutput(), noneOutput, noneOutput]);
   const session = sessionFixture('none-streak');
   await completeTurn(host, session, 1);
@@ -83,34 +84,31 @@ test('production host: repeated failed updates still surface an actionable revie
   assert.equal(host.state(session.id).stale, true);
 });
 
-test('production host: existing plans keep updating after dispose/apply', async t => {
-  const host = setup(t, [initialOutput(), patchOutput('s2', 'doing')]);
-  const session = sessionFixture('reload');
+test('production host: memory-only state is discarded on root unload and never read from a global alias', async t => {
+  const host = setup(t, [initialOutput()]);
+  const session = sessionFixture('unload-memory');
   await completeTurn(host, session, 1);
-  const before = await completeTurn(host, session, 2);
+  assert.ok(host.state(session.id).plan);
   host.dispose();
-  const reloaded = createHostFixture(apply, [patchOutput('s3', 'doing'), patchOutput('s3', 'done')]);
-  t.after(() => reloaded.dispose());
-  assert.deepEqual(reloaded.state(session.id).plan, before);
-  const after = await completeTurn(reloaded, session, 3);
-  assert.deepEqual(after.version, { gen: 1, rev: 2 });
-  assert.equal(after.steps[2].status, 'doing');
-  const later = await completeTurn(reloaded, session, 4);
-  assert.deepEqual(later.version, { gen: 1, rev: 3 });
-  assert.equal(later.steps[2].status, 'todo', 'reload retains the completion gate');
+  const fresh = createHostFixture(apply, [], { persistPlans: false });
+  t.after(() => fresh.dispose());
+  assert.equal((await fresh.request('/plan-completion/state?sessionId=unload-memory')).body.plan, null);
+  assert.notEqual(host.core.states, fresh.core.states);
 });
 
-test('production host: upgrade adopts a plan retained by a version without shared storage', async t => {
-  const host = setup(t, [initialOutput()]);
-  const session = sessionFixture('upgrade');
-  await completeTurn(host, session, 1);
-  host.dispose();
-  delete globalThis[HOST_KEY].store;
-  const upgraded = createHostFixture(apply, [patchOutput('s2', 'done')]);
-  t.after(() => upgraded.dispose());
-  const after = await completeTurn(upgraded, session, 2);
-  assert.deepEqual(after.version, { gen: 1, rev: 1 });
-  assert.equal(after.steps[1].status, 'todo', 'legacy completion requires receipts');
+test('production host: independent contexts cannot cancel or read each other', async t => {
+  const pending = deferred();
+  const first = setup(t, [() => pending.promise]);
+  const session = sessionFixture('same-id');
+  first.startTurn(session, 1);
+  await waitFor(() => first.calls.length === 1);
+  const second = createHostFixture(apply, [initialOutput()]);
+  t.after(() => second.dispose());
+  assert.equal(first.calls[0].signal.aborted, false);
+  assert.equal(second.state(session.id), undefined);
+  pending.resolve(initialOutput()); await flushJobs();
+  assert.ok(first.state(session.id).plan);
+  assert.equal(second.state(session.id), undefined);
 });
 
 test('production host: a delayed abort rejection cannot roll back a replacement job', async t => {
@@ -122,14 +120,14 @@ test('production host: a delayed abort rejection cannot roll back a replacement 
   await waitFor(() => host.calls.length === 2, 'old model request');
   const newest = await completeTurn(host, session, 3);
   assert.equal(host.calls[1].signal.aborted, true);
-  assert.deepEqual(newest.version, { gen: 1, rev: 1 });
+  assert.deepEqual(newest.version, { gen: 1, rev: 0 });
   assert.equal(newest.steps[1].status, 'todo', 'superseding jobs require receipts');
   old.reject(new Error('Delayed stream cancellation'));
   await flushJobs();
   assert.deepEqual(host.state(session.id).plan, newest);
   const next = await completeTurn(host, session, 4);
-  assert.deepEqual(next.version, { gen: 1, rev: 2 });
-  assert.equal(next.steps[2].status, 'doing');
+  assert.deepEqual(next.version, { gen: 1, rev: 0 });
+  assert.equal(next.steps[2].status, 'todo');
 });
 
 test('production host: a user edit made during generation keeps its version and steps', async t => {
@@ -177,21 +175,21 @@ test('production host: dispose aborts inflight work and ignores a late successfu
   assert.equal(host.calls[1].signal.aborted, true);
   pending.resolve(patchOutput('s2', 'done'));
   await flushJobs();
-  assert.deepEqual(host.state(session.id), previous);
+  assert.deepEqual(host.state(session.id).plan, previous.plan);
+  assert.deepEqual(host.state(session.id).suggestion, previous.suggestion);
+  assert.equal(host.state(session.id).stale, true, 'unloaded observation invalidates freshness');
 });
 
-test('production host: a replacement apply invalidates work before old context disposal', async t => {
+test('production host: disposal of one context cannot roll back another', async t => {
   const pending = deferred();
   const host = setup(t, [initialOutput(), () => pending.promise]);
   const session = sessionFixture('overlap-apply');
   await completeTurn(host, session, 1);
   host.startTurn(session, 2);
   await waitFor(() => host.calls.length === 2, 'old context model request');
-  const replacement = createHostFixture(apply, [patchOutput('s3', 'done')]);
+  const replacement = createHostFixture(apply, [initialOutput()]);
   t.after(() => replacement.dispose());
-  // During a reload the old listener may still receive the event first. It
-  // must not consume the shared turn dedupe key or suppress the new instance.
-  host.startTurn(session, 3);
+  host.dispose();
   const latest = await completeTurn(replacement, session, 3);
   assert.equal(latest.steps[2].status, 'todo', 'new apply retains the completion gate');
   assert.equal(host.calls[1].signal.aborted, true);

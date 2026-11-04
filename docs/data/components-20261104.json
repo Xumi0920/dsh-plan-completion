@@ -1,0 +1,382 @@
+{
+  "date": "2026-11-04",
+  "runtime": "DSH 0.2.1-rc.5",
+  "node": "v24.19.0",
+  "model": "DeepSeek-V4.1-Flash",
+  "contextWindow": 1048576,
+  "nativeDefaultMaxTokens": 256000,
+  "helperDefaultMaxTokens": {
+    "patch": 800,
+    "rewrite": 1200
+  },
+  "regression": {
+    "pass": 250,
+    "fail": 0,
+    "skip": 0
+  },
+  "phases": [
+    {
+      "label": "qq-intent-q8",
+      "ms": 7111.864999999991,
+      "statuses": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "expected": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "pass": true,
+      "retrieval": {
+        "mode": "lexical",
+        "elapsedMs": 2,
+        "indexed": 0,
+        "count": 4,
+        "kinds": [
+          "user_message",
+          "assistant_claim",
+          "reasoning_intent"
+        ],
+        "constraintCount": 1,
+        "constraintsIncomplete": false
+      }
+    },
+    {
+      "label": "qq-complete-q8",
+      "ms": 8608.338000000018,
+      "statuses": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "pass": true,
+      "retrieval": {
+        "mode": "hybrid",
+        "elapsedMs": 105,
+        "indexed": 39,
+        "count": 5,
+        "kinds": [
+          "user_message",
+          "assistant_claim",
+          "tool_call"
+        ],
+        "constraintCount": 2,
+        "constraintsIncomplete": false
+      }
+    },
+    {
+      "label": "qq-failure-q8",
+      "ms": 5057.480599999981,
+      "statuses": [
+        "done",
+        "done",
+        "blocked",
+        "blocked",
+        "blocked",
+        "blocked"
+      ],
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "blocked",
+        "blocked",
+        "blocked"
+      ],
+      "pass": true,
+      "retrieval": {
+        "mode": "hybrid",
+        "elapsedMs": 91,
+        "indexed": 44,
+        "count": 5,
+        "kinds": [
+          "user_message",
+          "assistant_claim",
+          "tool_call"
+        ],
+        "constraintCount": 2,
+        "constraintsIncomplete": false
+      }
+    },
+    {
+      "label": "qq-intent-off",
+      "ms": 8090.351800000004,
+      "statuses": [
+        "done",
+        "done",
+        "blocked",
+        "blocked",
+        "blocked",
+        "blocked"
+      ],
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "blocked",
+        "blocked",
+        "blocked"
+      ],
+      "pass": true,
+      "retrieval": {
+        "mode": "disabled",
+        "elapsedMs": 0,
+        "indexed": 0,
+        "count": 0,
+        "kinds": [],
+        "constraintCount": 0,
+        "constraintsIncomplete": false
+      }
+    },
+    {
+      "label": "workflow-intent-q8",
+      "ms": 6591.0147,
+      "statuses": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "expected": [
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo",
+        "todo"
+      ],
+      "pass": true,
+      "retrieval": {
+        "mode": "lexical",
+        "elapsedMs": 2,
+        "indexed": 0,
+        "count": 3,
+        "kinds": [
+          "user_message",
+          "reasoning_intent",
+          "assistant_claim"
+        ],
+        "constraintCount": 1,
+        "constraintsIncomplete": false
+      }
+    },
+    {
+      "label": "workflow-complete-q8",
+      "ms": 20257.463699999993,
+      "statuses": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "expected": [
+        "done",
+        "done",
+        "done",
+        "done",
+        "done",
+        "done"
+      ],
+      "pass": true,
+      "retrieval": {
+        "mode": "hybrid",
+        "elapsedMs": 105,
+        "indexed": 36,
+        "count": 5,
+        "kinds": [
+          "user_message",
+          "assistant_claim",
+          "tool_call"
+        ],
+        "constraintCount": 2,
+        "constraintsIncomplete": false
+      }
+    },
+    {
+      "label": "workflow-failure-q8",
+      "ms": 4557.253999999986,
+      "statuses": [
+        "done",
+        "done",
+        "blocked",
+        "blocked",
+        "blocked",
+        "blocked"
+      ],
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "blocked",
+        "blocked",
+        "blocked"
+      ],
+      "pass": true,
+      "retrieval": {
+        "mode": "hybrid",
+        "elapsedMs": 67,
+        "indexed": 40,
+        "count": 5,
+        "kinds": [
+          "user_message",
+          "assistant_claim",
+          "tool_call"
+        ],
+        "constraintCount": 2,
+        "constraintsIncomplete": false
+      }
+    },
+    {
+      "label": "workflow-intent-off",
+      "ms": 7606.443700000003,
+      "statuses": [
+        "done",
+        "done",
+        "blocked",
+        "blocked",
+        "blocked",
+        "blocked"
+      ],
+      "expected": [
+        "done",
+        "done",
+        "blocked",
+        "blocked",
+        "blocked",
+        "blocked"
+      ],
+      "pass": true,
+      "retrieval": {
+        "mode": "disabled",
+        "elapsedMs": 0,
+        "indexed": 0,
+        "count": 0,
+        "kinds": [],
+        "constraintCount": 0,
+        "constraintsIncomplete": false
+      }
+    }
+  ],
+  "lifecycle": [
+    {
+      "name": "retrieval disable/enable",
+      "pass": true
+    },
+    {
+      "name": "generator disable/enable",
+      "pass": true
+    },
+    {
+      "name": "api disable/enable",
+      "pass": true
+    },
+    {
+      "name": "observer disable/enable",
+      "pass": true
+    },
+    {
+      "name": "legacy profile override and persisted state migration",
+      "pass": true
+    },
+    {
+      "name": "legacy config cannot resurrect disabled observer",
+      "pass": true
+    },
+    {
+      "name": "core cascade unload/reload and journal restoration",
+      "pass": true
+    },
+    {
+      "name": "real HTTP authentication and debug-route absence",
+      "pass": true
+    },
+    {
+      "name": "UI settings persisted through component reload",
+      "pass": true
+    }
+  ],
+  "nativeLogsValid": true,
+  "coldStart": {
+    "run": "r1",
+    "ms": 6092.532399999996,
+    "steps": [
+      {
+        "status": "todo",
+        "revision": 1
+      },
+      {
+        "status": "todo",
+        "revision": 1
+      },
+      {
+        "status": "todo",
+        "revision": 1
+      }
+    ]
+  },
+  "timing": {
+    "completedHelperMs": [
+      1758.6820000000007,
+      1129.6826,
+      1156.2939000000188,
+      1106.1787000000186,
+      1672.4112000000023,
+      1108.7756000000227,
+      1187.1506999999983,
+      967.5325000000012,
+      1848.6057000000146
+    ],
+    "helperRequests": 24,
+    "abortedHelperRequests": 15
+  },
+  "resources": {
+    "rssMinBytes": 198905856,
+    "rssMaxBytes": 274255872,
+    "rssFinalBytes": 227684352,
+    "scope": "isolated DSH process including runtime, frontend service and plugin; not plugin-only"
+  },
+  "network": {
+    "externalHosts": [
+      "api.deepseek.com"
+    ],
+    "failedAttempts": 2
+  },
+  "productionFilesUnchanged": true,
+  "syntheticSentinelUnchanged": true,
+  "ui": {
+    "planPanel": true,
+    "acceptanceVersion": true,
+    "tabDraftOnly": true,
+    "modelToggleSavedAndRestored": true,
+    "surface": "isolated DSH shared Web frontend; production Electron process untouched"
+  },
+  "limits": [
+    "No new near-1M or repeated-compaction live benchmark in this component stage",
+    "Synthetic tool receipts, no real QQ delivery or article publication",
+    "Two transient transport failures recorded; state assertions and final recovery passed",
+    "Off/Q8 checkpoints are not a randomized matched latency benchmark"
+  ]
+}

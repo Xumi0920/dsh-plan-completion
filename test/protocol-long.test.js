@@ -33,7 +33,7 @@ function fixture(){
  return {plan,events,add,run,all,checkpoint,records};
 }
 const states=steps=>steps.map(s=>s.status);
-const none={op:'none',reason:'no proposed state',progress:{version:1,events:[]}};
+const none={op: 'none',reason:'no proposed state',progress:{version:1,events:[]}};
 const propose=(s,dependsOn,completion=s.completion)=>({step_id:s.id,acceptance_revision:s.acceptance.revision,event:'acceptance_proposed',acceptance:{scope:s.acceptance.scope,dependsOn},completion});
 
 test('three long checkpoints preserve raw proof and upstream execution invalidates downstream in order',()=>{
@@ -103,7 +103,7 @@ test('raw journal eviction or a pruned surface alone cannot retain a saved compl
 
 test('actual host reconciles a long compressed journal even when the plan model is unavailable',async t=>{
  delete globalThis[HOST_KEY];const f=fixture(),s=sessionFixture('protocol-long-host');
- const initial={op:'rewrite',reason:'declare',steps:f.plan.steps.map(s=>({...s,acceptance:{scope:s.acceptance.scope,dependsOn:s.acceptance.dependsOn}}))};
+ const initial={progress: {version:1,events:[]}, op: 'rewrite',reason:'declare',steps:f.plan.steps.map(s=>({...s,acceptance:{scope:s.acceptance.scope,dependsOn:s.acceptance.dependsOn}}))};
  const h=createHostFixture(apply,[initial,()=>{throw Error('synthetic provider unavailable');}],{persistPlans:false});
  t.after(()=>{h.dispose();delete globalThis[HOST_KEY];});h.startTurn(s,1);await flushJobs();
  f.all();for(let n=1;n<=3;n++)f.checkpoint(n);f.run(1,{ok:false,error:'synthetic failure after compression'});

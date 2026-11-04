@@ -3,6 +3,14 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
+## [Unreleased] — PR #1
+
+- Split the same package into a context-scoped core service and independently managed observer, retrieval, generator and API components, with legacy config migration.
+- Fail closed on invalid fixed-model routes; abort generation and verification when settings change.
+- Revalidate persisted completion against current native receipts; mask old proof while journals or observation are unavailable, and page unknown-length journals safely.
+- Require progress/acceptance fields for new model output; retain explicit unverified fallback and safe legacy migration. Stabilize unchanged proof versions.
+- Add regression coverage (250 tests), real DSH component lifecycle/UI validation, and synthetic QQAgent/article state checks. Keep official Q8 and native context.
+
 ## [0.1.8] - 2026-11-03
 
 - Settings page final DSH visual alignment: filled borderless selects with custom chevron, no row borders, filled save button, DSH toggle colors, build marker settings-2026-11-03 (forces a fresh client bundle after host restart).

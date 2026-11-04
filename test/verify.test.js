@@ -99,8 +99,9 @@ test('verify route: no plan / model disabled are reported without calling the mo
   const host = setup(t, [initialOutput()]);
   const session = sessionFixture('verify-disabled');
   await seedPlan(host, session);
-  // Same process-wide host state, but the new apply disables model calls.
-  const disabledHost = createHostFixture(apply, [], { modelCalls: false });
+  // Disable calls on the same isolated context; unrelated contexts share no state.
+  host.core.settings.modelCalls = false;
+  const disabledHost = host;
   t.after(() => {
     try {
       disabledHost.dispose();

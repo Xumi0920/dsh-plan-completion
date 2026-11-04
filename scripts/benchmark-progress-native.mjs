@@ -48,7 +48,7 @@ async function runPhase(label,text,lines=0,expected,expectedRevisions){
  agent.followup(createUserMessage({source:{kind:'user'},content:[{type:'text',text}]}));
  let settled=false;for(let n=0;n<600;n++){await sleep(1000);const log=[...session.snapshotEvents(startSeq)];if(agent.status==='idle'&&log.some(e=>e.type==='turn/end')&&model.calls.length>oldCalls&&model.calls.every(c=>'elapsedMs'in c)){await sleep(3000);if(agent.status==='idle'&&model.calls.every(c=>'elapsedMs'in c)){settled=true;break;}}}
  if(!settled)throw Error('phase-timeout:'+label);
- const events=[...session.snapshotEvents()],state=structuredClone(globalThis.__dsh_plan_completion_host__.states.get(session.id));
+ const events=[...session.snapshotEvents()],state=structuredClone(ctx.get('planCompletion').states.get(session.id));
  let valid=true,error;try{assertReleasedV4Relationships({header:session.header,events,inheritedEventCount:session.inheritedEventCount},new Set(events.map(e=>e.type)))}catch(e){valid=false;error=e.message;}
  const acceptanceRevisions=state?.plan?.steps?.map(s=>s.acceptance?.revision),statuses=state?.plan?.steps?.map(s=>s.status),row={label,elapsedMs:performance.now()-start,startSeq,endSeq:session.seq,statuses,expected,acceptanceRevisions,expectedRevisions,exact:expected?JSON.stringify(statuses)===JSON.stringify(expected)&&(!expectedRevisions||JSON.stringify(acceptanceRevisions)===JSON.stringify(expectedRevisions)):null,state,nativeLogValid:valid,nativeLogError:error,compactions:events.filter(e=>e.type==='compaction/summary').length,calls:model.calls.length-oldCalls,constraints:collectConstraintAnchors(session.id,events)};
  result.phases.push(row);await save();console.log(JSON.stringify({end:label,ms:Math.round(row.elapsedMs),statuses,expected,exact:row.exact,compactions:row.compactions,calls:row.calls,valid}));
@@ -78,7 +78,7 @@ try{
      simulator.set(command,{ok:true,...(r.expect?{[r.expect.field]:r.expect.equals}:{}),environment:'isolated-synthetic-simulator'});
      return {tool:'exec',args:{command},...(r.expect?{expect:r.expect}:{})};
    });return {...s,completion:reqs.length===1?reqs[0]:{all:reqs},acceptance:{scope:['assertion','assertion','assertion','deployment','delivery','assertion'][i],revision:1,afterSeq:-1,dependsOn:i?[{stepId:plan.steps[i-1].id,revision:1}]:[]}};});
-   const host=globalThis.__dsh_plan_completion_host__;await host.store.put(plan,{cas:null});host.states.set(id,{plan,suggestion:null,stale:false});
+   const host=ctx.get('planCompletion');await host.store.put(plan,{cas:null});host.states.set(id,{plan,suggestion:null,stale:false});
    const commands=indices=>indices.flatMap(i=>(plan.steps[i].completion.all??[plan.steps[i].completion]).map(r=>r.args.command));
    const execute=indices=>'依次调用 exec，每个 command 严格等于以下标识，每项一次：'+commands(indices).join('、')+'。只操作这些模拟器命令，简短报告实际回执，不能推断其他步骤完成，不做真实发送或重试。';
    phase='partial';await runPhase(which+'-partial','这是独立合成的复杂工作流模拟器，没有真实聊天或账号。保留六个既有步骤及验收条件。'+execute([0,1,2]),0,['done','done','done','todo','todo','todo']);

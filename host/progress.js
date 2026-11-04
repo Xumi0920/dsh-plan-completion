@@ -98,7 +98,7 @@ export function lifecycleChanges(plan, records) {
   const checked = validateProgress(proposed, plan, records).output;
   return (checked.changes ?? []).filter(s => {
     const old = plan.steps.find(p => p.id === s.id);
-    return old.status !== s.status || old.lifecycle !== s.lifecycle || JSON.stringify(old.proof) !== JSON.stringify(s.proof) || JSON.stringify(old.evidence ?? []) !== JSON.stringify(s.evidence ?? []);
+    return old.status !== s.status || old.lifecycle !== s.lifecycle || JSON.stringify(old.proof ?? null) !== JSON.stringify(s.proof ?? null) || JSON.stringify(old.evidence ?? []) !== JSON.stringify(s.evidence ?? []);
   });
 }
 

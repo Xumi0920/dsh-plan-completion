@@ -6,6 +6,7 @@ export { PROGRESS_PROTOCOL_VERSION, normalizeAcceptanceProposal, normalizeAccept
 const object = x => x && typeof x === 'object' && !Array.isArray(x);
 const canonical = x => JSON.stringify(x, (_, v) => object(v) ? Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b))) : v);
 const hash = x => createHash('sha256').update(canonical(x)).digest('hex').slice(0,32);
+const comparableStep = s => s ? { ...s, proof: s.proof ?? null, evidence: s.evidence ?? [] } : s;
 
 export function scopeSatisfied(scope, completion) {
   const reqs=completionRequirements(completion),last=reqs.at(-1)?.expect;
@@ -26,7 +27,7 @@ function graphValid(steps) {
   return steps.every(visit);
 }
 function canRevise(old,proposal,completion) {
-  if(old.acceptance.scope!==proposal.scope || old.acceptance.dependsOn.some(d=>!proposal.dependsOn.some(p=>p.stepId===d.stepId)))return false;
+  if((old.acceptance.scope!=='manual'&&old.acceptance.scope!==proposal.scope) || old.acceptance.dependsOn.some(d=>!proposal.dependsOn.some(p=>p.stepId===d.stepId)))return false;
   const before=completionRequirements(old.completion),after=completionRequirements(completion);let index=-1;
   return before.every(r=>{const i=after.findIndex((n,k)=>k>index&&n.tool===r.tool&&Object.keys(r.args).every(key=>Object.hasOwn(n.args,key))
     &&(!r.expect||!scopeSatisfied(old.acceptance.scope,old.completion)||(n.expect?.field===r.expect.field&&(typeof r.expect.equals!=='boolean'||n.expect.equals===r.expect.equals))));index=i;return i>=0;});
@@ -140,7 +141,7 @@ export function applyProgressProtocol(output,plan,records) {
   if(result.op==='rewrite')result.steps=steps.map(s=>byId.get(s.id)??s);
   else {
     const changes=(result.op==='patch'?result.changes:[]).filter(c=>!steps.find(s=>s.id===c.id)?.acceptance);
-    for(const s of derived)if(canonical(s)!==canonical(before.get(s.id)))changes.push(s);
+    for(const s of derived)if(canonical(comparableStep(s))!==canonical(comparableStep(before.get(s.id))))changes.push(s);
     if(changes.length){result.op='patch';result.changes=changes;}
     else {result.op='none';result.changes=[];}
   }

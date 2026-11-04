@@ -1,3 +1,4 @@
+import {protocolOutput} from '../support/host-fixture.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {collectRetrievalRecords} from '../host/rag-evidence.js';
@@ -29,7 +30,7 @@ test('75 turns / 2058 steps / 3 checkpoints retain raw receipts and latest failu
   assert.equal(records.filter(r=>r.kind==='compaction_summary').length,3);
   const receipt=records.find(r=>r.seq===fixture.lastReceipt.seq);
   assert.equal(receipt.outcome,'failure');
-  const checked=validateProgress({op:'patch',changes:[{id:'s1',status:'done',evidence:[receipt.id]}]},plan,records);
+  const checked=validateProgress({progress: {version:1,events:[]}, op: 'patch',changes:[{id:'s1',status:'done',evidence:[receipt.id]}]},plan,records);
   assert.equal(checked.output.changes[0].status,'blocked');
   assert.equal(JSON.stringify(fixture.events),before,'main history must remain unchanged');
   const evidence=collectFromEvents({events:fixture.events,plan,turn:75});
@@ -50,7 +51,7 @@ test('native tool-result pruning cannot replace a failed receipt with apparent s
   const evidence=collectFromEvents({events,plan,turn:1});
   assert.equal(evidence.toolCalls.length,1);
   // The hard completion gate uses typed records, independently of legacy hints.
-  assert.equal(validateProgress({op:'patch',changes:[{id:'s1',status:'done',evidence:[records.at(-1).id]}]},plan,records).output.changes[0].status,'blocked');
+  assert.equal(validateProgress({progress: {version:1,events:[]}, op: 'patch',changes:[{id:'s1',status:'done',evidence:[records.at(-1).id]}]},plan,records).output.changes[0].status,'blocked');
   assert.equal(collectRetrievalRecords('long',[replacement]).length,0,'a derived-only export cannot invent execution evidence');
 });
 
@@ -71,8 +72,8 @@ test('bounded long-session index evicts ordinary chunks but preserves user const
 
 test('compaction end schedules a review without treating checkpoint text as the latest user',async t=>{
   delete globalThis[HOST_KEY];
-  const seed={op:'rewrite',reason:'initial',steps:[...plan.steps,{id:'s2',title:'报告',status:'todo'},{id:'s3',title:'复核',status:'todo'}]};
-  const h=createHostFixture(apply,[seed,{op:'none',reason:'same',suggestion:'核对实际回执'}],{observationDebounceMs:100});
+  const seed=protocolOutput({progress: {version:1,events:[]}, op: 'rewrite',reason:'initial',steps:[...plan.steps,{id:'s2',title:'报告',status:'todo'},{id:'s3',title:'复核',status:'todo'}]});
+  const h=createHostFixture(apply,[seed,{progress: {version:1,events:[]}, op: 'none',reason:'same',suggestion:'核对实际回执'}],{observationDebounceMs:100});
   t.after(()=>{h.dispose();delete globalThis[HOST_KEY];});
   const s=sessionFixture('long');h.startTurn(s,1);await flushJobs();
   for(const e of [
@@ -86,7 +87,7 @@ test('compaction end schedules a review without treating checkpoint text as the 
 
 test('host sends protected constraints after FIFO eviction even when embeddings are offline',async t=>{
   delete globalThis[HOST_KEY];
-  const h=createHostFixture(apply,[{op:'none',reason:'No execution',suggestion:'核对约束'}],{rag:{enabled:true,sendContextToGenerator:true,endpoint:'http://127.0.0.1:1/v1/embeddings',maxRecords:8}});
+  const h=createHostFixture(apply,[{progress: {version:1,events:[]}, op: 'none',reason:'No execution',suggestion:'核对约束'}],{rag:{enabled:true,sendContextToGenerator:true,endpoint:'http://127.0.0.1:1/v1/embeddings',maxRecords:8}});
   t.after(()=>{h.dispose();delete globalThis[HOST_KEY];});
   const s=sessionFixture('protected');
   s.events.push({seq:0,type:'user/message',data:{source:{kind:'user'},content:'禁止修改生产配置；不合并 PR'}});

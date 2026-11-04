@@ -2,6 +2,7 @@
     - id: plan-completion
       name: 'dsh-plan-completion'
       config:
+        components: managed
         evidenceChars: 1500
         maxTokensPatch: 800
         maxTokensRewrite: 1200
@@ -20,3 +21,11 @@
           model: 'dsh-qwen3-embedding:q8_0'
         # Optional: set a local directory to persist debug logs / experiment data.
         # debugDir: '<local debug directory>'
+    - id: plan-completion-observer
+      name: 'dsh-plan-completion/observer'
+    - id: plan-completion-retrieval
+      name: 'dsh-plan-completion/retrieval'
+    - id: plan-completion-generator
+      name: 'dsh-plan-completion/generator'
+    - id: plan-completion-api
+      name: 'dsh-plan-completion/api'

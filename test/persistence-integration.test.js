@@ -39,11 +39,12 @@ async function completeTurn(host, session, turn, isDone) {
     const plan = host.state(session.id)?.plan;
     return plan && (isDone ? isDone(plan) : true);
   }, 'plan committed');
+  await waitFor(() => host.core.inflight.size === 0, 'job storage settled');
   return host.state(session.id).plan;
 }
 
 const isGenOne = plan => plan.version.gen === 1 && plan.version.rev === 0;
-const isFirstPatch = plan => plan.version.gen === 1 && plan.version.rev === 1;
+const isFirstPatch = plan => plan.version.gen === 1 && plan.version.rev === 0;
 
 /** Dispose a host and drop the process-wide registry = DSH restart. */
 function restart(host) {
@@ -63,7 +64,8 @@ test('persistence: a restart restores the last plan and suggestion before the ne
   const response = await secondHost.request('/plan-completion/state?sessionId=persist-restore');
   assert.equal(response.status, 200);
   assert.deepEqual(response.body.version, { gen: 1, rev: 0 });
-  assert.equal(response.body.stale, false);
+  assert.equal(response.body.stale, true);
+  assert.equal(response.body.freshness, 'journal-unavailable');
   assert.equal(response.body.steps.length, 3);
   assert.equal(response.body.suggestion.text, '先核对实际执行回执，再更新完成状态');
   // No model call was needed: the persisted plan is shown immediately.
@@ -83,16 +85,18 @@ test('persistence: after a restart the next turn patches the persisted plan', as
 
   const sessionAfterRestart = sessionFixture('persist-next-turn');
   const second = await completeTurn(secondHost, sessionAfterRestart, 2, isFirstPatch);
-  assert.deepEqual(second.version, { gen: 1, rev: 1 });
-  assert.equal(second.steps[1].status, 'doing');
+  await waitFor(() => secondHost.calls.length === 1, 'persisted plan reviewed');
+  await flushJobs();
+  assert.deepEqual(second.version, { gen: 1, rev: 0 });
+  assert.equal(second.steps[1].status, 'todo');
   assert.equal(secondHost.calls.length, 1);
 
   // The new version is on disk too.
   restart(secondHost);
   const thirdHost = bootHost(t, [], dir);
   const third = await thirdHost.request('/plan-completion/state?sessionId=persist-next-turn');
-  assert.deepEqual(third.body.version, { gen: 1, rev: 1 });
-  assert.equal(third.body.steps[1].status, 'doing');
+  assert.deepEqual(third.body.version, { gen: 1, rev: 0 });
+  assert.equal(third.body.steps[1].status, 'todo');
 });
 
 test('persistence: reset removes both the memory and disk state', async t => {
