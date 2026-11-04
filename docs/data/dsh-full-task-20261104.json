@@ -1,0 +1,2250 @@
+{
+  "date": "2026-11-04",
+  "executor": "DSH with current DeepSeek-V4.1-Flash and official unchanged Q8_0",
+  "taskSource": "existing dsh-plan-completion repair task; Codex is not an executing participant",
+  "pluginTests": 198,
+  "isolatedTaskFullTests": 184,
+  "long": {
+    "turns": 75,
+    "diagnosticSteps": 2058,
+    "rowsExact": 75,
+    "falseCompletion": 0,
+    "constraintRetained": 75,
+    "modelErrors": 0,
+    "receiptRecallMacro": 1,
+    "updateMs": {
+      "median": 1194.0708999999915,
+      "p95": 1621.0415999999968,
+      "max": 1753.3296000000046
+    },
+    "indexAndCollectMs": {
+      "median": 1568.4707000000053,
+      "p95": 1640.8174999999974,
+      "max": 1656.8472000000038
+    },
+    "retrievalMs": {
+      "median": 76,
+      "p95": 111,
+      "max": 116
+    },
+    "maxRecords": 8192,
+    "peakRssMiB": 293.08203125,
+    "rows": [
+      {
+        "turn": 1,
+        "expected": "blocked",
+        "indexMs": 1590.4588,
+        "retrievalMs": 32,
+        "indexed": 115,
+        "records": 115,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1112.8482000000001,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1149.0434999999998,
+        "version": {
+          "gen": 1,
+          "rev": 1
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 2,
+        "expected": "blocked",
+        "indexMs": 1553.0182,
+        "retrievalMs": 33,
+        "indexed": 228,
+        "records": 228,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 914.0600999999997,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 947.8668000000007,
+        "version": {
+          "gen": 1,
+          "rev": 1
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 3,
+        "expected": "blocked",
+        "indexMs": 1544.7319000000007,
+        "retrievalMs": 31,
+        "indexed": 341,
+        "records": 341,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 895.3061000000007,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 926.9169999999995,
+        "version": {
+          "gen": 1,
+          "rev": 1
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 4,
+        "expected": "blocked",
+        "indexMs": 1629.5585,
+        "retrievalMs": 37,
+        "indexed": 454,
+        "records": 454,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1010.0744999999988,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1048.1016,
+        "version": {
+          "gen": 1,
+          "rev": 1
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 5,
+        "expected": "blocked",
+        "indexMs": 1564.8549000000003,
+        "retrievalMs": 32,
+        "indexed": 567,
+        "records": 567,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 873.0379000000012,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 905.9722999999994,
+        "version": {
+          "gen": 1,
+          "rev": 1
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 6,
+        "expected": "blocked",
+        "indexMs": 1537.5056000000004,
+        "retrievalMs": 34,
+        "indexed": 680,
+        "records": 680,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 994.5602999999992,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1029.8354999999992,
+        "version": {
+          "gen": 1,
+          "rev": 1
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 7,
+        "expected": "blocked",
+        "indexMs": 1573.067500000001,
+        "retrievalMs": 36,
+        "indexed": 793,
+        "records": 793,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 867.1794000000009,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 904.2566000000006,
+        "version": {
+          "gen": 1,
+          "rev": 1
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 8,
+        "expected": "blocked",
+        "indexMs": 1578.3055000000022,
+        "retrievalMs": 35,
+        "indexed": 906,
+        "records": 906,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1301.3646000000008,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1337.527399999999,
+        "version": {
+          "gen": 1,
+          "rev": 1
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 9,
+        "expected": "blocked",
+        "indexMs": 1553.0607999999993,
+        "retrievalMs": 37,
+        "indexed": 1019,
+        "records": 1019,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1068.8198999999986,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1106.4359999999979,
+        "version": {
+          "gen": 1,
+          "rev": 1
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 10,
+        "expected": "blocked",
+        "indexMs": 1562.7966000000015,
+        "retrievalMs": 46,
+        "indexed": 1132,
+        "records": 1132,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1101.7821000000004,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1148.5545999999995,
+        "version": {
+          "gen": 1,
+          "rev": 1
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 11,
+        "expected": "blocked",
+        "indexMs": 1552.5475000000006,
+        "retrievalMs": 44,
+        "indexed": 1245,
+        "records": 1245,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1032.3174,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1077.7713000000003,
+        "version": {
+          "gen": 1,
+          "rev": 1
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 12,
+        "expected": "blocked",
+        "indexMs": 1539.711199999998,
+        "retrievalMs": 48,
+        "indexed": 1358,
+        "records": 1358,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1247.6761000000006,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1296.6973000000035,
+        "version": {
+          "gen": 1,
+          "rev": 1
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 13,
+        "expected": "blocked",
+        "indexMs": 1572.5435000000034,
+        "retrievalMs": 45,
+        "indexed": 1471,
+        "records": 1471,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1071.210500000001,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1117.6695999999938,
+        "version": {
+          "gen": 1,
+          "rev": 1
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 14,
+        "expected": "blocked",
+        "indexMs": 1561.1586000000025,
+        "retrievalMs": 42,
+        "indexed": 1584,
+        "records": 1584,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 870.0063999999984,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 913.6030000000028,
+        "version": {
+          "gen": 1,
+          "rev": 1
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 15,
+        "expected": "done",
+        "indexMs": 1656.8472000000038,
+        "retrievalMs": 45,
+        "indexed": 1703,
+        "records": 1703,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1574.4162999999971,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1621.0415999999968,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 16,
+        "expected": "done",
+        "indexMs": 1579.4490000000005,
+        "retrievalMs": 53,
+        "indexed": 1816,
+        "records": 1816,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1047.0655000000042,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1101.2690999999977,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 17,
+        "expected": "done",
+        "indexMs": 1570.5368000000017,
+        "retrievalMs": 50,
+        "indexed": 1929,
+        "records": 1929,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1165.305499999995,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1216.839700000004,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 18,
+        "expected": "done",
+        "indexMs": 1640.8174999999974,
+        "retrievalMs": 53,
+        "indexed": 2042,
+        "records": 2042,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 919.8560999999972,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 973.7541999999958,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 19,
+        "expected": "done",
+        "indexMs": 1581.9811000000045,
+        "retrievalMs": 53,
+        "indexed": 2155,
+        "records": 2155,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1045.5304000000033,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1099.0364000000045,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 20,
+        "expected": "done",
+        "indexMs": 1613.4772999999986,
+        "retrievalMs": 53,
+        "indexed": 2268,
+        "records": 2268,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1128.9121000000014,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1182.754200000003,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 21,
+        "expected": "done",
+        "indexMs": 1641.2186000000002,
+        "retrievalMs": 58,
+        "indexed": 2381,
+        "records": 2381,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1094.759299999998,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1153.7287999999971,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 22,
+        "expected": "done",
+        "indexMs": 1578.6281999999992,
+        "retrievalMs": 52,
+        "indexed": 2494,
+        "records": 2494,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1136.877499999995,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1189.0463999999993,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 23,
+        "expected": "done",
+        "indexMs": 1553.946600000003,
+        "retrievalMs": 63,
+        "indexed": 2607,
+        "records": 2607,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1545.5271999999968,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1610.382700000002,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 24,
+        "expected": "done",
+        "indexMs": 1589.3062999999966,
+        "retrievalMs": 62,
+        "indexed": 2720,
+        "records": 2720,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1689.6440000000075,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1753.3296000000046,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 25,
+        "expected": "done",
+        "indexMs": 1595.5639999999985,
+        "retrievalMs": 61,
+        "indexed": 2834,
+        "records": 2834,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1452.7142000000022,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1515.6339000000007,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 26,
+        "expected": "done",
+        "indexMs": 1583.4382999999943,
+        "retrievalMs": 62,
+        "indexed": 2947,
+        "records": 2947,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1121.3865000000078,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1184.6445999999996,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 27,
+        "expected": "done",
+        "indexMs": 1587.1276999999973,
+        "retrievalMs": 62,
+        "indexed": 3060,
+        "records": 3060,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 977.7773999999918,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1040.5067000000126,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 28,
+        "expected": "done",
+        "indexMs": 1552.9484999999986,
+        "retrievalMs": 62,
+        "indexed": 3173,
+        "records": 3173,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1125.9786999999924,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1189.889599999995,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 29,
+        "expected": "done",
+        "indexMs": 1563.1189999999915,
+        "retrievalMs": 66,
+        "indexed": 3286,
+        "records": 3286,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1353.7687999999907,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1421.6494000000093,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 30,
+        "expected": "done",
+        "indexMs": 1579.391499999998,
+        "retrievalMs": 69,
+        "indexed": 3399,
+        "records": 3399,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1511.2612999999983,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1581.4603999999963,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 31,
+        "expected": "done",
+        "indexMs": 1599.1631999999954,
+        "retrievalMs": 62,
+        "indexed": 3512,
+        "records": 3512,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1025.3142999999982,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1089.0458999999973,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 32,
+        "expected": "done",
+        "indexMs": 1618.1382000000012,
+        "retrievalMs": 74,
+        "indexed": 3625,
+        "records": 3625,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1188.153999999995,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1263.7284999999974,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 33,
+        "expected": "done",
+        "indexMs": 1599.6013999999996,
+        "retrievalMs": 70,
+        "indexed": 3738,
+        "records": 3738,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1090.3652000000002,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1161.266100000008,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 34,
+        "expected": "done",
+        "indexMs": 1547.481700000004,
+        "retrievalMs": 71,
+        "indexed": 3847,
+        "records": 3847,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1226.084799999997,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1299.3049000000028,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 35,
+        "expected": "done",
+        "indexMs": 1525.5589999999938,
+        "retrievalMs": 76,
+        "indexed": 3956,
+        "records": 3956,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 948.9282999999996,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1026.7100000000064,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 36,
+        "expected": "done",
+        "indexMs": 1544.7350000000006,
+        "retrievalMs": 68,
+        "indexed": 4065,
+        "records": 4065,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1235.3178000000044,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1305.0338000000047,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 37,
+        "expected": "done",
+        "indexMs": 1536.316399999996,
+        "retrievalMs": 69,
+        "indexed": 4174,
+        "records": 4174,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1567.9103999999934,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1638.484500000006,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 38,
+        "expected": "done",
+        "indexMs": 1518.912799999991,
+        "retrievalMs": 82,
+        "indexed": 4283,
+        "records": 4283,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1216.6708999999973,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1300.572800000009,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 39,
+        "expected": "done",
+        "indexMs": 1544.9981999999873,
+        "retrievalMs": 73,
+        "indexed": 4392,
+        "records": 4392,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1151.4388000000035,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1225.3652000000002,
+        "version": {
+          "gen": 1,
+          "rev": 3
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 40,
+        "expected": "blocked",
+        "indexMs": 1610.2517999999982,
+        "retrievalMs": 76,
+        "indexed": 4507,
+        "records": 4507,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1210.0415999999968,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1288.2482000000018,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 41,
+        "expected": "blocked",
+        "indexMs": 1564.3224000000046,
+        "retrievalMs": 79,
+        "indexed": 4616,
+        "records": 4616,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1176.7966000000015,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1256.7838000000047,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 42,
+        "expected": "blocked",
+        "indexMs": 1532.205799999996,
+        "retrievalMs": 78,
+        "indexed": 4725,
+        "records": 4725,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1251.4226999999955,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1331.4506999999867,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 43,
+        "expected": "blocked",
+        "indexMs": 1548.6904000000068,
+        "retrievalMs": 81,
+        "indexed": 4834,
+        "records": 4834,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1158.7051000000065,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1241.1598999999987,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 44,
+        "expected": "blocked",
+        "indexMs": 1559.9637000000075,
+        "retrievalMs": 84,
+        "indexed": 4943,
+        "records": 4943,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1254.0052999999898,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1340.247000000003,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 45,
+        "expected": "blocked",
+        "indexMs": 1511.264200000005,
+        "retrievalMs": 79,
+        "indexed": 5052,
+        "records": 5052,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 939.4731000000029,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1020.0472000000009,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 46,
+        "expected": "blocked",
+        "indexMs": 1534.8775999999925,
+        "retrievalMs": 91,
+        "indexed": 5161,
+        "records": 5161,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1112.5959000000003,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1204.9756000000052,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 47,
+        "expected": "blocked",
+        "indexMs": 1579.3341000000073,
+        "retrievalMs": 85,
+        "indexed": 5270,
+        "records": 5270,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1407.0481,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1493.073199999999,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 48,
+        "expected": "blocked",
+        "indexMs": 1559.342800000013,
+        "retrievalMs": 89,
+        "indexed": 5379,
+        "records": 5379,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1332.8352000000014,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1424.1294000000053,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 49,
+        "expected": "blocked",
+        "indexMs": 1555.5573999999906,
+        "retrievalMs": 85,
+        "indexed": 5488,
+        "records": 5488,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1115.9120999999868,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1202.1487999999954,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 50,
+        "expected": "blocked",
+        "indexMs": 1553.9083999999857,
+        "retrievalMs": 87,
+        "indexed": 5598,
+        "records": 5598,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 982.8957999999984,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1073.1996999999974,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 51,
+        "expected": "blocked",
+        "indexMs": 1538.5424000000057,
+        "retrievalMs": 88,
+        "indexed": 5707,
+        "records": 5707,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 877.780700000003,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 967.8655999999901,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 52,
+        "expected": "blocked",
+        "indexMs": 1566.790399999998,
+        "retrievalMs": 90,
+        "indexed": 5816,
+        "records": 5816,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1341.348100000003,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1434.0554999999877,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 53,
+        "expected": "blocked",
+        "indexMs": 1557.428500000009,
+        "retrievalMs": 94,
+        "indexed": 5925,
+        "records": 5925,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1161.8446000000113,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1257.4055999999982,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 54,
+        "expected": "blocked",
+        "indexMs": 1539.8239000000176,
+        "retrievalMs": 89,
+        "indexed": 6034,
+        "records": 6034,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1251.1382000000158,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1342.4614000000001,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 55,
+        "expected": "blocked",
+        "indexMs": 1626.4268000000156,
+        "retrievalMs": 99,
+        "indexed": 6147,
+        "records": 6147,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 992.8838000000105,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1093.4272000000055,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 56,
+        "expected": "blocked",
+        "indexMs": 1597.5866000000096,
+        "retrievalMs": 91,
+        "indexed": 6256,
+        "records": 6256,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1313.7343999999866,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1406.7277000000176,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 57,
+        "expected": "blocked",
+        "indexMs": 1568.4707000000053,
+        "retrievalMs": 97,
+        "indexed": 6365,
+        "records": 6365,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1369.3132000000041,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1468.8540000000212,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 58,
+        "expected": "blocked",
+        "indexMs": 1564.3520000000135,
+        "retrievalMs": 99,
+        "indexed": 6474,
+        "records": 6474,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1092.2926000000152,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1194.0708999999915,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 59,
+        "expected": "blocked",
+        "indexMs": 1555.7557000000088,
+        "retrievalMs": 103,
+        "indexed": 6583,
+        "records": 6583,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1480.166900000011,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1584.5293000000238,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 60,
+        "expected": "blocked",
+        "indexMs": 1566.6523999999918,
+        "retrievalMs": 101,
+        "indexed": 6692,
+        "records": 6692,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1132.2668999999878,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1236.1070000000182,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 61,
+        "expected": "blocked",
+        "indexMs": 1571.8128000000142,
+        "retrievalMs": 102,
+        "indexed": 6801,
+        "records": 6801,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1088.8591000000015,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1192.9371999999858,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 62,
+        "expected": "blocked",
+        "indexMs": 1569.4880999999878,
+        "retrievalMs": 100,
+        "indexed": 6910,
+        "records": 6910,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 919.6792000000132,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1021.1994999999879,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 63,
+        "expected": "blocked",
+        "indexMs": 1559.1362999999837,
+        "retrievalMs": 98,
+        "indexed": 7019,
+        "records": 7019,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1367.2378000000026,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1466.5494999999937,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 64,
+        "expected": "blocked",
+        "indexMs": 1583.0946000000113,
+        "retrievalMs": 111,
+        "indexed": 7128,
+        "records": 7128,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1147.6603999999934,
+        "rawStatus": "blocked",
+        "prevented": 0,
+        "status": "blocked",
+        "lifecycle": "latest_receipt_failed",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1260.147800000006,
+        "version": {
+          "gen": 1,
+          "rev": 5
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 65,
+        "expected": "done",
+        "indexMs": 1644.5653000000166,
+        "retrievalMs": 106,
+        "indexed": 7243,
+        "records": 7243,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1430.8415000000095,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1539.8183999999892,
+        "version": {
+          "gen": 1,
+          "rev": 7
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 66,
+        "expected": "done",
+        "indexMs": 1570.199900000007,
+        "retrievalMs": 101,
+        "indexed": 7352,
+        "records": 7352,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 888.5269000000262,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 991.8064000000013,
+        "version": {
+          "gen": 1,
+          "rev": 7
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 67,
+        "expected": "done",
+        "indexMs": 1575.0360999999975,
+        "retrievalMs": 111,
+        "indexed": 7461,
+        "records": 7461,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 920.578199999989,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1033.3086999999941,
+        "version": {
+          "gen": 1,
+          "rev": 7
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 68,
+        "expected": "done",
+        "indexMs": 1577.8510000000242,
+        "retrievalMs": 106,
+        "indexed": 7570,
+        "records": 7570,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 989.428899999999,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1096.387000000017,
+        "version": {
+          "gen": 1,
+          "rev": 7
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 69,
+        "expected": "done",
+        "indexMs": 1559.9065000000119,
+        "retrievalMs": 105,
+        "indexed": 7679,
+        "records": 7679,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 934.808400000009,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1041.123099999997,
+        "version": {
+          "gen": 1,
+          "rev": 7
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 70,
+        "expected": "done",
+        "indexMs": 1569.2897999999986,
+        "retrievalMs": 106,
+        "indexed": 7788,
+        "records": 7788,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1570.5198000000091,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1677.2584999999963,
+        "version": {
+          "gen": 1,
+          "rev": 7
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 71,
+        "expected": "done",
+        "indexMs": 1552.1529999999912,
+        "retrievalMs": 107,
+        "indexed": 7897,
+        "records": 7897,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1069.5183000000252,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1178.4709000000148,
+        "version": {
+          "gen": 1,
+          "rev": 7
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 72,
+        "expected": "done",
+        "indexMs": 1570.5645999999833,
+        "retrievalMs": 109,
+        "indexed": 8006,
+        "records": 8006,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1012.8218000000052,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1124.272100000002,
+        "version": {
+          "gen": 1,
+          "rev": 7
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 73,
+        "expected": "done",
+        "indexMs": 1615.448000000004,
+        "retrievalMs": 116,
+        "indexed": 8115,
+        "records": 8115,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1182.4915000000037,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1300.5579000000143,
+        "version": {
+          "gen": 1,
+          "rev": 7
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 74,
+        "expected": "done",
+        "indexMs": 1570.6506999999983,
+        "retrievalMs": 116,
+        "indexed": 8192,
+        "records": 8192,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 1450.9242999999842,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 1568.76390000002,
+        "version": {
+          "gen": 1,
+          "rev": 7
+        },
+        "receiptRecall": 1
+      },
+      {
+        "turn": 75,
+        "expected": "done",
+        "indexMs": 1570.951000000001,
+        "retrievalMs": 115,
+        "indexed": 8192,
+        "records": 8192,
+        "constraintRetained": true,
+        "retrievalMode": "hybrid",
+        "modelMs": 866.8459999999905,
+        "rawStatus": "done",
+        "prevented": 0,
+        "status": "done",
+        "lifecycle": "verified_receipt",
+        "exact": true,
+        "falseCompletion": false,
+        "totalMs": 984.2747999999847,
+        "version": {
+          "gen": 1,
+          "rev": 7
+        },
+        "receiptRecall": 1
+      }
+    ]
+  },
+  "native": {
+    "ledger": {
+      "outputCap": 8192,
+      "elapsedSeconds": 281.82638259999993,
+      "peakRssMiB": 413.47265625,
+      "calls": 53,
+      "maxSuccessfulMainInput": 1016950,
+      "compactionInputTokens": [
+        867031,
+        846202
+      ],
+      "errors": [
+        {
+          "code": "ABORTED",
+          "route": {
+            "provider": "deepseek-account",
+            "model": "deepseek-flash",
+            "maxTokens": 1000,
+            "reasoningEffort": "off"
+          },
+          "message": "DeepSeek Messages request aborted"
+        },
+        {
+          "code": "ABORTED",
+          "route": {
+            "provider": "deepseek-account",
+            "model": "deepseek-flash",
+            "maxTokens": 1000,
+            "reasoningEffort": "off"
+          },
+          "message": "DeepSeek Messages request aborted"
+        },
+        {
+          "code": "ABORTED",
+          "route": {
+            "provider": "deepseek-account",
+            "model": "deepseek-flash",
+            "maxTokens": 1000,
+            "reasoningEffort": "off"
+          },
+          "message": "DeepSeek Messages request aborted"
+        },
+        {
+          "code": "ABORTED",
+          "route": {
+            "provider": "deepseek-account",
+            "model": "deepseek-flash",
+            "maxTokens": 1000,
+            "reasoningEffort": "off"
+          },
+          "message": "DeepSeek Messages request aborted"
+        },
+        {
+          "code": "ABORTED",
+          "route": {
+            "provider": "deepseek-account",
+            "model": "deepseek-flash",
+            "maxTokens": 1000,
+            "reasoningEffort": "off"
+          },
+          "message": "DeepSeek Messages request aborted"
+        },
+        {
+          "code": "ABORTED",
+          "route": {
+            "provider": "deepseek-account",
+            "model": "deepseek-flash",
+            "maxTokens": 1000,
+            "reasoningEffort": "off"
+          },
+          "message": "DeepSeek Messages request aborted"
+        },
+        {
+          "code": "ABORTED",
+          "route": {
+            "provider": "deepseek-account",
+            "model": "deepseek-flash",
+            "maxTokens": 1000,
+            "reasoningEffort": "off"
+          },
+          "message": "DeepSeek Messages request aborted"
+        },
+        {
+          "code": "ABORTED",
+          "route": {
+            "provider": "deepseek-account",
+            "model": "deepseek-flash",
+            "maxTokens": 1000,
+            "reasoningEffort": "off"
+          },
+          "message": "DeepSeek Messages request aborted"
+        }
+      ],
+      "phases": [
+        {
+          "label": "01-baseline-fails",
+          "elapsedMs": 12068.647700000001,
+          "statuses": [
+            "blocked",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "blocked",
+            "todo",
+            "todo"
+          ],
+          "exact": true,
+          "nativeLogValid": true,
+          "compactions": 0
+        },
+        {
+          "label": "02-implement-and-test",
+          "elapsedMs": 56249.655199999994,
+          "statuses": [
+            "doing",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "todo"
+          ],
+          "exact": false,
+          "nativeLogValid": true,
+          "compactions": 0
+        },
+        {
+          "label": "03-long-history",
+          "elapsedMs": 26178.9752,
+          "statuses": [
+            "doing",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "todo"
+          ],
+          "exact": false,
+          "nativeLogValid": true,
+          "compactions": 0
+        },
+        {
+          "label": "04-auto-compaction",
+          "elapsedMs": 37255.774500000014,
+          "statuses": [
+            "doing",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "todo"
+          ],
+          "exact": false,
+          "nativeLogValid": true,
+          "compactions": 1
+        },
+        {
+          "label": "05-fault-injection",
+          "elapsedMs": 17101.377399999998,
+          "statuses": [
+            "blocked",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "blocked",
+            "todo",
+            "todo"
+          ],
+          "exact": true,
+          "nativeLogValid": true,
+          "compactions": 1
+        },
+        {
+          "label": "06-repair-and-retest",
+          "elapsedMs": 23150.0956,
+          "statuses": [
+            "doing",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "todo"
+          ],
+          "exact": false,
+          "nativeLogValid": true,
+          "compactions": 1
+        },
+        {
+          "label": "07-second-long-history",
+          "elapsedMs": 25186.285799999983,
+          "statuses": [
+            "doing",
+            "todo",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "todo",
+            "todo"
+          ],
+          "exact": false,
+          "nativeLogValid": true,
+          "compactions": 1
+        },
+        {
+          "label": "08-report-after-compaction",
+          "elapsedMs": 52384.48370000001,
+          "statuses": [
+            "doing",
+            "done",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "todo"
+          ],
+          "exact": false,
+          "nativeLogValid": true,
+          "compactions": 2
+        },
+        {
+          "label": "09-final-acceptance",
+          "elapsedMs": 32251.087499999965,
+          "statuses": [
+            "doing",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done"
+          ],
+          "exact": false,
+          "nativeLogValid": true,
+          "compactions": 2
+        }
+      ]
+    },
+    "repoInitial": {
+      "outputCap": 16384,
+      "elapsedSeconds": 312.7209786,
+      "peakRssMiB": 372.28125,
+      "calls": 24,
+      "maxSuccessfulMainInput": 195718,
+      "compactionInputTokens": [
+        929110
+      ],
+      "errors": [
+        {
+          "code": "ABORTED",
+          "route": {
+            "provider": "deepseek-account",
+            "model": "deepseek-flash",
+            "maxTokens": 1000,
+            "reasoningEffort": "off"
+          },
+          "message": "DeepSeek Messages request aborted"
+        },
+        {
+          "code": "CONTEXT_WINDOW_EXCEEDED",
+          "route": {
+            "provider": "deepseek-account",
+            "model": "deepseek-flash",
+            "maxTokens": 16384,
+            "reasoningEffort": "max"
+          },
+          "message": "This model's maximum context length is 1048576 tokens. However, you requested 1116128 tokens (1099744 in the messages, 16384 in the completion). Please reduce the length of the messages or completion. (request_id: 27728715-fb34-4c7f-a138-4c6ec15158ee)"
+        }
+      ],
+      "phases": [
+        {
+          "label": "01-reproduce-real-task",
+          "elapsedMs": 11064.4218,
+          "statuses": [
+            "doing",
+            "blocked",
+            "todo"
+          ],
+          "expected": [
+            "todo",
+            "blocked",
+            "todo"
+          ],
+          "exact": false,
+          "nativeLogValid": true,
+          "compactions": 0
+        },
+        {
+          "label": "02-implement-real-fix",
+          "elapsedMs": 121633.9584,
+          "statuses": [
+            "doing",
+            "blocked",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "todo"
+          ],
+          "exact": false,
+          "nativeLogValid": true,
+          "compactions": 0
+        },
+        {
+          "label": "03-full-context-history",
+          "elapsedMs": 6063.021100000013,
+          "statuses": [
+            "doing",
+            "blocked",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "todo"
+          ],
+          "exact": false,
+          "nativeLogValid": true,
+          "compactions": 0
+        },
+        {
+          "label": "04-compaction-and-report",
+          "elapsedMs": 173959.5773,
+          "statuses": [
+            "blocked",
+            "blocked",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done"
+          ],
+          "exact": false,
+          "nativeLogValid": true,
+          "compactions": 1
+        }
+      ]
+    },
+    "repoRecovery": {
+      "outputCap": 256000,
+      "elapsedSeconds": 189.1010575,
+      "peakRssMiB": 428.109375,
+      "calls": 22,
+      "maxSuccessfulMainInput": 279497,
+      "compactionInputTokens": [],
+      "errors": [
+        {
+          "code": "ABORTED",
+          "route": {
+            "provider": "deepseek-account",
+            "model": "deepseek-flash",
+            "maxTokens": 1000,
+            "reasoningEffort": "off"
+          },
+          "message": "DeepSeek Messages request aborted"
+        },
+        {
+          "code": "ABORTED",
+          "route": {
+            "provider": "deepseek-account",
+            "model": "deepseek-flash",
+            "maxTokens": 1000,
+            "reasoningEffort": "off"
+          },
+          "message": "DeepSeek Messages request aborted"
+        },
+        {
+          "code": "ABORTED",
+          "route": {
+            "provider": "deepseek-account",
+            "model": "deepseek-flash",
+            "maxTokens": 1000,
+            "reasoningEffort": "off"
+          },
+          "message": "DeepSeek Messages request aborted"
+        }
+      ],
+      "phases": [
+        {
+          "label": "05-resume-native-output-budget",
+          "elapsedMs": 150884.8406,
+          "statuses": [
+            "done",
+            "done",
+            "todo"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "todo"
+          ],
+          "exact": true,
+          "nativeLogValid": true,
+          "compactions": 1
+        },
+        {
+          "label": "06-final-real-task-report",
+          "elapsedMs": 38216.2169,
+          "statuses": [
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done"
+          ],
+          "exact": true,
+          "nativeLogValid": true,
+          "compactions": 1
+        }
+      ]
+    },
+    "ledgerRestart": {
+      "outputCap": 8192,
+      "elapsedSeconds": 29.193690000000004,
+      "peakRssMiB": 378.140625,
+      "calls": 8,
+      "maxSuccessfulMainInput": 168776,
+      "compactionInputTokens": [],
+      "errors": [
+        {
+          "code": "ABORTED",
+          "route": {
+            "provider": "deepseek-account",
+            "model": "deepseek-flash",
+            "maxTokens": 1000,
+            "reasoningEffort": "off"
+          },
+          "message": "DeepSeek Messages request aborted"
+        },
+        {
+          "code": "ABORTED",
+          "route": {
+            "provider": "deepseek-account",
+            "model": "deepseek-flash",
+            "maxTokens": 1000,
+            "reasoningEffort": "off"
+          },
+          "message": "DeepSeek Messages request aborted"
+        }
+      ],
+      "phases": [
+        {
+          "label": "10-restart-and-verify-fix",
+          "elapsedMs": 29193.690000000002,
+          "statuses": [
+            "done",
+            "done",
+            "done"
+          ],
+          "expected": [
+            "done",
+            "done",
+            "done"
+          ],
+          "exact": true,
+          "nativeLogValid": true,
+          "compactions": 2
+        }
+      ]
+    }
+  },
+  "productionUnchanged": true,
+  "protectedUnchanged": true,
+  "rawHashes": {
+    "dsh-result.json": "cc2b39f57dbf5e461c5f427e8a15266a65a49cb8cf7ac65ee944b3cfbc599c6a",
+    "dsh-native-events.json": "59d966034fe1499e2371d6b8c6d8ceec2e8d06fe9647719d80aa4d7a70f5f324",
+    "repo-task-result.json": "a64f92e59d8e290b494fb0cbe6e515f99d1001b152ab9916286b154b4731607d",
+    "repo-recovery-result.json": "a0659df695f1164df98147d374b4e8b46fe0d4167f0eb95cbac041b09812cbed",
+    "repo-recovery-events.json": "d7ab7fe2951ecb2b7aa8060529efefb95365d680e429cec0e74e8306b18b63d5",
+    "dsh-restored-result.json": "b16e362381710ab39002e6064244ad27d5dc3960982ebe2ceb04fccd5572cfe4",
+    "dsh-long-results.json": "df9ebff0708754c01d0cfda0575a23449d9821342ba84c9f4ab391fe679d64f8",
+    "dsh-long-fixture.json": "55a94a0e6c046939b37074ac1e4865853b0d161a49076a4f07e5f4a2871b3cea",
+    "ledger-deterministic-recheck.json": "da1c04a1b13760dc932c2b96e0a2f8ab56573f6880f25de02c2b2369404a148b"
+  }
+}

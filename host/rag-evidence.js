@@ -35,15 +35,22 @@ function resultStatus(data, text) {
   let parsed = null;
   try { parsed = JSON.parse(text); } catch { /* ordinary text result */ }
   const values = [data, message, data.result, data.output, parsed].filter(object);
+  // A structured content field is the payload being read, not the transport
+  // status. Source files may contain "in progress", exit-code examples or test
+  // failure strings. Keep output/status diagnostics and explicit error flags.
+  const diagnosticText = object(parsed) && Object.hasOwn(parsed, 'content')
+    ? JSON.stringify(Object.fromEntries(Object.entries(parsed).filter(([key]) => key !== 'content')))
+    : text;
   const exit = values.map(v => v.exitCode ?? v.exit_code).find(Number.isFinite);
   const failed = values.some(v => v.isError === true || v.ok === false || v.success === false || v.error != null)
     || (exit !== undefined && exit !== 0)
-    || /(?:exited? (?:with )?(?:exit )?code|exit[_ ]code)\s*[:=]?\s*[1-9]\d*\b|\b[1-9]\d* (?:tests? failed|failures)\b/i.test(text);
+    || /(?:exited? (?:with )?(?:exit )?code|exit[_ ]code)\s*[:=]?\s*[1-9]\d*\b|\b[1-9]\d* (?:tests? failed|failures)\b/i.test(diagnosticText);
   if (failed) return 'failure';
   if (values.some(v => v.dryRun === true || v.executed === false || v.simulated === true)) return 'unknown';
-  if (/session (?:id|ID)|still running|in progress|pending|仍在运行|等待回执/i.test(text) && exit === undefined) return 'unknown';
+  if (values.some(v => v.pending === true || ['pending','running','in_progress','queued'].includes(v.status))) return 'unknown';
+  if (/session (?:id|ID)|still running|in progress|pending|仍在运行|等待回执/i.test(diagnosticText) && exit === undefined) return 'unknown';
   return exit === 0 || values.some(v => v.ok === true || v.success === true || v.isError === false)
-    || /(?:exit(?:ed)? (?:with )?(?:exit )?code|exit[_ ]code)\s*[:=]?\s*0\b/i.test(text) ? 'success' : 'unknown';
+    || /(?:exit(?:ed)? (?:with )?(?:exit )?code|exit[_ ]code)\s*[:=]?\s*0\b/i.test(diagnosticText) ? 'success' : 'unknown';
 }
 
 function receiptFacts(text) {
@@ -58,6 +65,21 @@ function receiptFacts(text) {
       return remaining >= 0;
     }));
   } catch { return {}; }
+}
+
+function identifyingArgs(value) {
+  if (!object(value)) return {};
+  // Completion contracts only support scalar arguments. Preserve short target
+  // identifiers when a write includes a large file body; never retain that body
+  // merely to match its path. Unknown/oversized arguments remain unmatchable.
+  let remaining = 4000;
+  return Object.fromEntries(Object.entries(redactData(value)).filter(([key, item]) => {
+    if (key.length > 80 || ['__proto__','constructor','prototype'].includes(key)
+      || !['string','number','boolean'].includes(typeof item) || (typeof item === 'number' && !Number.isFinite(item))
+      || String(item).length > 400) return false;
+    remaining -= key.length + String(item).length;
+    return remaining >= 0;
+  }).slice(0, 24));
 }
 
 /** Only committed DSH event types are accepted; assistant prose cannot forge a tool result. */
@@ -89,7 +111,7 @@ export function collectRetrievalRecords(sessionId, events, { chunkChars = 800, m
     if (e.type === 'tool/call' && typeof d.callId === 'string') {
       let args = d.arguments ?? {};
       if (typeof args === 'string') { try { args = JSON.parse(args); } catch { args = {}; } }
-      try { args = JSON.stringify(args).length <= 4000 ? redactData(args) : {}; } catch { args = {}; }
+      try { args = identifyingArgs(args); } catch { args = {}; }
       const call = { tool: String(d.name ?? 'tool').slice(0, 80), callId: d.callId, seq: e.seq, args,
         interrupted: incompleteTurns.has(turn) };
       // Ambiguous duplicate IDs cannot establish a trusted receipt.

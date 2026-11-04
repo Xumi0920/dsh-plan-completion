@@ -59,3 +59,5 @@ rag:
 接近 1M 的真实输入、连续 4 次原生自动压缩、重启、资源及失败记录见 [压力验证记录](q8-rag-stress-validation.md)。
 
 复合状态修复、96 次真实 DeepSeek 三组对照及故障恢复见 [对照验证](q8-rag-ab-validation.md)。
+
+完整 DSH 任务、真实仓库修复、近 1M 输入与 75 轮事件模拟，以及大文件回执修复见 [完整任务验证](dsh-full-task-validation.md)。
