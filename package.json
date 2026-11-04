@@ -30,7 +30,10 @@
     ".": "./index.js",
     "./client": "./client.js",
     "./locale/*.json": "./locale/*.json",
-    "./icon": "./icon.svg"
+    "./icon": "./icon.svg",
+    "./observer": "./host/observer.js",
+    "./generator": "./host/generator.js",
+    "./api": "./host/api.js"
   },
   "files": [
     "index.js",

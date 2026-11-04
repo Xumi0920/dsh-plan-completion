@@ -1,4 +1,4 @@
-# Plan Completion — progress-protocol canary
+# Plan Completion — component-split canary
 
 同一个 DSH 插件，保留原生长上下文、回复和 Tab 草稿补全。版本 0.2.0-canary.1，Draft；不合并、不发布。
 
@@ -6,6 +6,6 @@
 
 计划面板提供人工确认/撤销；请求绑定计划版本与验收版本。重新定义或撤销前置验收会使后续步骤失效。固定模型路由失败时停止调用，不回落其他供应商；修改设置取消旧调用。
 
-本阶段不包含向量引擎，不运行 Ollama 或 llama.cpp。只有一个 Cordis 根条目；host 文件拆分仅为内部职责组织，尚未迁移独立组件。
+本阶段不包含向量引擎，不运行 Ollama 或 llama.cpp。独立 Cordis 行为根服务 + observer / generator / api，旧 profile 覆盖配置不会重复启动或复活关闭的组件。
 
 验证：npm test；npm run check:package。历史实验与截图保留在集成 PR，npm 包不带实验数据。
