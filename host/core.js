@@ -176,6 +176,10 @@ function debugLog(record) {
     } catch { models = [] }
     return {
       progressProtocol: settings.progressProtocol,
+      rag: { enabled: rawConfig.rag.enabled === true, sendContextToGenerator: rawConfig.rag.sendContextToGenerator === true,
+        backend: rawConfig.rag.backend ?? (rawConfig.rag.endpoint ? 'external' : 'llama.cpp'),
+        executablePath: rawConfig.rag.executablePath ?? '', modelPath: rawConfig.rag.modelPath ?? '' },
+      embedding: core.embeddingSnapshot?.() ?? { state: 'disabled' },
       modelPolicy: settings.modelPolicy,
       fixedProvider: settings.fixedProvider,
       fixedModel: settings.fixedModel,

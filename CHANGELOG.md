@@ -3,10 +3,14 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
-## [0.2.0-canary.1] — unreleased component-split
+## [0.2.0-canary.1] — unreleased
 
-- Add managed observer/generator/api rows and explicit lifecycle migration; retain a single npm package.
-- No embedding runtime in this stage. Validate with npm test and npm run check:package.
+- Default to compatible legacy progress behavior, with an explicit unverified label; opt into versioned strict acceptance in Settings. Preserve existing valid receipts on replan and the legacy two-none replan hint.
+- Add authenticated human confirmation/revocation with plan/acceptance CAS and dependent-step invalidation.
+- Keep one package with a root state service and observer, retrieval, generator and API components; honor legacy profile overrides and explicit component disabling.
+- Run official Q8 through a lazy, authenticated, loopback llama.cpp subprocess owned by the retrieval component. No Ollama dependency, automatic downloads, shell launch, or inherited provider credentials. Release on idle/dispose; reap on Host exit; recover from crashes.
+- Fail closed on invalid model routing, cancel stale requests, revalidate restored plans, and follow isolated DSH_HOME for the default store.
+- Exclude archived experiment data and screenshots from npm; add isolated tarball/import checks to all four CI jobs. Validation scope and remaining desktop UI gate are recorded in docs/managed-validation.md. Nothing published or merged.
 
 ## [0.1.8] - 2026-11-03
 

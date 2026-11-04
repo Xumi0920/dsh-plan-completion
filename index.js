@@ -3,6 +3,7 @@
 import { createCore } from './host/core.js'
 import { attach as observer } from './host/observer.js'
 import { attach as generator } from './host/generator.js'
+import { attach as retrieval } from './host/retrieval.js'
 import { attach as api } from './host/api.js'
 
 export function apply(ctx, config = {}) {
@@ -13,9 +14,10 @@ export function apply(ctx, config = {}) {
   // a component is disabled: otherwise legacy children would defeat its toggle.
   const entries = ctx.get('loader')?.entries?.() ?? []
   const managed = config.components === 'managed' || Array.from(entries).some(entry =>
-    ['observer', 'generator', 'api'].some(name =>
+    ['observer', 'retrieval', 'generator', 'api'].some(name =>
       entry.options?.id === `plan-completion-${name}` && entry.options?.name === `dsh-plan-completion/${name}`))
   if (!managed) {
+    retrieval(ctx, core)
     generator(ctx, core)
     observer(ctx, core)
     api(ctx, core)
