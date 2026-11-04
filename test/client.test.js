@@ -7,7 +7,13 @@ const original = fs.readFileSync(process.env.DSH_CLIENT_TEST_SOURCE || new URL('
 const marker = "    return {\n      inject: ['slots', 'locale'],";
 assert.equal(original.split(marker).length, 2, 'client test seam must be unique');
 const source = original.replace(marker,
-  '    globalThis.__clientTest = { store, Dock, handleKeyDown, normalizePlan, fetchPlanState, warmPlanState, requestVerify, fetchSettings, saveSettings, handlePlanFetch };\n' + marker);
+  '    globalThis.__clientTest = { store, Dock, handleKeyDown, normalizePlan, planSignature, renderPopoverContent, fetchPlanState, warmPlanState, requestVerify, fetchSettings, saveSettings, handlePlanFetch };\n' + marker);
+
+test('acceptance revision participates in UI refresh identity',()=>{
+ const {api}=fixture();const raw={sessionId:'p',version:{gen:1,rev:0},status:'active',steps:[{id:'s1',title:'验证',status:'doing',acceptance:{revision:1},lifecycle:'dependency_stale'}]};
+ const first=api.normalizePlan(raw);raw.steps[0].acceptance.revision=2;const next=api.normalizePlan(raw);
+ assert.equal(first.steps[0].acceptanceRevision,1);assert.equal(next.steps[0].acceptanceRevision,2);assert.notEqual(api.planSignature(first),api.planSignature(next));
+});
 
 function fixture() {
   let effects = [], refs = [], plugin;
@@ -98,6 +104,22 @@ const plan = (rev, suggestion = 'suggestion', sessionId = 'A', gen = 1) => ({
   steps: [{id: 's1', title: 'Work', status: 'doing'}], suggestion: {text: suggestion},
 });
 const flush = () => new Promise(resolve => setImmediate(resolve));
+
+test('compact plan prioritizes blocked work, limits visible steps to three, and folds completed steps',()=>{
+ const f=fixture(); const p=f.api.normalizePlan({...plan(1),constraints:['只用隔离副本'],steps:['done','dropped','todo','doing','blocked','todo','todo'].map((status,i)=>({id:'s'+i,title:'Step '+i,status,lifecycle:status==='doing'?'awaiting_receipt':''}))});
+ const tree=f.api.renderPopoverContent(p,null,key=>key,null,()=>{});const nodes=[];
+ const walk=x=>{if(Array.isArray(x))x.forEach(walk);else if(x&&typeof x==='object'){nodes.push(x);walk(x.props?.children);}};walk(tree);
+ const ol=nodes.find(n=>n.type==='ol');const items=ol.props.children.flat().filter(Boolean);assert.equal(items.length,3);
+ assert.deepEqual(Array.from(items,x=>x.props['data-status']),['blocked','doing','todo']);
+ assert.ok(nodes.some(n=>n.type==='details'&&JSON.stringify(n).includes('完整计划 · 1 项已完成')));
+ assert.match(JSON.stringify(tree),/等待工具回执/);assert.match(JSON.stringify(tree),/只用隔离副本/);
+});
+test('lifecycle, constraints and retrieval updates refresh the client even with the same plan version',()=>{
+ const f=fixture(), base=f.api.normalizePlan(plan(1));
+ for(const mutation of [p=>p.steps[0].lifecycle='awaiting_receipt',p=>p.constraints=['保留长上下文'],p=>p.retrieval={mode:'hybrid'}]){
+  const next=f.api.normalizePlan(plan(1));mutation(next);assert.notEqual(f.api.planSignature(base),f.api.planSignature(next));
+ }
+});
 
 test('Dock unmount removes private plan and stale composer actions; late state cannot restore them', async () => {
   const f = fixture(), dock = f.mount();

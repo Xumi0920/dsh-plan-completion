@@ -19,16 +19,16 @@ export async function waitFor(predicate, label = 'condition') {
 }
 export function initialOutput() {
   return {
-    op: 'rewrite', reason: 'Initial plan', intent: 'Build the fixture',
+    progress: { version: 1, events: [] }, op: 'rewrite', reason: 'Initial plan', intent: 'Build the fixture',
     steps: [
-      { id: 's1', title: 'Inspect requirements', status: 'done' },
-      { id: 's2', title: 'Implement changes', status: 'todo' },
-      { id: 's3', title: 'Verify changes', status: 'todo' },
+      { id: 's1', title: 'Inspect requirements', status: 'done', acceptance: { scope: 'manual', dependsOn: [] } },
+      { id: 's2', title: 'Implement changes', status: 'todo', acceptance: { scope: 'manual', dependsOn: [] } },
+      { id: 's3', title: 'Verify changes', status: 'todo', acceptance: { scope: 'manual', dependsOn: [] } },
     ], suggestion: 'Implement the next step',
   };
 }
 export function patchOutput(id, status) {
-  return { op: 'patch', reason: 'Progress recorded', changes: [{ id, status }], suggestion: 'Verify the next step' };
+  return { progress: { version: 1, events: [] }, op: 'patch', reason: 'Progress recorded', changes: [{ id, status }], suggestion: 'Verify the next step' };
 }
 
 /** Real apply() receives mocked host services; no sockets or model calls are used. */
@@ -57,14 +57,16 @@ export function createHostFixture(apply, responses, config = {}) {
   };
   const ctx = {
     get: name => services[name],
+    provide: (name, value) => { services[name] = value },
     on: (name, fn) => handlers.set(name, fn),
     effect: fn => { const cleanup = fn(); if (typeof cleanup === 'function') cleanups.push(cleanup); },
     inject: (_deps, fn) => fn({ ...services, effect: ctx.effect, get: ctx.get }),
   };
-  apply(ctx, { warmBackfill: false, ...config });
+  const core = apply(ctx, { warmBackfill: false, progressProtocol: 'strict', ...config });
+  globalThis[HOST_KEY] = core
   return {
     calls, ctx, services, handlers, routes,
-    state: id => globalThis[HOST_KEY]?.states.get(id),
+    core, state: id => core.states.get(id),
     dispose() { for (const cleanup of cleanups.splice(0).reverse()) cleanup(); handlers.clear(); },
     startTurn(session, turn) {
       const seq = turn * 10;
@@ -100,4 +102,13 @@ export function createHostFixture(apply, responses, config = {}) {
 }
 export function sessionFixture(id) {
   return { id, seq: 0, events: [], snapshotEvents(from) { return this.events.filter(event => event.seq >= from); } };
+}
+
+// Explicit synthetic output factory for host tests. Tests of malformed model
+// output deliberately bypass this helper.
+export function protocolOutput(value) {
+  return { ...value, progress: value.progress ?? { version: 1, events: [] },
+    ...(value.op === 'rewrite' ? { steps: value.steps.map(s => ({ ...s,
+      acceptance: s.acceptance ?? { scope: s.completion ? 'execution' : 'manual', dependsOn: [] },
+    })) } : {}) }
 }

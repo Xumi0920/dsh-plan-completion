@@ -11,13 +11,15 @@
  *  - 只保留最近 N 版由存储层（store.js）负责，本模块只打版本号。
  */
 
+import { normalizeCompletion, normalizeConstraints } from './acceptance.js';
+import { normalizeAcceptance, normalizeProof } from './progress-schema.js';
 import { DEFAULTS } from './config.js';
 import { clampChars, oneLine } from './text.js';
 
 /** 计划状态枚举。 */
 export const PLAN_STATUSES = Object.freeze(['active', 'completed', 'archived']);
 /** 步骤状态枚举。 */
-export const STEP_STATUSES = Object.freeze(['todo', 'doing', 'done', 'dropped']);
+export const STEP_STATUSES = Object.freeze(['todo', 'doing', 'blocked', 'done', 'dropped']);
 /** 步骤来源枚举。 */
 export const STEP_SOURCES = Object.freeze(['model', 'user']);
 
@@ -146,6 +148,21 @@ export function normalizeSteps(input) {
       return fail('bad-step-source', `步骤 ${id} 的 source 非法：${String(source)}`);
     }
     const step = { id, title: clampTitle(raw.title), status, source };
+    const completion = normalizeCompletion(raw.completion);
+    if (completion) step.completion = completion;
+    if (raw.acceptance !== undefined) {
+      const acceptance = normalizeAcceptance(raw.acceptance);
+      if (!acceptance) return fail('bad-acceptance', `步骤 ${id} 的验收版本非法`);
+      step.acceptance = acceptance;
+    }
+    if (source === 'user' && step.acceptance?.scope === 'manual' && raw.confirmation?.actor === 'user'
+      && raw.confirmation.revision === step.acceptance.revision && Number.isFinite(raw.confirmation.at)
+      && Number.isSafeInteger(raw.confirmation.seq) && raw.confirmation.seq >= 0) {
+      step.confirmation = { actor: 'user', revision: raw.confirmation.revision, at: raw.confirmation.at, seq: raw.confirmation.seq };
+    }
+    const proof = normalizeProof(raw.proof);
+    if (proof) step.proof = proof;
+    if (typeof raw.lifecycle === 'string') step.lifecycle = raw.lifecycle.slice(0, 40);
     const evidence = normalizeEvidence(raw.evidence);
     if (evidence.length) step.evidence = evidence;
     steps.push(step);
@@ -294,6 +311,7 @@ export function normalizePlan(input, options = {}) {
 
     const plan = { sessionId, version, status, intent, steps: stepsRes.steps, updatedAt, reason, watermark, editedByUser };
     if (revisionOf) plan.revisionOf = revisionOf;
+    if (input.constraints) plan.constraints = normalizeConstraints(input.constraints);
 
     if (input.stats != null) {
       if (!isObj(input.stats)) return fail('bad-stats', 'stats 必须是对象');
@@ -370,6 +388,18 @@ export function patchPlan(plan, changes, meta = {}) {
       if (!step) return fail('unknown-step', `changes 引用了不存在的步骤 id：${id}`);
       let applied = false;
 
+      if (change.title && change.title !== step.title) {
+        if (step.acceptance) { step.acceptance = { ...step.acceptance, revision: step.acceptance.revision + 1, scope: 'manual', afterSeq: meta.watermark?.seq ?? cur.watermark.seq }; delete step.proof; }
+        delete step.completion; delete step.lifecycle; delete step.evidence;
+      }
+      if (change.completion !== undefined) { step.completion = normalizeCompletion(change.completion); applied = true; }
+      if (change.acceptance !== undefined) {
+        const acceptance = normalizeAcceptance(change.acceptance);
+        if (!acceptance) return fail('bad-change-acceptance', `步骤 ${id} 的验收版本非法`);
+        step.acceptance = acceptance; applied = true;
+      }
+      if (change.proof !== undefined) { const proof = normalizeProof(change.proof); if(proof) step.proof=proof;else delete step.proof; applied=true; }
+      if (change.lifecycle !== undefined) { step.lifecycle = String(change.lifecycle).slice(0, 40); applied = true; }
       if (change.status !== undefined) {
         if (!STEP_STATUSES.includes(change.status)) {
           return fail('bad-change-status', `步骤 ${id} 的 status 非法：${String(change.status)}`);
@@ -393,7 +423,7 @@ export function patchPlan(plan, changes, meta = {}) {
         if (!Array.isArray(change.evidence)) {
           return fail('bad-change-evidence', `步骤 ${id} 的 evidence 必须是字符串数组`);
         }
-        const merged = mergeEvidence(step.evidence, normalizeEvidence(change.evidence));
+        const merged = change.lifecycle ? normalizeEvidence(change.evidence) : mergeEvidence(step.evidence, normalizeEvidence(change.evidence));
         if (merged.length) step.evidence = merged;
         else delete step.evidence;
         applied = true;
@@ -410,6 +440,7 @@ export function patchPlan(plan, changes, meta = {}) {
       version: nextVersion(cur.version, 'patch'),
       status,
       intent: cur.intent,
+      constraints: normalizeConstraints(cur.constraints),
       steps,
       updatedAt,
       reason: clampReason(meta.reason),
@@ -473,6 +504,7 @@ export function rewritePlan(plan, next, meta = {}) {
       version: cur ? nextVersion(cur.version, 'rewrite') : { gen: 0, rev: 0 },
       status: statusFor(steps),
       intent,
+      constraints: normalizeConstraints(next.constraints ?? cur?.constraints),
       steps,
       updatedAt,
       reason,
@@ -518,6 +550,10 @@ export function applyUserEdit(plan, next, meta = {}) {
       const old = oldById.get(step.id);
       // 「未改动」只看用户可编辑字段（标题/状态）；evidence 是模型追加的证据链，不算用户编辑。
       const unchanged = old && old.title === step.title && old.status === step.status;
+      if (old?.acceptance) {
+        step.acceptance = unchanged ? old.acceptance : { ...old.acceptance, revision: old.acceptance.revision + 1, afterSeq: meta.watermark?.seq ?? cur.watermark.seq };
+        if (!unchanged) { delete step.proof; delete step.evidence; }
+      }
       return { ...step, source: unchanged ? old.source : 'user' };
     });
 
@@ -533,6 +569,7 @@ export function applyUserEdit(plan, next, meta = {}) {
       version: { gen: cur.version.gen + 1, rev: 0 },
       status: statusFor(steps),
       intent,
+      constraints: normalizeConstraints(next.constraints ?? cur?.constraints),
       steps,
       updatedAt,
       reason: isNonEmptyStr(meta.reason) ? clampReason(meta.reason) : 'user edit',

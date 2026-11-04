@@ -69,6 +69,7 @@ test('security: authenticated state request works without reflected CORS headers
 test('security: diagnostics and all development routes are absent by default', t => {
   const host = setup(t);
   assert.deepEqual([...host.routes.keys()].sort(), [
+    '/plan-completion/confirm',
     '/plan-completion/replan', '/plan-completion/settings', '/plan-completion/state',
     '/plan-completion/verify', '/plan-completion/warm',
   ]);
