@@ -33,6 +33,7 @@
     "./icon": "./icon.svg",
     "./observer": "./host/observer.js",
     "./generator": "./host/generator.js",
+    "./retrieval": "./host/retrieval.js",
     "./api": "./host/api.js"
   },
   "files": [
@@ -45,7 +46,7 @@
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
-    "docs/compatibility.md",
+    "docs/managed-embedding.md",
     "docs/security.md"
   ],
   "dsh": {

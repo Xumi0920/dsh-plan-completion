@@ -1,11 +1,45 @@
-# Plan Completion — component-split canary
+# Plan Completion（计划补全）
 
-同一个 DSH 插件，保留原生长上下文、回复和 Tab 草稿补全。版本 0.2.0-canary.1，Draft；不合并、不发布。
+DSH 计划/补全插件，为会话维护计划，在输入框上方展示下一步建议；Tab 只填入草稿，不自动发送。保留 DSH 原生回复、工具与长上下文。
 
-默认 progressProtocol: legacy 保留 0.1.8 的状态 patch、连续两次 none 后 /replan 和 rewrite 语义，并明确标注模型报告未经执行验收。Settings 可显式选择 strict：仅已建立验收版本的原始执行回执或用户手动确认可推进完成；旧计划迁移为待验收。已经版本化的计划不能通过关闭 strict 绕过校验。
+当前为 **0.2.0-canary.1**，尚未发布。集成 PR #1 保留实验历史，增量审查按进度协议、组件拆分、托管 Q8 三阶段进行；不合并、不发布 npm。
 
-计划面板提供人工确认/撤销；请求绑定计划版本与验收版本。重新定义或撤销前置验收会使后续步骤失效。固定模型路由失败时停止调用，不回落其他供应商；修改设置取消旧调用。
+## 兼容性与验收
 
-本阶段不包含向量引擎，不运行 Ollama 或 llama.cpp。独立 Cordis 行为根服务 + observer / generator / api，旧 profile 覆盖配置不会重复启动或复活关闭的组件。
+默认 `progressProtocol: legacy` 保留 0.1.8 的状态 patch、连续两次 none 后的 /replan 提示，以及 rewrite 行为。界面明确标注“模型报告，未经执行验收”。
 
-验证：npm test；npm run check:package。历史实验与截图保留在集成 PR，npm 包不带实验数据。
+Settings 可显式选择 strict：模型只提出计划和验收条件；Host 按原始执行回执、验收版本及依赖关系计算完成。中文会话、英文思考和助手声明均不能冒充执行证据。/replan 会保留验收仍有效的完成步骤，新增条件不能追认旧执行。
+
+没有机器回执的人工验收步骤可在计划面板确认或撤销，记录来源为用户。撤销或更改前置验收会使依赖步骤失效。切回 legacy 不会绕过已版本化计划的校验。
+
+## 同一个插件，多个组件
+
+| 组件 | 职责 |
+|---|---|
+| 根服务 | 会话状态、配置、持久化、恢复校验；保留客户端入口 |
+| observer | 观察原始事件，更新执行状态 |
+| generator | 调用 DSH 原生模型生成计划/补全提案 |
+| retrieval | 中文/英文检索、约束保留、管理本地 Q8 进程 |
+| api | 鉴权接口、设置、人工确认 |
+
+新配置由 DSH 分别管理这些组件；旧单行 profile 仍兼容。禁用组件不会被兼容逻辑重复启动；禁用观察器会隐藏未重新验证的旧完成状态。
+
+## 本地 Q8
+
+默认关闭 RAG，也关闭向生成模型发送检索片段。启用时，在设置中指定已安装的 llama-server 和官方 Qwen3-Embedding-0.6B-Q8_0.gguf 的绝对路径。
+
+插件按需启动 llama.cpp 子进程，绑定随机回环端口并使用临时鉴权；启动前核对官方模型 SHA-256。空闲、组件关闭或 DSH Host 退出时释放进程。无需 Ollama；显式旧端点可继续使用 external 后端。
+
+llama.cpp 仍是第三方开源推理引擎，DSH 插件负责其生命周期，并不把它变成 DSH 内置模型引擎。模型文件和执行程序不随 npm 包分发，也不自动下载或更新。
+
+配置、故障恢复和数据边界见 [托管 Q8 说明](docs/managed-embedding.md)；测试范围见[本轮验证](https://github.com/Xumi0920/dsh-plan-completion/blob/codex/q8-rag-plan-validation/docs/managed-validation.md)。原生桌面点击验收尚未完成，不能称为发布级全 PASS。
+
+## 隐私与验证
+
+本地 embedding 不外发。若开启“发送检索片段给计划助手”，片段将经选定的 DSH 生成模型路由发送；本地检索不等于生成流程离线。计划和建议可明文持久化。默认存储跟随显式 DSH_HOME；自定义目录保留原义，旧共享目录不会自动导入隔离环境。详见[安全与隐私边界](docs/security.md)。
+
+运行 `npm test` 和 `npm run check:package`。后者离线安装实际 tarball，检查五个 Host 入口。实验数据、测试脚本、截图和模型二进制不进入 npm 包。真实硬件检查可按托管说明运行 `scripts/check-managed-runtime.mjs`。
+
+[历史设计与实验档案](https://github.com/Xumi0920/dsh-plan-completion/tree/codex/q8-rag-plan-validation/docs)保留在仓库，历史近 1M/多次压缩结果不当作本轮重新测试结果。
+
+

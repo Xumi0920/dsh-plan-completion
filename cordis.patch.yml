@@ -14,10 +14,19 @@
         storageDir: '~/.dsh/plan-completion-data' # follows DSH_HOME when explicitly set
         # Debug endpoints (debug/diag/theme/experiment/autojob/steps/reset) stay off in production.
         enableDebugRoutes: false
+        rag:
+          enabled: false
+          sendContextToGenerator: false
+          backend: 'llama.cpp'
+          executablePath: '' # absolute local llama-server path; no automatic download
+          modelPath: '' # absolute official Qwen3-Embedding-0.6B-Q8_0.gguf path
+          strategy: 'typed' # source-aware retrieval + established acceptance targets
         # Optional: set a local directory to persist debug logs / experiment data.
         # debugDir: '<local debug directory>'
     - id: plan-completion-observer
       name: 'dsh-plan-completion/observer'
+    - id: plan-completion-retrieval
+      name: 'dsh-plan-completion/retrieval'
     - id: plan-completion-generator
       name: 'dsh-plan-completion/generator'
     - id: plan-completion-api

@@ -2249,7 +2249,8 @@ window.__ModuleLoader__.load({
           fixedProvider: settings.fixedProvider || '',
           fixedModel: settings.fixedModel || '',
           modelCalls: settings.modelCalls === true,
-          progressProtocol: settings.progressProtocol
+          progressProtocol: settings.progressProtocol,
+          rag: settings.rag
         }).then(function applied(result) {
           setSaving(false);
           if (!result || result.ok !== true) {
@@ -2312,6 +2313,12 @@ window.__ModuleLoader__.load({
               'aria-pressed': settings.modelCalls === true ? 'true' : 'false',
               onClick: function onCalls() { patch({ modelCalls: settings.modelCalls !== true }); } },
               h('span', { key: 'knob' }))),
+          row('rag-enabled', '本地 Q8 检索', '按需加载；关闭后释放插件托管的模型进程。', h('input', { type: 'checkbox', checked: settings.rag?.enabled === true, onChange: e => patch({ rag: { ...settings.rag, enabled: e.target.checked } }) })),
+          row('rag-send', '发送检索片段给计划助手', '片段经当前生成模型路由发送，独立于本地检索开关。', h('input', { type: 'checkbox', checked: settings.rag?.sendContextToGenerator === true, onChange: e => patch({ rag: { ...settings.rag, sendContextToGenerator: e.target.checked } }) })),
+          row('rag-backend', '向量运行方式', '旧端点保留兼容；托管模式无需 Ollama。', h('select', { className: 'dpc-settings-select', value: settings.rag?.backend || 'llama.cpp', onChange: e => patch({ rag: { ...settings.rag, backend: e.target.value } }) }, h('option', { value: 'llama.cpp' }, '插件托管 llama.cpp'), h('option', { value: 'external' }, '已有本机端点'))),
+          settings.rag?.backend !== 'external' ? row('rag-executable', 'llama-server 程序', '已安装程序的绝对路径；不自动下载或更新。', h('input', { className: 'dpc-settings-select', value: settings.rag?.executablePath || '', onChange: e => patch({ rag: { ...settings.rag, executablePath: e.target.value } }) })) : null,
+          settings.rag?.backend !== 'external' ? row('rag-model', '官方 Q8 文件', '官方 Qwen3-Embedding-0.6B-Q8_0.gguf；启动前校验 SHA-256。', h('input', { className: 'dpc-settings-select', value: settings.rag?.modelPath || '', onChange: e => patch({ rag: { ...settings.rag, modelPath: e.target.value } }) })) : null,
+          row('rag-runtime', '向量运行状态', (settings.embedding?.state || 'disabled') + (settings.embedding?.error ? ' · ' + settings.embedding.error : ''), h('button', { type: 'button', className: 'dpc-settings-save', onClick: () => fetchSettings().then(r => { if (r?.settings) setSettings(s => ({ ...s, embedding: r.settings.embedding })); }) }, '刷新状态')),
           h('div', { key: 'footer', className: 'dpc-settings-footer' },
             error ? h('div', { key: 'e', className: 'dpc-settings-error' }, error)
               : saved ? h('div', { key: 's', className: 'dpc-settings-status' }, t('settings.saved')) : null,

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {apply} from '../index.js';
 import {attach as observer} from '../host/observer.js';
 import {attach as generator} from '../host/generator.js';
+import {attach as retrieval} from '../host/retrieval.js';
 import {attach as api} from '../host/api.js';
 import {createHostFixture, initialOutput, sessionFixture, flushJobs, waitFor, deferred} from '../support/host-fixture.js';
 
@@ -18,7 +19,7 @@ function mount(h,attach) {
 function setup(t,responses=[]) {
   const h=createHostFixture(apply,responses,{components:'managed',persistPlans:false,observationDebounceMs:100});
   const components={};
-  for(const [name,fn] of Object.entries({api,observer,generator}))components[name]=mount(h,fn);
+  for(const [name,fn] of Object.entries({api,observer,retrieval,generator}))components[name]=mount(h,fn);
   t.after(()=>{Object.values(components).forEach(stop=>stop());h.dispose()});return {h,components};
 }
 function seed(h,id) {
@@ -48,7 +49,7 @@ test('legacy profile config without the managed marker honors explicitly disable
 });
 
 test('observer reconciles completion and dependent failure with generator and RAG disabled',async t=>{
-  const {h,components}=setup(t);components.generator();
+  const {h,components}=setup(t);components.generator();components.retrieval();
   const s=sessionFixture('components-state');seed(h,s.id);
   for(let i=0;i<3;i++){receipt(h,s,i,true);await flushJobs()}
   assert.deepEqual(h.state(s.id).plan.steps.map(s=>s.status),['done','done','done']);
@@ -83,3 +84,9 @@ test('observer disable masks cached completion until a new journal check',async 
   assert.deepEqual(h.core.publicView(s.id).steps.map(s=>s.status),['blocked','blocked','blocked']);
 });
 
+test('retrieval disable clears views and re-enable retains authoritative plan state',async t=>{
+  const {h,components}=setup(t);const s=sessionFixture('retrieval-reload');seed(h,s.id);const plan=structuredClone(h.state(s.id).plan);
+  h.core.ragViews.set(s.id,{mode:'vector'});components.retrieval();
+  assert.equal(h.core.publicView(s.id).retrieval.mode,'disabled');assert.deepEqual(h.state(s.id).plan,plan);
+  components.retrieval=mount(h,retrieval);assert.deepEqual(h.state(s.id).plan,plan);
+});

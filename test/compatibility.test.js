@@ -65,6 +65,12 @@ test('manual endpoint cannot certify machine execution and human prerequisites i
   assert.notEqual(deriveProtocol(h.state(s.id).plan,records).find(x=>x.id==='s2').status,'done')
 })
 
+test('RAG settings reject commands and relative paths before changing the runtime', async t => {
+  const h=setup(t,[]);const before=structuredClone(h.core.rawConfig.rag)
+  for(const rag of [{shell:'pwsh'},{modelPath:'relative.gguf'},{executablePath:'x\nmalicious'},{enabled:true,backend:'llama.cpp'}])assert.equal((await h.request('/plan-completion/settings',{rag})).status,400)
+  assert.deepEqual(h.core.rawConfig.rag,before)
+})
+
 test('model cannot forge a human confirmation or overwrite an established user decision', () => {
   const forged={id:'s1',title:'人工验收',status:'done',source:'user',confirmation:{actor:'user',revision:1,at:new Date().toISOString(),seq:3},acceptance:{scope:'manual',revision:1,afterSeq:-1,dependsOn:[]}}
   const proposed=validateProgress({op:'rewrite',steps:[forged]},null,[]).output.steps[0]
