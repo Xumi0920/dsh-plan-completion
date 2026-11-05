@@ -1,6 +1,8 @@
 # GitHub 发布评估 · 会话计划补全插件（2026-11-02）
 
-> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.3.0**（计划停更检测 + 建议文本保真 + 核对进度 + 本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.3.1**（计划停更检测 + 建议文本保真 + 核对进度 + 本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+>
+> v0.3.1 发布记录（2026-11-06）：修复自动更新证据预算——计划/验收回执/检索数据不再挤占近期叙述预算，保留最新回复头尾、至少一条工具结果/失败记录/用户指令；新增 4 个回归测试（281/281）。tag `v0.3.1`；CI：PR 升版后 run 42069985412 与 main merge `7994a44` run 42070095918 均四 job 全绿；npm `dsh-plan-completion@0.3.1`（45 files，shasum `1c27b92f74318693745971f068d46cdd77a2c457`，registry 与本地 tarball SHA1/SHA512 一致）。
 >
 > v0.3.0 发布记录（2026-11-06）：零配置托管 Q8（默认关闭；首次确认后自动下载/校验/拉起；Windows/Linux x64，Vulkan 优先并自动回退 CPU）+ 鉴权 Q8 状态接口（进程状态 + 默认 200 行日志尾部）+ llama-server 启动日志与设置页状态 chip。tag `v0.3.0`；GitHub Actions [run 42063969630](https://github.com/Xumi0920/dsh-plan-completion/actions/runs/42063969630)（Ubuntu/Windows × Node20/22 四 job 全绿，277/277 tests）；npm `dsh-plan-completion@0.3.0`（45 files，shasum `9f1fe520f35ddffb4480fb57c5a9dbb5a9bdcfdd`，与本地 tarball 逐字节一致）；真实 DSH canary：代理下载官方运行时/官方 Q8、managed 启动与回收、未认证 `/rag/status` 与 `/rag/prepare` 返回 401、状态接口返回 process + 200 行 logTail 均通过。
 >
@@ -115,6 +117,7 @@ git tag v0.1.0 && git push --tags
 ```
 
 > 建议：**先把 P0 B1~B8 全部打勾，再公开仓库**；否则许可证与数据问题会成为不可逆的历史提交。
+
 
 
 
