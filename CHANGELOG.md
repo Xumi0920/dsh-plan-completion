@@ -3,21 +3,17 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
-## [0.3.1] - 2026-11-06
-
-- Fix the settings page staying on "preparing local Q8 model" after the host was already ready: the prepare flag is cleared on load/save, polling continues until ready, and the header now shows a Q8 status chip (running/preparing/failed/disabled).
-- Managed Q8 auto-resumes after a DSH restart when assets are installed; overlapping starts wait for the previous owner to close, and llama-server startup logs are captured under `<storageDir>/logs/llama-server.log` with the failure tail shown in settings.
-- New authenticated `GET /plan-completion/rag/status` endpoint returns the process state (running/pid/port/variant/uptime/error), the live embedding snapshot, and the last 200 llama-server log lines by default (`tail`/`lines` can override, 10..1000); the settings page adds a "startup log" view.
-- Version bump also forces DSH to refresh the cached client bundle after asset/status UI changes.
-
-## [0.3.0] - 2026-11-05
+## [0.3.0] - 2026-11-06
 
 - Zero-config managed Q8: RAG stays off by default; the first enable shows one confirmation, then downloads the pinned official llama.cpp runtime (Windows/Linux x64, Vulkan with CPU fallback) and the official Qwen3-Embedding-0.6B Q8 model (SHA-256 verified), starts llama-server on a random loopback port with a one-time key/alias, and reuses or reaps it automatically.
 - Managed assets are installed under `<storageDir>/managed`; explicit paths and DSH_LLAMA_SERVER / DSH_Q8_MODEL remain supported, and `autoManage:false` restores the manual-path mode.
 - Downloads honor explicit/env proxies and the Windows system proxy (curl-first transport); the llama child still never inherits provider credentials, proxy variables, or LLAMA_ARG_* overrides.
 - Settings page adds the enable confirmation, live download/start progress, retry/stop controls, and collapsed advanced settings (variant, install dir, manual paths, external backend).
 - First-start resilience: a longer startup window, a real CPU fallback when the Vulkan build cannot start, continuous status polling (a transient failure no longer leaves the UI stuck), an explicit retry that bypasses the failure cooldown, and asset errors surfaced in the settings status.
-- Tests: managed asset planning/extraction/discovery/downloads via injected dependencies, proxy parsing/detection, variant switching, prepare-after-failure, and zero-config settings validation.
+- Q8 status and diagnostics: the settings header shows a running/preparing/failed chip and the page keeps polling until ready; a stale "preparing" flag is cleared on load/save, retries bypass the failure cooldown, and llama-server stdout/stderr is captured under `<storageDir>/logs/llama-server.log`.
+- Authenticated `GET /plan-completion/rag/status` returns the process state (running/pid/port/variant/uptime/error), the live embedding snapshot, and the last 200 llama-server log lines by default (`tail`/`lines` override, 10..1000); `POST /plan-completion/rag/prepare` retries immediately. Both routes are registered in the production allowlist.
+- Managed Q8 auto-resumes on DSH restart when assets are installed, overlapping starts wait for the previous owner to close, and the settings page adds a startup-log view with failure tail and log path.
+- Tests: 277 total, including status/tail bounds, variant switching, prepare-after-failure, managed asset discovery/downloads, and zero-config validation.
 
 ## [0.2.0] - 2026-11-05
 
