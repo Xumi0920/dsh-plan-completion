@@ -20,7 +20,7 @@
   },
   "engines": {
     "node": ">=20",
-    "dsh": ">=0.2.1-rc.5 <0.3.0"
+    "dsh": ">=0.2.1-rc.5"
   },
   "scripts": {
     "test": "node --test",
@@ -58,7 +58,8 @@
     "LICENSE",
     "CHANGELOG.md",
     "docs/managed-embedding.md",
-    "docs/security.md"
+    "docs/security.md",
+    "docs/ui-design-contract.md"
   ],
   "dsh": {
     "bundle": {
