@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
+## [0.3.1] - 2026-11-06
+
+- Fix the settings page staying on "preparing local Q8 model" after the host was already ready: the prepare flag is cleared on load/save, polling continues until ready, and the header now shows a Q8 status chip (running/preparing/failed/disabled).
+- Managed Q8 auto-resumes after a DSH restart when assets are installed; overlapping starts wait for the previous owner to close, and llama-server startup logs are captured under `<storageDir>/logs/llama-server.log` with the failure tail shown in settings.
+- Version bump also forces DSH to refresh the cached client bundle after asset/status UI changes.
+
 ## [0.3.0] - 2026-11-05
 
 - Zero-config managed Q8: RAG stays off by default; the first enable shows one confirmation, then downloads the pinned official llama.cpp runtime (Windows/Linux x64, Vulkan with CPU fallback) and the official Qwen3-Embedding-0.6B Q8 model (SHA-256 verified), starts llama-server on a random loopback port with a one-time key/alias, and reuses or reaps it automatically.

@@ -17,10 +17,11 @@ export function attach(ctx, core) {
     core.prepareEmbeddings = managed ? () => managed.prepare().catch(() => null) : null
     // Resume a previously installed managed runtime after a DSH restart without
     // ever starting a surprise download: only installed assets warm up eagerly.
+    // Wait for the previous owner to finish closing so two starts cannot overlap.
     if (managed) {
       const owner = managed
-      resolveAssets(config, { storageDir: core.settings?.storageDir ?? '' })
-        .then(found => { if (found) void owner.prepare().catch(() => {}) })
+      previousClose.then(() => resolveAssets(config, { storageDir: core.settings?.storageDir ?? '' }))
+        .then(found => { if (found && managed === owner) return owner.prepare().catch(() => {}) })
         .catch(() => {})
     }
     const owner = managed
