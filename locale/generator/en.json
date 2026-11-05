@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Plan and Suggestion Generator",
+    "description": "Uses the selected DSH model to generate plans and next-message suggestions. Disabling stops generation and replanning; event observation and receipt validation can continue."
+  }
+}

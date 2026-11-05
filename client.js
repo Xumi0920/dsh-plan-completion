@@ -2470,7 +2470,7 @@ window.__ModuleLoader__.load({
             : null,
           row('calls', t('settings.modelCalls'), t('settings.callsDesc'),
             toggle('calls-toggle', settings.modelCalls === true, function onCalls() { patch({ modelCalls: settings.modelCalls !== true }); })),
-          row('rag-enabled', '本地 Q8 检索', '默认关闭。开启后自动下载并启动本地 llama.cpp 与官方 Qwen3 Q8 模型；无需手动配置路径。',
+          row('rag-enabled', '本地 Q8 检索', '默认关闭。需启用「本地 Q8 运行服务」组件；首次开启后自动下载并启动官方模型，无需手动配置路径。',
             toggle('rag-toggle', settings.rag?.enabled === true, function onRag() { setRagEnabled(settings.rag?.enabled !== true); })),
           settings.rag?.enabled === true ? row('rag-runtime', '检索运行状态', '首次启用会自动下载（约 610MB 模型 + 运行时），之后按需启动。', ragControl) : null,
           settings.rag?.enabled === true && ragErrorText

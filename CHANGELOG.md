@@ -3,6 +3,13 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
+## [Unreleased]
+
+- Split local Q8 process ownership into an independent embedding component; retrieval owns the index and borrows vectors, with lexical fallback when the local runtime is disabled.
+- Provide Chinese/English names, descriptions and icons for all six DSH component entries, including the effect of disabling each one.
+- Preserve root-only and old five-row profiles, honor explicitly disabled embedding rows, and wait for the previous Q8 owner to close before starting a replacement.
+- Add component lifecycle/migration regression tests, a native DSH Loader check and packaged locale/export validation.
+
 ## [0.3.1] - 2026-11-06
 
 - Fix automatic plan/completion updates dropping the latest evidence: the evidence budget now preserves the latest answer (head and conclusion), at least one tool result, failure record and user instruction instead of charging old plan/acceptance/receipt metadata against the narrative budget; adds 4 regression tests covering legacy and strict updates. 281/281 tests.

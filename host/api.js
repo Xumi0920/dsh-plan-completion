@@ -297,7 +297,10 @@ function jsonResponse(res, status, value) {
             settings.progressProtocol = next.progressProtocol
             const ragChanged = JSON.stringify((await settingsSnapshot()).rag) !== JSON.stringify(next.rag)
             core.rawConfig.rag = { ...core.rawConfig.rag, ...next.rag }
-            if (ragChanged) core.restartRetrieval?.()
+            if (ragChanged) {
+              if (core.restartEmbedding) core.restartEmbedding()
+              else core.restartRetrieval?.()
+            }
             // First enable starts the zero-config managed setup in the background so the
             // settings page can render download/start progress immediately.
             if (ragChanged && next.rag.enabled && next.rag.backend === 'llama.cpp') {

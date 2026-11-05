@@ -18,13 +18,15 @@
           enabled: false
           sendContextToGenerator: false
           backend: 'llama.cpp'
-          executablePath: '' # absolute local llama-server path; no automatic download
+          executablePath: '' # empty: use the managed installation after explicit setup
           modelPath: '' # absolute official Qwen3-Embedding-0.6B-Q8_0.gguf path
           strategy: 'typed' # source-aware retrieval + established acceptance targets
         # Optional: set a local directory to persist debug logs / experiment data.
         # debugDir: '<local debug directory>'
     - id: plan-completion-observer
       name: 'dsh-plan-completion/observer'
+    - id: plan-completion-embedding
+      name: 'dsh-plan-completion/embedding'
     - id: plan-completion-retrieval
       name: 'dsh-plan-completion/retrieval'
     - id: plan-completion-generator
