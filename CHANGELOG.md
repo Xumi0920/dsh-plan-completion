@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
+## [0.4.2] - 2026-11-06
+
+- Ship `docs/ui-design-contract.md` inside the npm package together with the DSH UI/verification contract referenced by README/AGENTS/CONTRIBUTING.
+- Relax `engines.dsh` upper bound from `>=0.2.1-rc.5 <0.3.0` to `>=0.2.1-rc.5` so newer DSH hosts can load the plugin without an engine warning.
+- Sync documentation version records (compatibility/security/delivery/phase-2/managed-validation/managed-embedding/README) to 0.4.1/0.4.2; document the internal, npm-unpublished v0.1.8 tag backfill and the release-order convention.
+
 ## [0.4.1] - 2026-11-06
 
 - Align the plan popover and composer entries with DSH theme tokens, native button variants, typography and radii. Completed status uses a pale success surface with readable primary text in both themes.
