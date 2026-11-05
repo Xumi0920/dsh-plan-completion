@@ -7,7 +7,7 @@ const original = fs.readFileSync(process.env.DSH_CLIENT_TEST_SOURCE || new URL('
 const marker = "    return {\n      inject: ['slots', 'locale'],";
 assert.equal(original.split(marker).length, 2, 'client test seam must be unique');
 const source = original.replace(marker,
-  '    globalThis.__clientTest = { store, Dock, handleKeyDown, normalizePlan, planSignature, renderPopoverContent, fetchPlanState, warmPlanState, requestVerify, fetchSettings, saveSettings, handlePlanFetch };\n' + marker);
+  '    globalThis.__clientTest = { store, Dock, handleKeyDown, normalizePlan, planSignature, renderPopoverContent, computePopoverPosition, fetchPlanState, warmPlanState, requestVerify, fetchSettings, saveSettings, handlePlanFetch };\n' + marker);
 
 test('acceptance revision participates in UI refresh identity',()=>{
  const {api}=fixture();const raw={sessionId:'p',version:{gen:1,rev:0},status:'active',steps:[{id:'s1',title:'验证',status:'doing',acceptance:{revision:1},lifecycle:'dependency_stale'}]};
@@ -15,7 +15,7 @@ test('acceptance revision participates in UI refresh identity',()=>{
  assert.equal(first.steps[0].acceptanceRevision,1);assert.equal(next.steps[0].acceptanceRevision,2);assert.notEqual(api.planSignature(first),api.planSignature(next));
 });
 
-function fixture() {
+function fixture(viewport = {}) {
   let effects = [], refs = [], plugin;
   let timerId = 0;
   const writes = [], requests = [], timers = new Map();
@@ -53,6 +53,7 @@ function fixture() {
       addEventListener() {}, removeEventListener() {},
     },
     window: {
+      ...viewport,
       location: {href: 'https://local.invalid/session/PRIVATE_SESSION_ID?token=PRIVATE_TOKEN'},
       __ModuleLoader__: {load(module) { plugin = module.factory(name => { assert.equal(name, 'react'); return React; }); }},
       setTimeout(fn) { timers.set(++timerId, fn); return timerId; },
@@ -113,6 +114,73 @@ test('compact plan prioritizes blocked work, limits visible steps to three, and 
  assert.deepEqual(Array.from(items,x=>x.props['data-status']),['blocked','doing','todo']);
  assert.ok(nodes.some(n=>n.type==='details'&&JSON.stringify(n).includes('完整计划 · 1 项已完成')));
  assert.match(JSON.stringify(tree),/等待工具回执/);assert.match(JSON.stringify(tree),/只用隔离副本/);
+});
+
+function descendants(tree) {
+  const nodes = [];
+  const walk = item => {
+    if (Array.isArray(item)) item.forEach(walk);
+    else if (item && typeof item === 'object') { nodes.push(item); walk(item.props?.children); }
+  };
+  walk(tree);
+  return nodes;
+}
+
+test('completed plan has no empty steps heading and keeps its update time outside the scrolling body', () => {
+  const {api} = fixture();
+  const p = api.normalizePlan({...plan(1), status: 'completed', updatedAt: 1793899200000,
+    steps: [{id: 's1', title: 'Finished work', status: 'done'}]});
+  const tree = api.renderPopoverContent(p, {}, key => key);
+  const body = tree.find(n => n.props.className === 'dpc-pop-body');
+  const foot = tree.find(n => n.props.className === 'dpc-pop-foot');
+  assert.ok(!descendants(body).some(n => n.props.key === 'steps' || n.props.key === 'updated'));
+  assert.ok(descendants(body).some(n => n.props.key === 'full-plan'));
+  assert.equal(descendants(foot).filter(n => n.props.className === 'dpc-updated').length, 1);
+  const actions = descendants(foot).filter(n => n.type === 'button');
+  assert.deepEqual(Array.from(actions, n => n.props.children[0]), ['popover.sync', 'popover.verify', 'popover.fill']);
+  assert.equal(actions.at(-1).props['data-primary'], 'true');
+  assert.equal(descendants(tree).filter(n => n.props['aria-label'] === 'popover.close').length, 1);
+});
+
+test('footer actions still write drafts and request verification after the layout change', () => {
+  const f = fixture(), dock = f.mount();
+  const p = f.api.normalizePlan(plan(1, 'Next step'));
+  let verified = 0;
+  const tree = f.api.renderPopoverContent(p, dock.actions, key => key, null, () => verified++);
+  const buttons = descendants(tree).filter(n => n.type === 'button');
+  const click = key => buttons.find(n => n.props.children[0] === key).props.onClick({stopPropagation() {}});
+  click('popover.fill');
+  assert.equal(f.writes.at(-1).text, 'Next step');
+  click('popover.sync');
+  assert.match(f.writes.at(-1).text, /Private session plan/);
+  click('popover.verify');
+  assert.equal(verified, 1);
+  dock.unmount();
+});
+
+test('manual confirmation uses the shared button and preserves confirmation/loading behavior', () => {
+  const {api} = fixture();
+  const p = api.normalizePlan({...plan(1), steps: [{id: 'manual', title: 'Check appearance', status: 'todo', acceptance: {scope: 'manual'}}]});
+  let confirmed;
+  const render = loading => api.renderPopoverContent(p, null, key => key, null, null, {loading}, step => { confirmed = step.id; });
+  const button = descendants(render(false)).find(n => n.type === 'button' && n.props.children[0] === '确认完成');
+  assert.equal(button.props.className, 'dpc-btn');
+  button.props.onClick();
+  assert.equal(confirmed, 'manual');
+  assert.equal(descendants(render(true)).find(n => n.type === 'button' && n.props.children[0] === '确认完成').props.disabled, true);
+});
+
+test('popover fits narrow viewports and falls back when its anchor leaves no room above', () => {
+  for (const viewport of [{innerWidth: 280, innerHeight: 480}, {innerWidth: 1280, innerHeight: 800}]) {
+    const {api} = fixture(viewport);
+    for (const rect of [null, {top: 100, right: viewport.innerWidth - 12}, {top: 400, right: 800}]) {
+      const style = api.computePopoverPosition(rect);
+      assert.ok(style.right >= 12);
+      assert.ok(style.right + style.width <= viewport.innerWidth - 12);
+      assert.ok(style.bottom + style.maxHeight <= viewport.innerHeight - 12);
+      assert.equal(style.overflow, 'hidden');
+    }
+  }
 });
 test('lifecycle, constraints and retrieval updates refresh the client even with the same plan version',()=>{
  const f=fixture(), base=f.api.normalizePlan(plan(1));
