@@ -2225,6 +2225,12 @@ window.__ModuleLoader__.load({
         '.dpc-settings-page .dpc-settings-save:hover{background:color-mix(in srgb,var(--dsw-alias-label-primary) 11%,transparent) !important}',
         '.dpc-settings-save:disabled{opacity:.5;cursor:default}',
         '.dpc-settings-loading{padding:18px 24px;font-size:13px;color:var(--dsw-alias-label-secondary)}',
+        '.dpc-settings-chip{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;font-size:11px;line-height:18px;background:color-mix(in srgb,var(--dsw-alias-label-primary) 8%,transparent);color:var(--dsw-alias-label-secondary)}',
+        '.dpc-settings-chip[data-state="ready"]{background:color-mix(in srgb,var(--dsw-alias-state-success-primary,#2e7d32) 16%,transparent) !important;color:var(--dsw-alias-state-success-primary,#2e7d32) !important}',
+        '.dpc-settings-chip[data-state="failed"]{background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#c62828) 16%,transparent) !important;color:var(--dsw-alias-state-error-primary,#c62828) !important}',
+        '.dpc-settings-chip[data-state="starting"]{background:color-mix(in srgb,var(--dsw-alias-brand-primary,#4d6bfe) 14%,transparent) !important;color:var(--dsw-alias-brand-primary,#4d6bfe) !important}',
+        '.dpc-settings-log{margin:4px 0 12px;padding:10px 12px;border-radius:8px;background:color-mix(in srgb,var(--dsw-alias-label-primary) 5%,transparent);display:flex;flex-direction:column;gap:6px}',
+        '.dpc-settings-log-pre{margin:0;max-height:180px;overflow:auto;white-space:pre-wrap;word-break:break-all;font:11px/16px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--dsw-alias-label-secondary)}',
         '.dpc-settings-input{width:100%;box-sizing:border-box;border:0 !important;border-radius:8px !important;padding:8px 12px !important;font-size:14px !important;line-height:20px !important;color:var(--dsw-alias-label-primary) !important;background:color-mix(in srgb,var(--dsw-alias-label-primary) 7%,transparent) !important;box-shadow:none !important;outline:none !important}',
         '.dpc-settings-input:focus{box-shadow:0 0 0 1px var(--dsw-alias-brand-primary,#4d6bfe) !important}',
         '.dpc-settings-control-stack{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:132px;max-width:300px}',
@@ -2284,6 +2290,11 @@ window.__ModuleLoader__.load({
         return function stopPolling() { alive = false; clearInterval(timer); };
       }, [settings?.rag?.enabled, settings?.embedding?.state]);
 
+      React.useEffect(function syncPreparing() {
+        if (!settings) return;
+        if ((settings.embedding || {}).state === 'ready') setPreparing(false);
+      }, [settings?.embedding?.state]);
+
       function patch(next) {
         setSaved(false);
         setSettings(function keep(previous) { return previous ? { ...previous, ...next } : previous; });
@@ -2315,6 +2326,7 @@ window.__ModuleLoader__.load({
             return;
           }
           setSettings(result.settings || next);
+          if (result.settings && result.settings.embedding && result.settings.embedding.state === 'ready') setPreparing(false);
           setSaved(true); setError('');
           if (prepare) {
             setPreparing(true);
@@ -2361,6 +2373,14 @@ window.__ModuleLoader__.load({
         : embedding.state === 'ready'
           ? '运行中 · 本地 Q8'
           : (assets.error || embedding.error) ? '失败：' + (assets.error || embedding.error) : '已关闭';
+      const ragErrorText = assets.error || embedding.error || '';
+      const ragDetail = (embedding.serverTail || '').trim();
+      const q8State = embedding.state || 'disabled';
+      const q8Chip = q8State === 'ready' ? 'Q8 运行中'
+        : q8State === 'starting' ? 'Q8 准备中'
+          : q8State === 'failed' ? 'Q8 失败'
+            : q8State === 'stopped' || q8State === 'disabled' ? 'Q8 已关闭'
+              : 'Q8 ' + q8State;
       const ragControl = h('div', { key: 'rag-control', className: 'dpc-settings-control-stack' },
         h('div', { key: 'state', className: 'dpc-settings-row-desc' }, ragStatus),
         ragActive ? h('div', { key: 'bar', className: 'dpc-settings-progress' },
@@ -2396,7 +2416,8 @@ window.__ModuleLoader__.load({
         h('div', { key: 'page', className: 'dpc-settings-page' },
           h('div', { key: 'head', className: 'dpc-settings-head' },
             h('div', { key: 'title', className: 'dpc-settings-title' }, t('settings.title')),
-            h('div', { key: 'sub', className: 'dpc-settings-sub' }, 'v0.3.0 · build ' + CLIENT_BUILD + ' · ' + t('settings.defaultRoute', { value: defaultRoute }))),
+            h('div', { key: 'sub', className: 'dpc-settings-sub' }, 'v0.3.0 · build ' + CLIENT_BUILD + ' · ' + t('settings.defaultRoute', { value: defaultRoute }),
+              h('span', { key: 'q8-chip', className: 'dpc-settings-chip', 'data-state': q8State }, q8Chip))),
           row('progress', '计划验收', '兼容模式保留旧行为并标明未验证；已有版本化验收不会被降级。',
             h('select', { className: 'dpc-settings-select', value: settings.progressProtocol || 'legacy', onChange: e => patch({ progressProtocol: e.target.value }) },
               h('option', { value: 'legacy' }, '兼容模式'), h('option', { value: 'strict' }, '严格验收'))),
@@ -2427,6 +2448,13 @@ window.__ModuleLoader__.load({
           row('rag-enabled', '本地 Q8 检索', '默认关闭。开启后自动下载并启动本地 llama.cpp 与官方 Qwen3 Q8 模型；无需手动配置路径。',
             toggle('rag-toggle', settings.rag?.enabled === true, function onRag() { setRagEnabled(settings.rag?.enabled !== true); })),
           settings.rag?.enabled === true ? row('rag-runtime', '检索运行状态', '首次启用会自动下载（约 610MB 模型 + 运行时），之后按需启动。', ragControl) : null,
+          settings.rag?.enabled === true && ragErrorText
+            ? h('div', { key: 'rag-error-detail', className: 'dpc-settings-log' },
+                h('div', { key: 'title', className: 'dpc-settings-row-label' }, 'Q8 失败详情'),
+                h('div', { key: 'error', className: 'dpc-settings-row-desc' }, ragErrorText),
+                ragDetail ? h('pre', { key: 'tail', className: 'dpc-settings-log-pre' }, ragDetail.slice(-2000)) : null,
+                embedding.logPath ? h('div', { key: 'path', className: 'dpc-settings-row-desc' }, 'llama-server 日志：' + embedding.logPath) : null)
+            : null,
           row('rag-send', '发送检索片段给计划助手', '片段经当前生成模型路由发送，独立于本地检索开关；默认关闭。',
             toggle('rag-send-toggle', settings.rag?.sendContextToGenerator === true, function onSend() { patch({ rag: { ...(settings.rag || {}), sendContextToGenerator: settings.rag?.sendContextToGenerator !== true } }); })),
           h('div', { key: 'rag-advanced', className: 'dpc-settings-adv' },

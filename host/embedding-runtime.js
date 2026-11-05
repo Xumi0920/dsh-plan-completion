@@ -1,8 +1,9 @@
 import { spawn } from 'node:child_process'
 import { createHash, randomBytes } from 'node:crypto'
 import { createReadStream } from 'node:fs'
-import { realpath, stat } from 'node:fs/promises'
-import { isAbsolute } from 'node:path'
+import { mkdir, realpath, stat } from 'node:fs/promises'
+import { isAbsolute, join } from 'node:path'
+import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import net from 'node:net'
 import http from 'node:http'
@@ -105,13 +106,14 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
   const options = runtimeOptions(config), now = dependencies.now ?? Date.now
   let worker = null, client = null, opening = null, closing = null, closed = false, state = 'stopped'
   let pid = null, port = null, error = null, starts = 0, retryAt = 0, active = 0, idle = null, startupController = null
-  let files = null, managed = false, source = ''
+  let files = null, managed = false, source = '', serverTail = '', logPath = ''
   const spawnWorker = dependencies.spawn ?? spawn
   const snapshot = () => ({
     backend: 'llama.cpp', state, pid, port, starts, error,
     model: 'Qwen3-Embedding-0.6B-Q8_0', owned: true,
     managed, source, autoManage: options.autoManage, variant: options.variant,
     executablePath: files?.executablePath ?? '', modelPath: files?.modelPath ?? '',
+    logPath, serverTail: serverTail.slice(-4096),
     assets: managed ? assetsStatus() : null,
   })
   function armIdle() {
@@ -136,7 +138,7 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
     try { await closing } finally { closing = null }
   }
   async function attempt() {
-    state = 'starting'; error = null
+    state = 'starting'; error = null; serverTail = ''
     const controller = new AbortController(); startupController = controller
     let deadline = null
     try {
@@ -147,6 +149,9 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
       if (closed || controller.signal.aborted) throw Error('startup-cancelled')
       port = await (dependencies.freePort ?? freePort)()
       if (closed || controller.signal.aborted) throw Error('startup-cancelled')
+      const logDir = dependencies.logDir ?? (dependencies.storageDir ? join(dependencies.storageDir, 'logs') : join(tmpdir(), 'dsh-plan-completion-logs'))
+      logPath = join(logDir, 'llama-server.log')
+      try { await mkdir(logDir, { recursive: true }) } catch {}
       deadline = setTimeout(() => controller.abort(), options.startupTimeoutMs)
       const key = randomBytes(32).toString('hex'), alias = 'dsh-q8-' + randomBytes(8).toString('hex')
       const current = spawnWorker(process.execPath, [fileURLToPath(new URL('./llama-worker.js', import.meta.url))],
@@ -155,8 +160,12 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
       current.on('error', () => { error = 'worker-start-failed'; controller.abort() })
       current.on('message', message => {
         if (worker !== current) return
-        if (message?.type === 'spawned') pid = message.pid
-        if (message?.type === 'failed') { error = 'server-start-failed'; controller.abort() }
+        if (message?.type === 'spawned') { pid = message.pid; if (message.logPath) logPath = message.logPath }
+        if (message?.type === 'failed') {
+          error = 'server-start-failed'
+          serverTail = typeof message.tail === 'string' ? message.tail : ''
+          controller.abort()
+        }
       })
       current.on('exit', () => {
         if (worker !== current) return
@@ -164,7 +173,7 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
         if (state !== 'stopping') { state = closed ? 'closed' : 'failed'; error = 'server-exited'; retryAt = now() + options.retryDelayMs }
         controller.abort()
       })
-      current.send({ type: 'start', ...resolved, port, key, alias, options }, () => {})
+      current.send({ type: 'start', ...resolved, port, key, alias, logPath, options }, () => {})
       while (!closed && !controller.signal.aborted) {
         if (await (dependencies.probe ?? probe)(port, key, alias, controller.signal)) {
           if (worker !== current || closed || controller.signal.aborted) break
@@ -172,6 +181,16 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
           state = 'ready'; armIdle(); return client
         }
         await pause(100)
+      }
+      if (current.connected) {
+        const tailNow = await new Promise(resolve => {
+          const timer = setTimeout(() => { done(); resolve('') }, 400)
+          const onMessage = message => { if (message?.type === 'tail') { done(); resolve(String(message.tail || '')) } }
+          const done = () => { clearTimeout(timer); try { current.off('message', onMessage) } catch {} }
+          current.on('message', onMessage)
+          try { current.send({ type: 'tail' }) } catch { done(); resolve('') }
+        })
+        if (tailNow) serverTail = tailNow
       }
       throw Error('startup-timeout')
     } finally {
