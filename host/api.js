@@ -1,4 +1,5 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
+import { readFile, stat } from 'node:fs/promises'
 
 import { requestRejection, safeDiagnostics } from './security.js'
 import { applyUserEdit } from './plan.js'
@@ -22,6 +23,24 @@ export function attach(ctx, core) {
   let disposed = false
   ctx.effect(() => () => { disposed = true; core.components.api = false })
 const ROUTE_PREFIX = '/plan-completion/'
+const clipLogLine = line => line.length > 400 ? line.slice(0, 400) + '…' : line
+async function readRagLog(logPath, tailLines = 60) {
+  if (!logPath) return { path: '', size: 0, mtime: null, startup: [], tail: [] }
+  try {
+    const info = await stat(logPath)
+    const text = await readFile(logPath, 'utf8')
+    const lines = text.split(/\r?\n/).filter(line => line.trim() !== '')
+    return {
+      path: logPath,
+      size: info.size,
+      mtime: info.mtime.toISOString(),
+      startup: lines.slice(0, 40).map(clipLogLine),
+      tail: lines.slice(-Math.max(10, Math.min(200, tailLines))).map(clipLogLine),
+    }
+  } catch {
+    return { path: logPath, size: 0, mtime: null, startup: [], tail: [] }
+  }
+}
 function readJsonBody(req) {
   return new Promise(resolve => {
     let size = 0
@@ -305,6 +324,20 @@ function jsonResponse(res, status, value) {
             if (typeof core.prepareEmbeddings !== 'function') { jsonResponse(res, 400, { ok: false, error: 'retrieval-unavailable' }); return }
             void Promise.resolve().then(() => core.prepareEmbeddings()).catch(() => {})
             jsonResponse(res, 202, { ok: true, embedding: core.embeddingSnapshot?.() ?? { state: 'disabled' } })
+            return
+          }
+          if (pathname === `${ROUTE_PREFIX}rag/status` && method === 'GET') {
+            const embedding = core.embeddingSnapshot?.() ?? { state: 'disabled' }
+            const settingsNow = await settingsSnapshot()
+            const tailLines = Number(url?.searchParams?.get('lines')) || 60
+            const log = await readRagLog(embedding.logPath ?? '', tailLines)
+            jsonResponse(res, 200, {
+              ok: true,
+              rag: settingsNow.rag,
+              embedding,
+              prepareAvailable: typeof core.prepareEmbeddings === 'function',
+              log,
+            })
             return
           }
           if (pathname === `${ROUTE_PREFIX}state` && method === 'GET') {
@@ -625,6 +658,8 @@ function jsonResponse(res, status, value) {
       `${ROUTE_PREFIX}verify`,
       `${ROUTE_PREFIX}settings`,
       `${ROUTE_PREFIX}confirm`,
+      `${ROUTE_PREFIX}rag/status`,
+      `${ROUTE_PREFIX}rag/prepare`,
     ]
     if (settings.enableDebugRoutes) {
       paths.push(

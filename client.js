@@ -46,7 +46,7 @@ window.__ModuleLoader__.load({
     const STALE_POLL_MS = 15000;
     const STEP_STATUSES = ['todo', 'doing', 'blocked', 'done', 'dropped'];
     // Client build marker surfaced to the Host diagnostic route (proves which bundle is live).
-    const CLIENT_BUILD = 'rag-zero-config-2026-11-05';
+    const CLIENT_BUILD = 'q8-status-2026-11-06';
     // TEMP verification flag: auto-open the plan panel shortly after mount so a static
     // screenshot can be taken without synthetic clicks. Set back to false before release.
     const DEV_OPEN_POPOVER = false;
@@ -893,6 +893,21 @@ window.__ModuleLoader__.load({
             return response && response.ok === true ? Promise.resolve(response.json()) : null;
           })
           .then(function parsed(json) { return json && typeof json === 'object' ? json : null; })
+          .catch(function networkError() { return null; });
+      } catch (error) { return Promise.resolve(null); }
+    }
+
+    function fetchRagStatus(lines) {
+      try {
+        const query = typeof lines === 'number' ? '?lines=' + lines : '';
+        return Promise.resolve(fetch('/plan-completion/rag/status' + query, {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: { accept: 'application/json' }
+        }))
+          .then(function readResponse(response) {
+            return response && response.ok === true ? Promise.resolve(response.json()) : null;
+          })
           .catch(function networkError() { return null; });
       } catch (error) { return Promise.resolve(null); }
     }
@@ -2257,6 +2272,7 @@ window.__ModuleLoader__.load({
       const [saved, setSaved] = React.useState(false);
       const [ragConfirm, setRagConfirm] = React.useState(false);
       const [preparing, setPreparing] = React.useState(false);
+      const [ragLog, setRagLog] = React.useState(null);
       const [advanced, setAdvanced] = React.useState(false);
 
       React.useEffect(function load() {
@@ -2354,6 +2370,11 @@ window.__ModuleLoader__.load({
         setPreparing(true);
         prepareRag();
       }
+      function loadRagLog() {
+        fetchRagStatus(120).then(function applied(result) {
+          if (result && result.log) setRagLog(result.log);
+        });
+      }
 
       const styleTag = h('style', { key: 'style', 'data-plan-completion-style': 'settings' }, settingsCss());
       if (status === 'loading') return h(React.Fragment, null, styleTag, h('div', { key: 'loading', className: 'dpc-settings-loading' }, t('settings.loading')));
@@ -2385,8 +2406,12 @@ window.__ModuleLoader__.load({
         h('div', { key: 'state', className: 'dpc-settings-row-desc' }, ragStatus),
         ragActive ? h('div', { key: 'bar', className: 'dpc-settings-progress' },
           h('span', { key: 'fill', style: { width: (ragPercent || 2) + '%' } })) : null,
-        settings.rag?.enabled === true && embedding.state !== 'ready'
-          ? h('button', { key: 'retry', type: 'button', className: 'dpc-settings-save', onClick: retryRag }, embedding.state === 'failed' ? '重新尝试' : '刷新状态')
+        settings.rag?.enabled === true
+          ? h('div', { key: 'rag-actions', style: { display: 'flex', gap: '8px', justifyContent: 'flex-end' } },
+              h('button', { key: 'log', type: 'button', className: 'dpc-settings-save', onClick: loadRagLog }, '启动日志'),
+              embedding.state !== 'ready'
+                ? h('button', { key: 'retry', type: 'button', className: 'dpc-settings-save', onClick: retryRag }, embedding.state === 'failed' ? '重新尝试' : '刷新状态')
+                : null)
           : null);
       const row = function row(key, label, desc, control) {
         return h('div', { key: key, className: 'dpc-settings-row' },
@@ -2416,7 +2441,7 @@ window.__ModuleLoader__.load({
         h('div', { key: 'page', className: 'dpc-settings-page' },
           h('div', { key: 'head', className: 'dpc-settings-head' },
             h('div', { key: 'title', className: 'dpc-settings-title' }, t('settings.title')),
-            h('div', { key: 'sub', className: 'dpc-settings-sub' }, 'v0.3.0 · build ' + CLIENT_BUILD + ' · ' + t('settings.defaultRoute', { value: defaultRoute }),
+            h('div', { key: 'sub', className: 'dpc-settings-sub' }, 'v0.3.1 · build ' + CLIENT_BUILD + ' · ' + t('settings.defaultRoute', { value: defaultRoute }),
               h('span', { key: 'q8-chip', className: 'dpc-settings-chip', 'data-state': q8State }, q8Chip))),
           row('progress', '计划验收', '兼容模式保留旧行为并标明未验证；已有版本化验收不会被降级。',
             h('select', { className: 'dpc-settings-select', value: settings.progressProtocol || 'legacy', onChange: e => patch({ progressProtocol: e.target.value }) },
@@ -2454,6 +2479,13 @@ window.__ModuleLoader__.load({
                 h('div', { key: 'error', className: 'dpc-settings-row-desc' }, ragErrorText),
                 ragDetail ? h('pre', { key: 'tail', className: 'dpc-settings-log-pre' }, ragDetail.slice(-2000)) : null,
                 embedding.logPath ? h('div', { key: 'path', className: 'dpc-settings-row-desc' }, 'llama-server 日志：' + embedding.logPath) : null)
+            : null,
+          ragLog
+            ? h('div', { key: 'rag-log', className: 'dpc-settings-log' },
+                h('div', { key: 'title', className: 'dpc-settings-row-label' }, 'llama-server 启动日志'),
+                ragLog.path ? h('div', { key: 'path', className: 'dpc-settings-row-desc' }, ragLog.path + (ragLog.size ? ' · ' + Math.round(ragLog.size / 1024) + ' KB' : '')) : null,
+                (ragLog.startup || []).length ? h('pre', { key: 'startup', className: 'dpc-settings-log-pre' }, (ragLog.startup || []).join('\n')) : null,
+                (ragLog.tail || []).length ? h('pre', { key: 'tail', className: 'dpc-settings-log-pre' }, (ragLog.tail || []).slice(-30).join('\n')) : null)
             : null,
           row('rag-send', '发送检索片段给计划助手', '片段经当前生成模型路由发送，独立于本地检索开关；默认关闭。',
             toggle('rag-send-toggle', settings.rag?.sendContextToGenerator === true, function onSend() { patch({ rag: { ...(settings.rag || {}), sendContextToGenerator: settings.rag?.sendContextToGenerator !== true } }); })),

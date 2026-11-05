@@ -70,6 +70,7 @@ test('security: diagnostics and all development routes are absent by default', t
   const host = setup(t);
   assert.deepEqual([...host.routes.keys()].sort(), [
     '/plan-completion/confirm',
+    '/plan-completion/rag/prepare', '/plan-completion/rag/status',
     '/plan-completion/replan', '/plan-completion/settings', '/plan-completion/state',
     '/plan-completion/verify', '/plan-completion/warm',
   ]);

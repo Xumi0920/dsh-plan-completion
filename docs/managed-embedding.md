@@ -73,3 +73,14 @@ node scripts/check-managed-runtime.mjs
 下载可使用显式/环境代理或 Windows 系统代理（优先 curl，其次直连）；llama 子进程本身不继承代理或供应商凭据。高级设置仍支持关闭 `autoManage` 后手填路径、固定 CPU/Vulkan、或切换到 external 端点。
 
 可直接复用 `DSH_LLAMA_SERVER` / `DSH_Q8_MODEL` 指向已有安装；模型文件与运行时不会随 npm 包分发。
+
+## 运行状态接口（v0.3.1+）
+
+鉴权后的 `GET /plan-completion/rag/status?lines=120` 返回：
+
+- `rag`：enabled/backend/autoManage/variant/installDir 等当前配置；
+- `embedding`：托管客户端快照（state、pid、port、variant、managed/source、executablePath/modelPath、logPath、serverTail）；
+- `log`：`<storageDir>/logs/llama-server.log` 的 `path/size/mtime/startup(前 40 行)/tail(最近 N 行)`；
+- `prepareAvailable`：是否可调用 `POST /plan-completion/rag/prepare` 立即重试。
+
+设置页的「启动日志」按钮使用该接口展示启动过程和最后日志；该路由与其它 `/plan-completion/*` 一样先经过 DSH 连接准入，未授权请求返回 401。
