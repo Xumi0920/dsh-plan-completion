@@ -3,6 +3,11 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
+## [0.3.1] - 2026-11-06
+
+- Fix automatic plan/completion updates dropping the latest evidence: the evidence budget now preserves the latest answer (head and conclusion), at least one tool result, failure record and user instruction instead of charging old plan/acceptance/receipt metadata against the narrative budget; adds 4 regression tests covering legacy and strict updates. 281/281 tests.
+- CI: enable manual `workflow_dispatch` runs for PR-only validation when pull_request events are delayed.
+
 ## [0.3.0] - 2026-11-06
 
 - Zero-config managed Q8: RAG stays off by default; the first enable shows one confirmation, then downloads the pinned official llama.cpp runtime (Windows/Linux x64, Vulkan with CPU fallback) and the official Qwen3-Embedding-0.6B Q8 model (SHA-256 verified), starts llama-server on a random loopback port with a one-time key/alias, and reuses or reaps it automatically.
