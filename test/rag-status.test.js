@@ -12,14 +12,17 @@ function setup(t, config) {
 
 test('rag status endpoint reports disabled embedding state without exposing secrets', async t => {
   const host = setup(t)
-  const response = await host.request('/plan-completion/rag/status')
+  const response = await host.request('/plan-completion/rag/status?tail=25')
   assert.equal(response.status, 200)
   assert.equal(response.body.ok, true)
   assert.equal(response.body.rag.enabled, false)
   assert.equal(response.body.embedding.state, 'disabled')
+  assert.equal(response.body.process, null)
   assert.equal(typeof response.body.prepareAvailable, 'boolean')
   assert.deepEqual(response.body.log.startup, [])
   assert.deepEqual(response.body.log.tail, [])
+  assert.deepEqual(response.body.logTail, [])
+  assert.equal(response.body.log.tailLines, 25)
 })
 
 test('rag prepare endpoint responds when the retrieval component is unavailable', async t => {

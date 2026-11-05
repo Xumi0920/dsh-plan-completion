@@ -106,7 +106,7 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
   const options = runtimeOptions(config), now = dependencies.now ?? Date.now
   let worker = null, client = null, opening = null, closing = null, closed = false, state = 'stopped'
   let pid = null, port = null, error = null, starts = 0, retryAt = 0, active = 0, idle = null, startupController = null
-  let files = null, managed = false, source = '', serverTail = '', logPath = ''
+  let files = null, managed = false, source = '', serverTail = '', logPath = '', startedAt = null
   const spawnWorker = dependencies.spawn ?? spawn
   const snapshot = () => ({
     backend: 'llama.cpp', state, pid, port, starts, error,
@@ -114,6 +114,8 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
     managed, source, autoManage: options.autoManage, variant: options.variant,
     executablePath: files?.executablePath ?? '', modelPath: files?.modelPath ?? '',
     logPath, serverTail: serverTail.slice(-4096),
+    startedAt: startedAt ? new Date(startedAt).toISOString() : null,
+    uptimeMs: startedAt ? Date.now() - startedAt : 0,
     assets: managed ? assetsStatus() : null,
   })
   function armIdle() {
@@ -124,11 +126,11 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
     clearTimeout(idle); startupController?.abort(); client?.close(); client = null
     if (closing) return closing
     const current = worker
-    if (!current) { state = closed ? 'closed' : 'stopped'; return }
+    if (!current) { startedAt = null; state = closed ? 'closed' : 'stopped'; return }
     state = 'stopping'
     closing = new Promise(resolve => {
       let finished = false
-      const done = () => { if (finished) return; finished = true; clearTimeout(timer); current.off('exit', done); if (worker === current) { worker = null; pid = null; port = null }; state = closed ? 'closed' : 'stopped'; resolve() }
+      const done = () => { if (finished) return; finished = true; clearTimeout(timer); current.off('exit', done); if (worker === current) { worker = null; pid = null; port = null }; startedAt = null; state = closed ? 'closed' : 'stopped'; resolve() }
       // The supervisor kills only its own child and exits after the child is reaped.
       const timer = setTimeout(() => { try { current.disconnect() } catch {} }, 5000)
       timer.unref?.(); current.once('exit', done)
@@ -138,7 +140,7 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
     try { await closing } finally { closing = null }
   }
   async function attempt() {
-    state = 'starting'; error = null; serverTail = ''
+    state = 'starting'; error = null; serverTail = ''; startedAt = null
     const controller = new AbortController(); startupController = controller
     let deadline = null
     try {
@@ -169,7 +171,7 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
       })
       current.on('exit', () => {
         if (worker !== current) return
-        worker = null; pid = null; port = null; client?.close(); client = null
+        worker = null; pid = null; port = null; startedAt = null; client?.close(); client = null
         if (state !== 'stopping') { state = closed ? 'closed' : 'failed'; error = 'server-exited'; retryAt = now() + options.retryDelayMs }
         controller.abort()
       })
@@ -178,7 +180,7 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
         if (await (dependencies.probe ?? probe)(port, key, alias, controller.signal)) {
           if (worker !== current || closed || controller.signal.aborted) break
           client = (dependencies.createClient ?? createEmbeddingClient)({ ...config, endpoint: `http://127.0.0.1:${port}/v1/embeddings`, model: alias }, { apiKey: key })
-          state = 'ready'; armIdle(); return client
+          state = 'ready'; startedAt = now(); armIdle(); return client
         }
         await pause(100)
       }

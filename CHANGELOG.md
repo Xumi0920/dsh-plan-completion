@@ -7,7 +7,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: Se
 
 - Fix the settings page staying on "preparing local Q8 model" after the host was already ready: the prepare flag is cleared on load/save, polling continues until ready, and the header now shows a Q8 status chip (running/preparing/failed/disabled).
 - Managed Q8 auto-resumes after a DSH restart when assets are installed; overlapping starts wait for the previous owner to close, and llama-server startup logs are captured under `<storageDir>/logs/llama-server.log` with the failure tail shown in settings.
-- New authenticated `GET /plan-completion/rag/status?lines=N` endpoint exposes the RAG config, live embedding snapshot, and llama-server startup/tail log lines; the settings page adds a "startup log" view.
+- New authenticated `GET /plan-completion/rag/status?tail=N` endpoint exposes the RAG config, a process view (pid/port/variant/uptime/error), the live embedding snapshot, and llama-server startup plus tail log lines; the settings page adds a "startup log" view.
 - Version bump also forces DSH to refresh the cached client bundle after asset/status UI changes.
 
 ## [0.3.0] - 2026-11-05
