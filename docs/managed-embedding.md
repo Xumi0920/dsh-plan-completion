@@ -1,12 +1,12 @@
 # 插件托管官方 Q8
 
-状态：0.2.0-canary.1，未发布。DSH 保留原生长上下文；检索仅用于计划/补全助手。
+适用于 0.3.0 的托管 Q8 设置与本次六组件拆分。DSH 保留原生长上下文；检索仅用于计划/补全助手。
 
 ## 安装与配置
 
-自行从官方渠道准备 llama.cpp 的 llama-server（包含它需要的动态库）和官方 Qwen/Qwen3-Embedding-0.6B-GGUF 的 Q8_0 文件。插件不会自动安装或执行下载内容。本轮复用已安装的 llama.cpp b12032，不能据此保证所有后续版本兼容。
+默认使用下方的零配置安装流程。需要自行管理程序和模型时，可关闭 `autoManage`，从官方渠道准备 llama.cpp 的 llama-server（包含它需要的动态库）和官方 Qwen/Qwen3-Embedding-0.6B-GGUF 的 Q8_0 文件。手动路径模式不会自动下载。
 
-Settings 中选择“插件托管 llama.cpp”，填写两个绝对路径，再启用本地检索。默认 enabled=false、sendContextToGenerator=false；两个开关独立。程序路径指向可信、当前用户受控的文件。执行文件由用户选择，插件不验证它的发行商签名；模型固定校验 SHA-256：
+手动模式下在高级设置填写两个绝对路径，再启用本地检索。默认 enabled=false、sendContextToGenerator=false；两个开关独立。程序路径指向可信、当前用户受控的文件。执行文件由用户选择，插件不验证它的发行商签名；模型固定校验 SHA-256：
 
     06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439
 
@@ -20,6 +20,7 @@ rag:
   enabled: false
   sendContextToGenerator: false
   backend: llama.cpp
+  autoManage: false
   executablePath: /absolute/path/to/llama-server
   modelPath: /absolute/path/to/Qwen3-Embedding-0.6B-Q8_0.gguf
   startupTimeoutMs: 30000
@@ -36,11 +37,13 @@ rag:
 
 ## 进程与数据边界
 
-retrieval 组件持有唯一运行时实例。首次需要向量时，先校验模型，再以参数数组、shell=false 启动 Node supervisor。Supervisor 启动 llama-server，绑定 127.0.0.1 随机端口，使用 --embedding --pooling last 和一次性 API key。密钥通过 IPC 和私有临时文件传递，不放入命令行；健康检查验证密钥与本次随机模型别名，避免误用占用同端口的其他服务。
+独立 `embedding` 组件持有唯一运行时实例，`retrieval` 只借用其向量客户端并管理索引。首次需要向量时，先校验模型，再以参数数组、shell=false 启动 Node supervisor。Supervisor 启动 llama-server，绑定 127.0.0.1 随机端口，使用 --embedding --pooling last 和一次性 API key。密钥通过 IPC 和私有临时文件传递，不放入命令行；健康检查验证密钥与本次随机模型别名，避免误用占用同端口的其他服务。
+
+关闭 `embedding` 会回收托管进程，`retrieval` 可继续使用关键词；只关闭 `retrieval` 清空索引，独立运行服务仍按空闲策略回收。旧五行配置由 retrieval 兼容挂载运行服务，关闭该行仍会同时关闭 Q8。显式声明且禁用的 embedding 行不会被兼容路径复活。旧单行配置继续可用，数据与模型目录不迁移。
 
 子进程不继承生成供应商凭据、代理变量或 LLAMA_ARG_* 覆盖项。Electron Host 的 supervisor 明确保留 Node 模式。模型内容不经过云端；仅在另行开启 sendContextToGenerator 时把选中的片段发送给 DSH 生成模型。临时密钥防止误访问，不构成对同一 OS 用户恶意进程的隔离。
 
-并发调用共享启动；取消查询会及时结束等待，不取消其他索引批次。冷启动/超时/崩溃时检索允许词法回退，不能借失败推断 done。重试有冷却，索引后台重试有界。空闲、组件禁用、配置更换会停止自身子进程；Host 意外退出时，IPC 断开触发 supervisor 清理。不会按进程名批量终止其他 llama.cpp 或 Ollama 实例。
+并发调用共享启动；取消查询会及时结束等待，不取消其他索引批次。冷启动/超时/崩溃时检索允许词法回退，不能借失败推断 done。重试有冷却，索引后台重试有界。空闲、运行服务禁用、配置更换会停止自身子进程；Host 意外退出时，IPC 断开触发 supervisor 清理。不会按进程名批量终止其他 llama.cpp 或 Ollama 实例。
 
 ## 验收与兼容
 
@@ -74,7 +77,7 @@ node scripts/check-managed-runtime.mjs
 
 可直接复用 `DSH_LLAMA_SERVER` / `DSH_Q8_MODEL` 指向已有安装；模型文件与运行时不会随 npm 包分发。
 
-## 运行状态接口（v0.3.1+）
+## 运行状态接口（v0.3.0+）
 
 鉴权后的 `GET /plan-completion/rag/status?tail=200`（`tail`/`lines` 均可，默认 200 行，范围 10..1000）返回：
 

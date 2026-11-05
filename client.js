@@ -2441,7 +2441,7 @@ window.__ModuleLoader__.load({
         h('div', { key: 'page', className: 'dpc-settings-page' },
           h('div', { key: 'head', className: 'dpc-settings-head' },
             h('div', { key: 'title', className: 'dpc-settings-title' }, t('settings.title')),
-            h('div', { key: 'sub', className: 'dpc-settings-sub' }, 'v0.3.1 · build ' + CLIENT_BUILD + ' · ' + t('settings.defaultRoute', { value: defaultRoute }),
+            h('div', { key: 'sub', className: 'dpc-settings-sub' }, 'v0.4.0 · build ' + CLIENT_BUILD + ' · ' + t('settings.defaultRoute', { value: defaultRoute }),
               h('span', { key: 'q8-chip', className: 'dpc-settings-chip', 'data-state': q8State }, q8Chip))),
           row('progress', '计划验收', '兼容模式保留旧行为并标明未验证；已有版本化验收不会被降级。',
             h('select', { className: 'dpc-settings-select', value: settings.progressProtocol || 'legacy', onChange: e => patch({ progressProtocol: e.target.value }) },
@@ -2470,7 +2470,7 @@ window.__ModuleLoader__.load({
             : null,
           row('calls', t('settings.modelCalls'), t('settings.callsDesc'),
             toggle('calls-toggle', settings.modelCalls === true, function onCalls() { patch({ modelCalls: settings.modelCalls !== true }); })),
-          row('rag-enabled', '本地 Q8 检索', '默认关闭。开启后自动下载并启动本地 llama.cpp 与官方 Qwen3 Q8 模型；无需手动配置路径。',
+          row('rag-enabled', '本地 Q8 检索', '默认关闭。需启用「本地 Q8 运行服务」组件；首次开启后自动下载并启动官方模型，无需手动配置路径。',
             toggle('rag-toggle', settings.rag?.enabled === true, function onRag() { setRagEnabled(settings.rag?.enabled !== true); })),
           settings.rag?.enabled === true ? row('rag-runtime', '检索运行状态', '首次启用会自动下载（约 610MB 模型 + 运行时），之后按需启动。', ragControl) : null,
           settings.rag?.enabled === true && ragErrorText

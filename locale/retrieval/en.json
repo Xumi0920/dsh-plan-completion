@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Session Context Retrieval",
+    "description": "Indexes context, retrieves snippets and retains constraints using Q8 vectors or keywords. Disabling clears the index, preserving plans; the Q8 runtime is managed separately."
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Local Q8 Runtime",
+    "description": "Prepares, starts, monitors and stops the managed Qwen3-Embedding Q8 process. Produces text vectors; disabling releases its process while retrieval can use keywords."
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Session Observer",
+    "description": "Watches session and tool events, schedules plan updates and validates receipts. Disabling stops automatic tracking and invalidates cached completion."
+  }
+}

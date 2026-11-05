@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Plan UI API",
+    "description": "Provides authenticated access for the plan panel, Tab suggestions, settings, confirmations and plan commands. Disabling disconnects UI and commands from plans; background components can continue."
+  }
+}

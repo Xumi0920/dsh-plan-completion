@@ -441,7 +441,9 @@ function debugLog(record) {
 
   const core = {
     settings, rawConfig, services, shared, states, sessions, warmAttempts, inflight, verifyInflight, store, rag, observeTimers, resetAfter, ragViews, debug, presentation, experimentState, hydration, handledTurns, noneStreaks, readInt, publicView, settingsSnapshot, publishState, hydrateSession, reconcileSession, seedPlan, heuristicText, loadStoredEvents, runWarmBackfill, runGeneration, debugLog,
-    components: { core: true, observer: false, generator: false, retrieval: false, api: false },
+    components: { core: true, observer: false, embedding: false, generator: false, retrieval: false, api: false },
+    embeddingClient: null,
+    embeddingClosing: Promise.resolve(),
     get disposed() { return disposed },
     generate: null,
     setRetrieval(value) { retrieval = value ?? emptyRag },
