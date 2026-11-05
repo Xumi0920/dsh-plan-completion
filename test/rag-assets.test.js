@@ -153,6 +153,28 @@ test('ensureManagedAssets downloads pinned assets via injected deps and writes a
   assert.equal(marker.platform, 'win32-x64')
 })
 
+test('explicit variant switch forces a managed reinstall instead of reusing the old build', async () => {
+  const storageDir = await mkdtemp(join(tmpdir(), 'dpc-variant-'))
+  const deps = {
+    async downloadFile(urls, destination) {
+      await mkdir(join(destination, '..'), { recursive: true })
+      await writeFile(destination, 'asset-bytes')
+      return 'sha'
+    },
+    async extractArchive(archive, destination) {
+      await mkdir(destination, { recursive: true })
+      await writeFile(join(destination, 'llama-server.exe'), 'exe')
+    },
+    async findServer(dir, name) { return join(dir, name) },
+  }
+  const vulkan = await ensureManagedAssets({}, { storageDir, platform: 'win32', arch: 'x64', deps })
+  assert.equal(vulkan.variant, 'vulkan')
+  const cpu = await ensureManagedAssets({ variant: 'cpu' }, { storageDir, platform: 'win32', arch: 'x64', deps })
+  assert.equal(cpu.variant, 'cpu')
+  const marker = JSON.parse(await readFile(join(storageDir, 'managed', 'install.json'), 'utf8'))
+  assert.equal(marker.variant, 'cpu')
+})
+
 test('unsupported platforms fail closed without touching the install directory', async () => {
   const storageDir = await mkdtemp(join(tmpdir(), 'dpc-unsupported-'))
   await assert.rejects(

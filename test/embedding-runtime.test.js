@@ -37,6 +37,18 @@ test('startup deadline stops the owned supervisor rather than adopting an unrela
   await assert.rejects(c.embed(['a']));assert.equal(f.workers[0].exitCode,0);assert.equal(c.snapshot().pid,null);await c.close()
 })
 
+test('explicit prepare bypasses the failure cooldown and retries immediately',async()=>{
+  const f=fixture(),c=createManagedEmbeddingClient({},f.dependencies)
+  await c.embed(['a'])
+  f.workers[0].exitCode=1;f.workers[0].emit('exit',1)
+  assert.equal(c.snapshot().state,'failed')
+  await assert.rejects(c.embed(['b']),/cooling-down/)
+  await c.prepare()
+  assert.equal(c.snapshot().state,'ready')
+  assert.equal(f.calls.length,2)
+  await c.close()
+})
+
 test('query abort does not wait for a shared cold startup or cancel another caller',async()=>{
   let release;const f=fixture({validateFiles:()=>new Promise(r=>{release=r})}),c=createManagedEmbeddingClient({},f.dependencies)
   const controller=new AbortController(),first=c.embed(['cancelled query'],controller.signal),second=c.embed(['index batch'])

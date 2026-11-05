@@ -2264,26 +2264,25 @@ window.__ModuleLoader__.load({
         return function cleanup() { alive = false; };
       }, []);
 
-      // While the managed Q8 setup downloads/starts, poll the host snapshot so
-      // the settings page can show real progress without blocking the UI.
+      // While Q8 is enabled but not ready, keep polling the host snapshot.
+      // Terminal states are deliberately not treated as "stop polling": a retry
+      // or a late fallback can still transition to ready after a transient failure.
       React.useEffect(function pollEmbedding() {
         if (!settings || settings.rag?.enabled !== true) return undefined;
-        const embedding = settings.embedding || {};
-        const stage = embedding.assets?.stage || '';
-        const active = preparing || embedding.state === 'starting'
-          || ['downloading', 'runtime', 'extracting', 'model', 'verifying'].includes(stage);
-        if (!active) return undefined;
+        if ((settings.embedding || {}).state === 'ready') return undefined;
         let alive = true;
+        const deadline = Date.now() + 15 * 60 * 1000;
         const timer = setInterval(function refresh() {
+          if (Date.now() > deadline) { clearInterval(timer); return; }
           fetchSettings().then(function applied(result) {
             if (!alive || !result || !result.settings) return;
             const next = result.settings.embedding || {};
             setSettings(function merge(previous) { return previous ? { ...previous, embedding: next } : previous; });
-            if (next.state === 'ready' || next.state === 'failed' || next.state === 'stopped' || next.state === 'disabled') setPreparing(false);
+            if (next.state === 'ready') setPreparing(false);
           });
-        }, 1200);
+        }, 1500);
         return function stopPolling() { alive = false; clearInterval(timer); };
-      }, [settings?.embedding?.state, settings?.embedding?.assets?.stage, settings?.rag?.enabled, preparing]);
+      }, [settings?.rag?.enabled, settings?.embedding?.state]);
 
       function patch(next) {
         setSaved(false);
@@ -2361,13 +2360,13 @@ window.__ModuleLoader__.load({
         ? ((assets.message || '正在准备本地 Q8 模型…') + (ragPercent ? ' · ' + ragPercent + '%' : ''))
         : embedding.state === 'ready'
           ? '运行中 · 本地 Q8'
-          : embedding.error ? '失败：' + embedding.error : '已关闭';
+          : (assets.error || embedding.error) ? '失败：' + (assets.error || embedding.error) : '已关闭';
       const ragControl = h('div', { key: 'rag-control', className: 'dpc-settings-control-stack' },
         h('div', { key: 'state', className: 'dpc-settings-row-desc' }, ragStatus),
         ragActive ? h('div', { key: 'bar', className: 'dpc-settings-progress' },
           h('span', { key: 'fill', style: { width: (ragPercent || 2) + '%' } })) : null,
-        ragActive || embedding.state === 'failed'
-          ? h('button', { key: 'retry', type: 'button', className: 'dpc-settings-save', onClick: retryRag }, embedding.state === 'failed' ? '重新尝试' : '查看进度')
+        settings.rag?.enabled === true && embedding.state !== 'ready'
+          ? h('button', { key: 'retry', type: 'button', className: 'dpc-settings-save', onClick: retryRag }, embedding.state === 'failed' ? '重新尝试' : '刷新状态')
           : null);
       const row = function row(key, label, desc, control) {
         return h('div', { key: key, className: 'dpc-settings-row' },

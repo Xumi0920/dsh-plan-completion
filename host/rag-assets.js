@@ -417,8 +417,15 @@ export async function resolveAssets(config = {}, context = {}) {
  * on first use. `context.deps` may override network/extract/hash for tests.
  */
 export async function ensureManagedAssets(config = {}, context = {}) {
+  const requestedVariant = config.variant === 'cpu' || config.variant === 'vulkan' ? config.variant : 'auto'
   const existing = await resolveAssets(config, context)
-  if (existing) { assetStatus.installed = existing.managed === true; return existing }
+  if (existing) {
+    // An explicit variant switch (e.g. auto -> cpu after a GPU startup failure)
+    // must actually reinstall instead of reusing the previous variant.
+    const variantMismatch = existing.managed === true && requestedVariant !== 'auto'
+      && existing.variant && existing.variant !== requestedVariant
+    if (!variantMismatch) { assetStatus.installed = existing.managed === true; return existing }
+  }
   const root = managedInstallDir(config, context.storageDir ?? '')
   if (!root) throw Error('storage-required')
   const plan = runtimePlan(context.platform ?? process.platform, context.arch ?? process.arch)

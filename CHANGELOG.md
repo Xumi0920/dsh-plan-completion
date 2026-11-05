@@ -9,7 +9,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: Se
 - Managed assets are installed under `<storageDir>/managed`; explicit paths and DSH_LLAMA_SERVER / DSH_Q8_MODEL remain supported, and `autoManage:false` restores the manual-path mode.
 - Downloads honor explicit/env proxies and the Windows system proxy (curl-first transport); the llama child still never inherits provider credentials, proxy variables, or LLAMA_ARG_* overrides.
 - Settings page adds the enable confirmation, live download/start progress, retry/stop controls, and collapsed advanced settings (variant, install dir, manual paths, external backend).
-- Tests: managed asset planning/extraction/discovery/downloads via injected dependencies, proxy parsing/detection, and zero-config settings validation.
+- First-start resilience: a longer startup window, a real CPU fallback when the Vulkan build cannot start, continuous status polling (a transient failure no longer leaves the UI stuck), an explicit retry that bypasses the failure cooldown, and asset errors surfaced in the settings status.
+- Tests: managed asset planning/extraction/discovery/downloads via injected dependencies, proxy parsing/detection, variant switching, prepare-after-failure, and zero-config settings validation.
 
 ## [0.2.0] - 2026-11-05
 

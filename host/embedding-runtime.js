@@ -24,7 +24,7 @@ export function runtimeOptions(config = {}) {
     installDir: typeof config.installDir === 'string' ? config.installDir.trim() : '',
     autoManage: config.autoManage !== false,
     variant: config.variant === 'cpu' || config.variant === 'vulkan' ? config.variant : 'auto',
-    startupTimeoutMs: int(config.startupTimeoutMs, 60000, 1000, 300000),
+    startupTimeoutMs: int(config.startupTimeoutMs, 120000, 1000, 300000),
     idleTimeoutMs: int(config.idleTimeoutMs, 120000, 1000, 3600000),
     retryDelayMs: int(config.retryDelayMs, 3000, 100, 60000),
     contextSize: int(config.contextSize, 8192, 2048, 32768),
@@ -203,7 +203,10 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
         }
       }
       state = closed ? 'closed' : 'failed'
-      error = ['paths-required', 'invalid-files', 'not-official-q8', 'unsupported-platform'].includes(last?.message) ? last.message : error ?? 'startup-failed'
+      const assetError = assetsStatus().error
+      error = ['paths-required', 'invalid-files', 'not-official-q8', 'unsupported-platform'].includes(last?.message)
+        ? last.message
+        : assetError ? String(assetError) : error ?? 'startup-failed'
       retryAt = now() + options.retryDelayMs
       throw Error('local-embedding-unavailable')
     })()
@@ -211,7 +214,12 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
   }
   return {
     snapshot,
-    async prepare() { await open(); return snapshot() },
+    async prepare() {
+      // An explicit user retry must bypass the short failure cooldown.
+      retryAt = 0
+      await open()
+      return snapshot()
+    },
     async embed(texts, signal) {
       if (signal?.aborted) throw Error('embedding-cancelled')
       active++; clearTimeout(idle)
