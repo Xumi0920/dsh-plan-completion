@@ -1,5 +1,10 @@
 # Plan Completion（计划补全）
 
+[![test](https://github.com/Xumi0920/dsh-plan-completion/actions/workflows/test.yml/badge.svg)](https://github.com/Xumi0920/dsh-plan-completion/actions/workflows/test.yml)
+[![npm](https://img.shields.io/npm/v/dsh-plan-completion?style=flat-square&color=4D6BFE)](https://www.npmjs.com/package/dsh-plan-completion)
+[![license](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
+[![release](https://img.shields.io/github/v/release/Xumi0920/dsh-plan-completion?style=flat-square)](https://github.com/Xumi0920/dsh-plan-completion/releases/latest)
+
 DSH 计划/补全插件，为会话维护计划，在输入框上方展示下一步建议；Tab 只填入草稿，不自动发送。保留 DSH 原生回复、工具与长上下文。
 
 开发或修改插件界面前，阅读 [DSH 插件界面设计与验收规范](docs/ui-design-contract.md)。其中包含可复用的主题变量、控件规则、布局与状态约束，以及给开发 Agent 的验收模板；仓库 [AGENTS.md](AGENTS.md) 和 [开发说明](CONTRIBUTING.md) 均指向这份规范。
@@ -55,4 +60,4 @@ llama.cpp 仍是第三方开源推理引擎，DSH 插件负责其生命周期，
 
 可选原生加载器检查：`node scripts/check-components-dsh.mjs <DSH运行时目录>`。目录需包含 `node_modules/@deepseek-ai`。脚本使用临时 DSH_HOME，检查六行、旧五行、旧单行配置的加载、中英文元信息与组件启停；不调用生成模型、不下载或启动 Q8，不替代真实硬件与桌面点击验收。
 
-
+[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
