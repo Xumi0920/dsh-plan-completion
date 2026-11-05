@@ -1,6 +1,8 @@
 # GitHub 发布评估 · 会话计划补全插件（2026-11-02）
 
-> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.3.1**（计划停更检测 + 建议文本保真 + 核对进度 + 本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.4.0**（计划停更检测 + 建议文本保真 + 核对进度 + 本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+>
+> v0.4.0 发布记录（2026-11-06）：Q8 运行服务独立为第六个组件 `embedding`（retrieval 只借用向量，停 embedding 回收 Q8、retrieval 退回关键词；停 retrieval 不直接停 Q8），六个组件补齐中英文名称/职责/icon 元信息，兼容 root-only 与旧五行 profile。tag `v0.4.0`（`d0d5a17`）；CI：PR 升版 run 42072890149 与 main run 42073078695 均四 job 全绿（288/288 tests）；npm `dsh-plan-completion@0.4.0`（56 files，shasum `aad420f27d1526109f2522d1d70ad1963776fa09`，registry 与本地 tarball SHA1/SHA512 一致，registry 安装 + 六入口 import 通过）；真实 DSH canary：六组件加载无 warning、Q8 自动启动、禁用 embedding 2s 内回收、重启用自动恢复、宿主 401。
 >
 > v0.3.1 发布记录（2026-11-06）：修复自动更新证据预算——计划/验收回执/检索数据不再挤占近期叙述预算，保留最新回复头尾、至少一条工具结果/失败记录/用户指令；新增 4 个回归测试（281/281）。tag `v0.3.1`；CI：PR 升版后 run 42069985412 与 main merge `7994a44` run 42070095918 均四 job 全绿；npm `dsh-plan-completion@0.3.1`（45 files，shasum `1c27b92f74318693745971f068d46cdd77a2c457`，registry 与本地 tarball SHA1/SHA512 一致）。
 >
@@ -117,6 +119,7 @@ git tag v0.1.0 && git push --tags
 ```
 
 > 建议：**先把 P0 B1~B8 全部打勾，再公开仓库**；否则许可证与数据问题会成为不可逆的历史提交。
+
 
 
 
