@@ -1,6 +1,8 @@
 # GitHub 发布评估 · 会话计划补全插件（2026-11-02）
 
-> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.1.7**（计划停更检测 + 建议文本保真 + 核对进度 + 本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.2.0**（计划停更检测 + 建议文本保真 + 核对进度 + 本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+>
+> v0.2.0 发布记录（2026-11-05）：三阶段增量合并（#2 兼容进度协议/人工验收 → #3 同包多组件 → #4 托管 Q8）。tag `v0.2.0`；GitHub Actions [run 42052297267](https://github.com/Xumi0920/dsh-plan-completion/actions/runs/42052297267)（Ubuntu/Windows × Node20/22 四 job 全绿，265/265 tests）；npm `dsh-plan-completion@0.2.0`（44 files，shasum `2944e1329927387cfc049b9d51a5987483d0069c`，integrity `sha512-e8Zdf+rC4rtPpLh2vOPi7BOA4UWaOr4FQx6qxEtY/i91WWNEhHRDk7QIa7tcDbD7fECi11FacrvES5g2FhP5yA==`，与本地 tarball 逐字节一致）；真实 DSH canary：旧 profile 加载、组件启停、托管 Q8 拉起/回收（官方模型 SHA-256、随机回环端口/临时密钥、1.17GiB RSS）、未认证 401 均通过。
 >
 > v0.1.7 发布记录（2026-11-02）：设置页 DSH 视觉对齐 + 第三方 provider 模型列表修复。tag `v0.1.7`；npm `dsh-plan-completion@0.1.7`；138/138 tests。
 >
@@ -111,6 +113,7 @@ git tag v0.1.0 && git push --tags
 ```
 
 > 建议：**先把 P0 B1~B8 全部打勾，再公开仓库**；否则许可证与数据问题会成为不可逆的历史提交。
+
 
 
 
