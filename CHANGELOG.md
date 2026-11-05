@@ -3,7 +3,7 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
-## [Unreleased]
+## [0.4.0] - 2026-11-06
 
 - Split local Q8 process ownership into an independent embedding component; retrieval owns the index and borrows vectors, with lexical fallback when the local runtime is disabled.
 - Provide Chinese/English names, descriptions and icons for all six DSH component entries, including the effect of disabling each one.
