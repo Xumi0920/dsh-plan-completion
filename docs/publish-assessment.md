@@ -2,7 +2,7 @@
 
 > 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.4.1**（计划停更检测 + 建议文本保真 + 核对进度 + 本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
 >
-> v0.4.2 发布记录（2026-11-06）：文档/打包修订——npm 包纳入 `docs/ui-design-contract.md`，`engines.dsh` 放宽为 `>=0.2.1-rc.5`；同步 0.4.x 文档版本记录与 v0.1.8 历史补录说明。tag `v0.4.2`；292/292 tests；check:package 57 files / 6 exports；npm 发布信息与哈希见本记录的后续文档提交。
+> v0.4.2 发布记录（2026-11-06）：文档/打包修订——npm 包纳入 `docs/ui-design-contract.md`，`engines.dsh` 放宽为 `>=0.2.1-rc.5`；同步 0.4.x 文档版本记录与 v0.1.8 历史补录说明。tag `v0.4.2`（release commit `0cfd020`，CI run 42085524778 四 job 全绿，292/292 tests，check:package 57 files / 6 exports）；npm `dsh-plan-completion@0.4.2`（57 files，shasum `a067e41284ca5d9fc0d4c158cf212e72cf4986c2`，integrity `sha512-5j7PHCUgAd4zYYZEX+HmjoF/WykPXO68bWR2ANd0MPnOclJZ++plHjg8/1MxmQKXWJvQ7RmWCgXqTqEmMiKP8g==`，registry engines 已显示放宽后的 `>=0.2.1-rc.5`）；GitHub Release asset `dsh-plan-completion-0.4.2.tgz` 与 npm tarball SHA1/SHA256 一致（`f5ec08d24b1dbef13af033749045a4bf1fbcbc5ad2983055d0415023ff25c04c`）。
 >
 > 发布流程约定（2026-11-06 起）：版本号、CHANGELOG、publish-assessment 先在 PR 内备好并合并，再打 tag；已发布 tag 不回移。
 > 历史补录（2026-11-06）：v0.1.8 为客户端缓存刷新用的内部版本，从未发布 npm；已补 annotated tag `v0.1.8`（commit 8580551）与 pre-release 说明。
@@ -126,6 +126,7 @@ git tag v0.1.0 && git push --tags
 ```
 
 > 建议：**先把 P0 B1~B8 全部打勾，再公开仓库**；否则许可证与数据问题会成为不可逆的历史提交。
+
 
 
 
