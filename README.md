@@ -2,7 +2,7 @@
 
 DSH 计划/补全插件，为会话维护计划，在输入框上方展示下一步建议；Tab 只填入草稿，不自动发送。保留 DSH 原生回复、工具与长上下文。
 
-开发或修改插件界面前，阅读 [DSH 插件界面设计与验收规范](docs/ui-design-contract.md)。其中包含可复用的主题变量、控件规则、布局与状态约束，以及给开发 Agent 的验收模板；仓库 [AGENTS.md](AGENTS.md) 和 [开发说明](CONTRIBUTING.md) 均指向这份规范。
+开发或修改插件界面前，阅读 [设计规范读取入口](docs/ui-design-contract.md)。完整通用设计体系统一维护在私密仓库 `Xumi0920/dsh-plugin-design-system`；入口固定规范版本与 commit，并保留本插件的业务边界。[AGENTS.md](AGENTS.md) 和 [开发说明](CONTRIBUTING.md) 均指向该入口；插件运行无需访问规范仓库。
 
 当前为 **0.4.2**：0.4.2 将 DSH UI/验证契约（`docs/ui-design-contract.md`）纳入 npm 包并放宽 DSH engines 上限；0.3.0 引入零配置本地 Q8（默认关闭；首次确认后自动下载/校验并拉起官方 llama.cpp 与 Qwen3 Q8，无需填路径）；0.4.0 将 Q8 运行服务独立为第六个 `embedding` 组件，并为六组件补齐 DSH 名称/职责/icon 元信息；0.4.1 完成计划面板的 DSH 主题对齐、完成状态可读性与底栏/滚动布局修复。兼容进度协议、人工验收与同包组件架构沿用 0.2.0。
 

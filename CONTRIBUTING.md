@@ -26,15 +26,16 @@ The suite has no third-party dependencies (Node `node:test` only) and runs in CI
 
 ## Conventions
 
-- Before UI work, read [DSH plugin UI design and verification](docs/ui-design-contract.md).
-  Reuse current host tokens and control patterns, consolidate styles, and report light/dark,
-  layout and interaction checks. This is the current UI contract; historical design notes
-  do not override it. The repository's [AGENTS.md](AGENTS.md) provides the Agent entry point.
+- Before UI work, read [the design reference entry](docs/ui-design-contract.md), then use
+  existing authorized access to read the pinned private design baseline and its task route.
+  Keep this repository's business-specific boundaries and validation records here; do not
+  maintain a second full copy of the private reference. Historical designs do not override
+  the current baseline. [AGENTS.md](AGENTS.md) provides the Agent entry point.
 - Host and Client are separate halves: the Client may only talk to the Host through
   `/plan-completion/*` same-origin HTTP routes. Keep this boundary.
 - Pure logic belongs in `host/*.js` so it can be unit-tested without a DSH runtime.
 - UI foreground, background and border colours use host theme tokens (`--dsw-alias-*`).
-  The design contract describes contrast checks and the limited shadow fallback.
+  The pinned design baseline describes contrast checks and the limited shadow fallback.
 - The plugin must not modify the agent loop, prompts, tools or the session log. Plan/suggestion
   state stays in the plugin.
 
