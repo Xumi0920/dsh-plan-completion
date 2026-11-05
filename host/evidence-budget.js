@@ -1,4 +1,7 @@
-/** Trim the serialized evidence down to `targetChars`, dropping the least important parts first. */
+/** Budget recent narrative separately from the plan and bounded acceptance/retrieval data.
+ * The target is soft: retain a minimum useful answer and the latest tool/failure even
+ * when required context exceeds it. Never erase all new evidence to fit old state.
+ */
 export function sliceEvidence(evidence, targetChars) {
   const copy = (() => {
     try {
@@ -7,31 +10,26 @@ export function sliceEvidence(evidence, targetChars) {
       return { ok: false };
     }
   })();
-  const size = () => JSON.stringify(copy).length;
+  const reserved = new Set(['plan', 'progressRecords', 'progressProtocol', 'retrieval']);
+  const size = () => JSON.stringify(Object.fromEntries(Object.entries(copy).filter(([key]) => !reserved.has(key)))).length;
   if (size() <= targetChars) return copy;
 
-  // 1. Trim the long assistant tail.
+  // Drop duplicated history and derived fields before touching the latest answer.
+  for (const field of ['recentMessages', 'evidence', 'files', 'todoSteps', 'counts', 'firstUserMessage']) {
+    delete copy[field];
+  }
+  // Keep both the beginning and the conclusion of a long answer.
   if (typeof copy.lastAssistantText === 'string') {
-    const overflow = size() - targetChars;
-    copy.lastAssistantText = copy.lastAssistantText.slice(0, Math.max(0, copy.lastAssistantText.length - overflow - 40));
-    if (!copy.lastAssistantText) delete copy.lastAssistantText;
+    const overflow = Math.max(0, size() - targetChars);
+    const length = Math.max(240, copy.lastAssistantText.length - overflow);
+    if (copy.lastAssistantText.length > length) {
+      const head = Math.floor((length - 3) / 2);
+      copy.lastAssistantText = copy.lastAssistantText.slice(0, head) + ' … ' + copy.lastAssistantText.slice(-(length - 3 - head));
+    }
   }
-  // 2. Drop recent messages from the oldest end.
-  while (size() > targetChars && Array.isArray(copy.recentMessages) && copy.recentMessages.length > 1) {
-    copy.recentMessages.shift();
-  }
-  // 3. Drop tool calls from the oldest end.
-  while (size() > targetChars && Array.isArray(copy.toolCalls) && copy.toolCalls.length > 1) {
-    copy.toolCalls.shift();
-  }
-  // 4. Drop secondary fields entirely.
-  for (const field of ['failedTools', 'files', 'todoSteps', 'counts', 'recentMessages', 'toolCalls', 'evidence', 'lastUserMessages']) {
-    if (size() <= targetChars) break;
-    if (field in copy) delete copy[field];
-  }
-  // 5. Hard cap as a last resort.
-  if (size() > targetChars && typeof copy.lastAssistantText === 'string') {
-    copy.lastAssistantText = copy.lastAssistantText.slice(0, Math.max(0, targetChars - 160));
+  // Preserve at least one fresh tool result, failure and human instruction.
+  for (const field of ['toolCalls', 'failedTools', 'lastUserMessages']) {
+    while (size() > targetChars && Array.isArray(copy[field]) && copy[field].length > 1) copy[field].shift();
   }
   return copy;
 }

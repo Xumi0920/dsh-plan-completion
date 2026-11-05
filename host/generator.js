@@ -109,9 +109,9 @@ function createGate(limit) {
       evidence.progressProtocol = progressSnapshot(basePlan, records)
       evidence.retrieval = retrieval
 
-      // Round-2 isolation test: the patch path is most accurate with a compact evidence
-      // slice (800-2000 chars); feeding the full history caused false-completion claims
-      // and dropped the blind-judge score. Rewrite keeps the full evidence payload.
+      // Bound recent narrative without charging the plan/acceptance/retrieval metadata
+      // against it: a large old plan must not erase every new answer and tool result.
+      // Rewrite keeps the full evidence payload; raw receipts stay available to validation.
       const modelEvidence = force || !basePlan ? evidence : sliceEvidence(evidence, settings.evidenceChars)
 
       modelEvidence.progressRecords = evidence.progressRecords
