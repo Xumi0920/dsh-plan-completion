@@ -1,6 +1,6 @@
-# Plan Completion — 兼容性说明（v0.4.1）
+# Plan Completion — 兼容性说明（v0.4.3）
 
-同一个 DSH 插件，保留原生长上下文、回复和 Tab 草稿补全。适用于当前正式版本 **0.4.1**：根服务 + observer / embedding / retrieval / generator / api 六个组件；零配置托管 Q8 为默认关闭的 opt-in 能力。
+同一个 DSH 插件，保留原生长上下文、回复和 Tab 草稿补全。适用于当前正式版本 **0.4.3**：根服务 + observer / embedding / retrieval / generator / api 六个组件；零配置托管 Q8 为默认关闭的 opt-in 能力。
 
 默认 progressProtocol: legacy 保留 0.1.8 的状态 patch、连续两次 none 后 /replan 和 rewrite 语义，并明确标注模型报告未经执行验收。Settings 可显式选择 strict：仅已建立验收版本的原始执行回执或用户手动确认可推进完成；旧计划迁移为待验收。已经版本化的计划不能通过关闭 strict 绕过校验。
 

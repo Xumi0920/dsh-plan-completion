@@ -3,6 +3,13 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
+## [0.4.3] - 2026-11-06
+
+- Expand README with installation/upgrade, current 0.4.x screenshots, keyboard and panel shortcuts, environment/configuration reference, exact test baseline, and a documentation navigation table.
+- Replace the public full design contract with a pinned entry to the private `Xumi0920/dsh-plugin-design-system` baseline (v1.0.0, commit `80ec9bc`), keeping this plugin's business boundaries public.
+- Add CI/npm/license/release/tests/requirements badges, refresh plan-panel light/dark screenshots and the composer entry image, and normalize repository line endings to LF via `.gitattributes`.
+- Sync current-version references in README/docs to 0.4.3. No runtime behavior, configuration, storage or component-topology changes.
+
 ## [0.4.2] - 2026-11-06
 
 - Ship `docs/ui-design-contract.md` inside the npm package together with the DSH UI/verification contract referenced by README/AGENTS/CONTRIBUTING.

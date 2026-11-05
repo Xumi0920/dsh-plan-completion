@@ -1,6 +1,8 @@
 # GitHub 发布评估 · 会话计划补全插件（2026-11-02）
 
-> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.4.1**（计划停更检测 + 建议文本保真 + 核对进度 + 本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.4.3**（计划停更检测 + 建议文本保真 + 核对进度 + 本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+>
+> v0.4.3 发布记录（2026-11-06，发布准备）：仓库门面与文档修订——README 安装/界面预览/核心交互/环境配置/文档导航，设计规范固定私密仓库入口，新增徽章与当前 0.4.x 截图，仓库统一 LF；无运行时行为变化。tag `v0.4.3` 计划；292/292 tests；check:package 57 files / 6 exports；npm 哈希与 release asset 待发布后补充。
 >
 > v0.4.2 发布记录（2026-11-06）：文档/打包修订——npm 包纳入 `docs/ui-design-contract.md`，`engines.dsh` 放宽为 `>=0.2.1-rc.5`；同步 0.4.x 文档版本记录与 v0.1.8 历史补录说明。tag `v0.4.2`（release commit `0cfd020`，CI run 42085524778 四 job 全绿，292/292 tests，check:package 57 files / 6 exports）；npm `dsh-plan-completion@0.4.2`（57 files，shasum `a067e41284ca5d9fc0d4c158cf212e72cf4986c2`，integrity `sha512-5j7PHCUgAd4zYYZEX+HmjoF/WykPXO68bWR2ANd0MPnOclJZ++plHjg8/1MxmQKXWJvQ7RmWCgXqTqEmMiKP8g==`，registry engines 已显示放宽后的 `>=0.2.1-rc.5`）；GitHub Release asset `dsh-plan-completion-0.4.2.tgz` 与 npm tarball SHA1/SHA256 一致（`f5ec08d24b1dbef13af033749045a4bf1fbcbc5ad2983055d0415023ff25c04c`）。
 >

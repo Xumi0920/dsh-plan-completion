@@ -1,6 +1,6 @@
 {
   "name": "dsh-plan-completion",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "private": false,
   "type": "module",
   "description": "Implicit session plans with Tab-completable next-message suggestions for DeepSeek Harness",

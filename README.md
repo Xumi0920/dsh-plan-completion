@@ -11,8 +11,9 @@ DSH 计划/补全插件，为会话维护计划，在输入框上方展示下一
 
 开发或修改插件界面前，阅读 [设计规范读取入口](docs/ui-design-contract.md)。完整通用设计体系统一维护在私密仓库 `Xumi0920/dsh-plugin-design-system`；入口固定规范版本与 commit，并保留本插件的业务边界。[AGENTS.md](AGENTS.md) 和 [开发说明](CONTRIBUTING.md) 均指向该入口；插件运行无需访问规范仓库。
 
-当前为 **0.4.2**：具备同包六组件（root / observer / embedding / retrieval / generator / api）与独立托管 Q8；计划面板与 DSH 原生主题对齐，支持严格回执校验与人工验收。
+当前为 **0.4.3**：具备同包六组件（root / observer / embedding / retrieval / generator / api）与独立托管 Q8；计划面板与 DSH 原生主题对齐，支持严格回执校验与人工验收。
 
+- **0.4.3**：README 补齐安装/界面预览/核心交互/环境配置/文档导航；设计规范入口固定到私密仓库 v1.0.0；文档站内跳转与仓库行尾格式统一。
 - **0.4.2**：npm 包纳入 `docs/ui-design-contract.md` 入口；`engines.dsh` 放宽为 `>=0.2.1-rc.5`。
 - **0.4.1**：计划面板 DSH 主题对齐、完成状态可读性、头部/底栏固定与窄窗口适配。
 - **0.4.0**：Q8 运行服务拆分独立 `embedding` 组件；六组件补齐中英文名称/职责/icon 元信息。
