@@ -7,8 +7,10 @@ import { fileURLToPath } from 'node:url'
 import net from 'node:net'
 import http from 'node:http'
 import { createEmbeddingClient } from './rag.js'
+import { OFFICIAL_Q8_SHA256, assetsStatus, ensureManagedAssets } from './rag-assets.js'
 
-export const OFFICIAL_Q8_SHA256 = '06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439'
+export { LLAMA_RELEASE, MODEL_FILE, RUNTIME_ASSETS, runtimePlan } from './rag-assets.js'
+export { OFFICIAL_Q8_SHA256 }
 const int = (v, fallback, lo, hi) => Number.isInteger(v) ? Math.max(lo, Math.min(hi, v)) : fallback
 export function embeddingBackend(config = {}) {
   if (config.backend === 'llama.cpp' || config.backend === 'external') return config.backend
@@ -19,7 +21,10 @@ export function runtimeOptions(config = {}) {
   return {
     executablePath: typeof config.executablePath === 'string' ? config.executablePath.trim() : '',
     modelPath: typeof config.modelPath === 'string' ? config.modelPath.trim() : '',
-    startupTimeoutMs: int(config.startupTimeoutMs, 30000, 1000, 120000),
+    installDir: typeof config.installDir === 'string' ? config.installDir.trim() : '',
+    autoManage: config.autoManage !== false,
+    variant: config.variant === 'cpu' || config.variant === 'vulkan' ? config.variant : 'auto',
+    startupTimeoutMs: int(config.startupTimeoutMs, 60000, 1000, 300000),
     idleTimeoutMs: int(config.idleTimeoutMs, 120000, 1000, 3600000),
     retryDelayMs: int(config.retryDelayMs, 3000, 100, 60000),
     contextSize: int(config.contextSize, 8192, 2048, 32768),
@@ -44,6 +49,22 @@ async function validateFiles(options) {
   for await (const chunk of createReadStream(modelPath)) hash.update(chunk)
   if (hash.digest('hex') !== OFFICIAL_Q8_SHA256) throw Error('not-official-q8')
   return { executablePath, modelPath }
+}
+async function resolveFiles(options, dependencies = {}) {
+  // Test/caller injection keeps the original lazy-validation contract.
+  if (dependencies.validateFiles) return dependencies.validateFiles(options)
+  if (options.executablePath && options.modelPath) return validateFiles(options)
+  if (!options.autoManage) throw Error('paths-required')
+  const resolved = await ensureManagedAssets(options, {
+    storageDir: dependencies.storageDir ?? '',
+    env: dependencies.env,
+    platform: dependencies.platform,
+    arch: dependencies.arch,
+    logger: dependencies.logger,
+  })
+  const [exe, model] = await Promise.all([stat(resolved.executablePath), stat(resolved.modelPath)])
+  if (!exe.isFile() || !model.isFile()) throw Error('invalid-files')
+  return resolved
 }
 async function freePort() {
   const server = net.createServer()
@@ -75,13 +96,24 @@ function cancellable(promise, signal) {
   })
 }
 
-/** One owner, one supervised llama-server; no global daemon and no automatic downloads. */
+/**
+ * One owner, one supervised llama-server. By default the runtime and the
+ * official Q8 model are downloaded/verified on first use; explicit paths and
+ * environment overrides remain available for advanced setups.
+ */
 export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
   const options = runtimeOptions(config), now = dependencies.now ?? Date.now
   let worker = null, client = null, opening = null, closing = null, closed = false, state = 'stopped'
   let pid = null, port = null, error = null, starts = 0, retryAt = 0, active = 0, idle = null, startupController = null
+  let files = null, managed = false, source = ''
   const spawnWorker = dependencies.spawn ?? spawn
-  const snapshot = () => ({ backend: 'llama.cpp', state, pid, port, starts, error, model: 'Qwen3-Embedding-0.6B-Q8_0', owned: true })
+  const snapshot = () => ({
+    backend: 'llama.cpp', state, pid, port, starts, error,
+    model: 'Qwen3-Embedding-0.6B-Q8_0', owned: true,
+    managed, source, autoManage: options.autoManage, variant: options.variant,
+    executablePath: files?.executablePath ?? '', modelPath: files?.modelPath ?? '',
+    assets: managed ? assetsStatus() : null,
+  })
   function armIdle() {
     if (!active && !closed && state === 'ready') { clearTimeout(idle); idle = setTimeout(() => { void stop() }, options.idleTimeoutMs); idle.unref?.() }
   }
@@ -103,6 +135,50 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
     })
     try { await closing } finally { closing = null }
   }
+  async function attempt() {
+    state = 'starting'; error = null
+    const controller = new AbortController(); startupController = controller
+    let deadline = null
+    try {
+      // Asset resolution/download intentionally sits outside the startup deadline:
+      // the first managed download can take minutes and reports its own progress.
+      const resolved = await resolveFiles(options, dependencies)
+      files = resolved; managed = resolved.managed === true; source = resolved.source ?? ''
+      if (closed || controller.signal.aborted) throw Error('startup-cancelled')
+      port = await (dependencies.freePort ?? freePort)()
+      if (closed || controller.signal.aborted) throw Error('startup-cancelled')
+      deadline = setTimeout(() => controller.abort(), options.startupTimeoutMs)
+      const key = randomBytes(32).toString('hex'), alias = 'dsh-q8-' + randomBytes(8).toString('hex')
+      const current = spawnWorker(process.execPath, [fileURLToPath(new URL('./llama-worker.js', import.meta.url))],
+        { shell: false, windowsHide: true, stdio: ['ignore', 'ignore', 'ignore', 'ipc'], env: runtimeEnvironment() })
+      worker = current; starts++
+      current.on('error', () => { error = 'worker-start-failed'; controller.abort() })
+      current.on('message', message => {
+        if (worker !== current) return
+        if (message?.type === 'spawned') pid = message.pid
+        if (message?.type === 'failed') { error = 'server-start-failed'; controller.abort() }
+      })
+      current.on('exit', () => {
+        if (worker !== current) return
+        worker = null; pid = null; port = null; client?.close(); client = null
+        if (state !== 'stopping') { state = closed ? 'closed' : 'failed'; error = 'server-exited'; retryAt = now() + options.retryDelayMs }
+        controller.abort()
+      })
+      current.send({ type: 'start', ...resolved, port, key, alias, options }, () => {})
+      while (!closed && !controller.signal.aborted) {
+        if (await (dependencies.probe ?? probe)(port, key, alias, controller.signal)) {
+          if (worker !== current || closed || controller.signal.aborted) break
+          client = (dependencies.createClient ?? createEmbeddingClient)({ ...config, endpoint: `http://127.0.0.1:${port}/v1/embeddings`, model: alias }, { apiKey: key })
+          state = 'ready'; armIdle(); return client
+        }
+        await pause(100)
+      }
+      throw Error('startup-timeout')
+    } finally {
+      clearTimeout(deadline)
+      if (startupController === controller) startupController = null
+    }
+  }
   async function open() {
     if (closed) throw Error('embedding-closed')
     if (client && state === 'ready') return client
@@ -110,50 +186,32 @@ export function createManagedEmbeddingClient(config = {}, dependencies = {}) {
     if (now() < retryAt) throw Error('embedding-cooling-down')
     opening = (async () => {
       if (closing) await closing
-      state = 'starting'; error = null
-      const controller = new AbortController(); startupController = controller
-      const deadline = setTimeout(() => controller.abort(), options.startupTimeoutMs)
-      try {
-        const files = await (dependencies.validateFiles ?? validateFiles)(options)
-        if (closed || controller.signal.aborted) throw Error('startup-cancelled')
-        port = await (dependencies.freePort ?? freePort)()
-        if (closed || controller.signal.aborted) throw Error('startup-cancelled')
-        const key = randomBytes(32).toString('hex'), alias = 'dsh-q8-' + randomBytes(8).toString('hex')
-        const current = spawnWorker(process.execPath, [fileURLToPath(new URL('./llama-worker.js', import.meta.url))],
-          { shell: false, windowsHide: true, stdio: ['ignore', 'ignore', 'ignore', 'ipc'], env: runtimeEnvironment() })
-        worker = current; starts++
-        current.on('error', () => { error = 'worker-start-failed'; controller.abort() })
-        current.on('message', message => {
-          if (worker !== current) return
-          if (message?.type === 'spawned') pid = message.pid
-          if (message?.type === 'failed') { error = 'server-start-failed'; controller.abort() }
-        })
-        current.on('exit', () => {
-          if (worker !== current) return
-          worker = null; pid = null; port = null; client?.close(); client = null
-          if (state !== 'stopping') { state = closed ? 'closed' : 'failed'; error = 'server-exited'; retryAt = now() + options.retryDelayMs }
-          controller.abort()
-        })
-        current.send({ type: 'start', ...files, port, key, alias, options }, () => {})
-        while (!closed && !controller.signal.aborted) {
-          if (await (dependencies.probe ?? probe)(port, key, alias, controller.signal)) {
-            if (worker !== current || closed || controller.signal.aborted) break
-            client = (dependencies.createClient ?? createEmbeddingClient)({ ...config, endpoint: `http://127.0.0.1:${port}/v1/embeddings`, model: alias }, { apiKey: key })
-            state = 'ready'; armIdle(); return client
-          }
-          await pause(100)
+      let last = null
+      // A Vulkan runtime that cannot start falls back once to the CPU build.
+      const variants = options.variant === 'cpu' ? ['cpu'] : options.variant === 'vulkan' ? ['vulkan'] : ['auto', 'cpu']
+      for (let index = 0; index < variants.length; index++) {
+        options.variant = variants[index]
+        try {
+          return await attempt()
+        } catch (e) {
+          last = e
+          await stop()
+          if (closed) break
+          const retryable = ['server-start-failed', 'server-exited', 'worker-start-failed', 'startup-timeout'].includes(error)
+            || String(e?.message ?? '').includes('startup-timeout')
+          if (!(options.autoManage && !dependencies.validateFiles && retryable)) break
         }
-        throw Error('startup-timeout')
-      } catch (e) {
-        const code = ['paths-required', 'invalid-files', 'not-official-q8'].includes(e?.message) ? e.message : error ?? 'startup-failed'
-        await stop(); state = closed ? 'closed' : 'failed'; error = code; retryAt = now() + options.retryDelayMs
-        throw Error('local-embedding-unavailable')
-      } finally { clearTimeout(deadline); if (startupController === controller) startupController = null }
+      }
+      state = closed ? 'closed' : 'failed'
+      error = ['paths-required', 'invalid-files', 'not-official-q8', 'unsupported-platform'].includes(last?.message) ? last.message : error ?? 'startup-failed'
+      retryAt = now() + options.retryDelayMs
+      throw Error('local-embedding-unavailable')
     })()
     try { return await opening } finally { opening = null }
   }
   return {
     snapshot,
+    async prepare() { await open(); return snapshot() },
     async embed(texts, signal) {
       if (signal?.aborted) throw Error('embedding-cancelled')
       active++; clearTimeout(idle)

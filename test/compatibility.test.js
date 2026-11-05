@@ -65,10 +65,16 @@ test('manual endpoint cannot certify machine execution and human prerequisites i
   assert.notEqual(deriveProtocol(h.state(s.id).plan,records).find(x=>x.id==='s2').status,'done')
 })
 
-test('RAG settings reject commands and relative paths before changing the runtime', async t => {
+test('RAG settings reject unknown keys and invalid paths; managed mode needs no paths', async t => {
   const h=setup(t,[]);const before=structuredClone(h.core.rawConfig.rag)
-  for(const rag of [{shell:'pwsh'},{modelPath:'relative.gguf'},{executablePath:'x\nmalicious'},{enabled:true,backend:'llama.cpp'}])assert.equal((await h.request('/plan-completion/settings',{rag})).status,400)
+  for(const rag of [{shell:'pwsh'},{modelPath:'relative.gguf'},{executablePath:'x\nmalicious'},{autoManage:false,enabled:true,backend:'llama.cpp'}])assert.equal((await h.request('/plan-completion/settings',{rag})).status,400)
   assert.deepEqual(h.core.rawConfig.rag,before)
+  // Zero-config default: enabling managed llama.cpp does not require paths and
+  // stays lazy (no download until prepare/embed).
+  const enabled=await h.request('/plan-completion/settings',{rag:{enabled:true,backend:'llama.cpp',autoManage:true}})
+  assert.equal(enabled.status,200)
+  const disabled=await h.request('/plan-completion/settings',{rag:{enabled:false}})
+  assert.equal(disabled.status,200)
 })
 
 test('model cannot forge a human confirmation or overwrite an established user decision', () => {

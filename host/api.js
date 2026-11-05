@@ -231,13 +231,17 @@ function jsonResponse(res, status, value) {
             if (body.rag !== undefined) {
               if (!body.rag || typeof body.rag !== 'object' || Array.isArray(body.rag)) { jsonResponse(res, 400, { ok: false, error: 'bad-rag-settings' }); return }
               for (const [key, value] of Object.entries(body.rag)) {
-                const valid = ['enabled', 'sendContextToGenerator'].includes(key) ? typeof value === 'boolean'
+                const valid = ['enabled', 'sendContextToGenerator', 'autoManage'].includes(key) ? typeof value === 'boolean'
                   : key === 'backend' ? ['external', 'llama.cpp'].includes(value)
-                  : ['executablePath', 'modelPath'].includes(key) ? typeof value === 'string' && value.length <= 4096 && !/[\r\n\0]/.test(value) && (!value || isAbsolute(value)) : false
+                  : key === 'variant' ? ['auto', 'vulkan', 'cpu'].includes(value)
+                  : ['executablePath', 'modelPath', 'installDir'].includes(key) ? typeof value === 'string' && value.length <= 4096 && !/[\r\n\0]/.test(value) && (!value || isAbsolute(value)) : false
                 if (!valid) { jsonResponse(res, 400, { ok: false, error: 'bad-rag-settings' }); return }
                 next.rag[key] = value
               }
-              if (next.rag.enabled && next.rag.backend === 'llama.cpp' && (!next.rag.executablePath || !next.rag.modelPath)) { jsonResponse(res, 400, { ok: false, error: 'embedding-paths-required' }); return }
+              // Zero-config default: managed assets are downloaded automatically on first use.
+              // Paths are only required when the user explicitly disables managed mode.
+              if (next.rag.enabled && next.rag.backend === 'llama.cpp' && next.rag.autoManage === false
+                && (!next.rag.executablePath || !next.rag.modelPath)) { jsonResponse(res, 400, { ok: false, error: 'embedding-paths-required' }); return }
             }
             if (body.modelPolicy !== undefined) {
               const policy = normalizeModelPolicy(body.modelPolicy)
@@ -275,6 +279,11 @@ function jsonResponse(res, status, value) {
             const ragChanged = JSON.stringify((await settingsSnapshot()).rag) !== JSON.stringify(next.rag)
             core.rawConfig.rag = { ...core.rawConfig.rag, ...next.rag }
             if (ragChanged) core.restartRetrieval?.()
+            // First enable starts the zero-config managed setup in the background so the
+            // settings page can render download/start progress immediately.
+            if (ragChanged && next.rag.enabled && next.rag.backend === 'llama.cpp') {
+              void Promise.resolve().then(() => core.prepareEmbeddings?.()).catch(() => {})
+            }
             if (body.progressProtocol === 'strict') for (const id of states.keys()) await core.reconcileSession(id, undefined, { upgradeLegacy: true })
             if (!settings.modelCalls) {
               for (const controller of inflight.values()) controller.abort(new Error('model-disabled'))
@@ -290,6 +299,12 @@ function jsonResponse(res, status, value) {
             })
             debugLog({ phase: 'settings-updated', modelPolicy: settings.modelPolicy, saved })
             jsonResponse(res, 200, { ok: true, saved, settings: await settingsSnapshot() })
+            return
+          }
+          if (pathname === `${ROUTE_PREFIX}rag/prepare` && method === 'POST') {
+            if (typeof core.prepareEmbeddings !== 'function') { jsonResponse(res, 400, { ok: false, error: 'retrieval-unavailable' }); return }
+            void Promise.resolve().then(() => core.prepareEmbeddings()).catch(() => {})
+            jsonResponse(res, 202, { ok: true, embedding: core.embeddingSnapshot?.() ?? { state: 'disabled' } })
             return
           }
           if (pathname === `${ROUTE_PREFIX}state` && method === 'GET') {

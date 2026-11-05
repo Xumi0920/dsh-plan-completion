@@ -61,3 +61,15 @@ node scripts/check-managed-runtime.mjs
 硬件脚本只使用合成文本，会主动终止它自己创建的进程以测试崩溃恢复和 Host 退出清理。它不在普通 CI 中自动运行；没有模型时不能把硬件测试视为通过。输出 managed-runtime-result.json 默认留在工作目录，不提交。
 
 参考：[Qwen 官方 GGUF](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B-GGUF)、[llama.cpp server](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md)。
+
+## 零配置安装（v0.3.0+）
+
+默认 `rag.enabled: false`。首次在设置中打开 Q8 检索时，页面会弹一次确认，说明将自动下载运行时与官方模型、占用多少磁盘/内存、数据仅在本地使用；确认后无需填写路径：
+
+1. 检测可复用的安装（显式路径 → `DSH_LLAMA_SERVER`/`DSH_Q8_MODEL` → 已安装的 `<storageDir>/managed`）；
+2. 否则下载官方固定版本 llama.cpp 运行时（Windows/Linux x64；Windows 优先 Vulkan，启动失败自动回退 CPU）与官方 Qwen3-Embedding-0.6B Q8 模型（约 610MB，SHA-256 校验后原子落盘）；
+3. 启动托管 llama-server，并在设置页展示进度与运行状态；空闲/组件关闭/Host 退出自动回收。
+
+下载可使用显式/环境代理或 Windows 系统代理（优先 curl，其次直连）；llama 子进程本身不继承代理或供应商凭据。高级设置仍支持关闭 `autoManage` 后手填路径、固定 CPU/Vulkan、或切换到 external 端点。
+
+可直接复用 `DSH_LLAMA_SERVER` / `DSH_Q8_MODEL` 指向已有安装；模型文件与运行时不会随 npm 包分发。

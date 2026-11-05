@@ -3,6 +3,14 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
+## [0.3.0] - 2026-11-05
+
+- Zero-config managed Q8: RAG stays off by default; the first enable shows one confirmation, then downloads the pinned official llama.cpp runtime (Windows/Linux x64, Vulkan with CPU fallback) and the official Qwen3-Embedding-0.6B Q8 model (SHA-256 verified), starts llama-server on a random loopback port with a one-time key/alias, and reuses or reaps it automatically.
+- Managed assets are installed under `<storageDir>/managed`; explicit paths and DSH_LLAMA_SERVER / DSH_Q8_MODEL remain supported, and `autoManage:false` restores the manual-path mode.
+- Downloads honor explicit/env proxies and the Windows system proxy (curl-first transport); the llama child still never inherits provider credentials, proxy variables, or LLAMA_ARG_* overrides.
+- Settings page adds the enable confirmation, live download/start progress, retry/stop controls, and collapsed advanced settings (variant, install dir, manual paths, external backend).
+- Tests: managed asset planning/extraction/discovery/downloads via injected dependencies, proxy parsing/detection, and zero-config settings validation.
+
 ## [0.2.0] - 2026-11-05
 
 - Default to compatible legacy progress behavior, with an explicit unverified label; opt into versioned strict acceptance in Settings. Preserve existing valid receipts on replan and the legacy two-none replan hint.

@@ -1,5 +1,6 @@
 import { createRag } from './rag.js'
 import { createManagedEmbeddingClient, embeddingBackend } from './embedding-runtime.js'
+import { resolveAssets } from './rag-assets.js'
 export const inject = ['planCompletion']
 export function apply(ctx) { return attach(ctx, ctx.get('planCompletion')) }
 export function attach(ctx, core) {
@@ -10,13 +11,24 @@ export function attach(ctx, core) {
     rag?.close(); const old = managed
     previousClose = Promise.allSettled([previousClose, old?.close()])
     const config = core.rawConfig.rag ?? {}
-    managed = config.enabled && embeddingBackend(config) === 'llama.cpp' ? createManagedEmbeddingClient(config) : null
+    managed = config.enabled && embeddingBackend(config) === 'llama.cpp'
+      ? createManagedEmbeddingClient(config, { storageDir: core.settings?.storageDir ?? '' })
+      : null
+    core.prepareEmbeddings = managed ? () => managed.prepare().catch(() => null) : null
+    // Resume a previously installed managed runtime after a DSH restart without
+    // ever starting a surprise download: only installed assets warm up eagerly.
+    if (managed) {
+      const owner = managed
+      resolveAssets(config, { storageDir: core.settings?.storageDir ?? '' })
+        .then(found => { if (found) void owner.prepare().catch(() => {}) })
+        .catch(() => {})
+    }
     const owner = managed
     rag = createRag(config, owner ? { client: { async embed(...args) { await previousClose; return owner.embed(...args) }, close: () => owner.close() } } : {})
     core.setRetrieval(rag); core.ragViews.clear()
   }
   core.restartRetrieval = restart
-  core.embeddingSnapshot = () => managed?.snapshot() ?? { backend: embeddingBackend(core.rawConfig.rag), state: core.rawConfig.rag?.enabled ? 'external' : 'disabled', owned: false }
+  core.embeddingSnapshot = () => managed?.snapshot() ?? { backend: embeddingBackend(core.rawConfig.rag), state: core.rawConfig.rag?.enabled ? 'external' : 'disabled', owned: false, autoManage: core.rawConfig.rag?.autoManage !== false }
   restart()
   core.components.retrieval = true
   ctx.effect(() => async () => {
@@ -26,6 +38,7 @@ export function attach(ctx, core) {
     core.ragViews.clear()
     core.components.retrieval = false
     if (core.restartRetrieval === restart) core.restartRetrieval = null
+    core.prepareEmbeddings = null
     core.embeddingSnapshot = () => ({ state: 'disabled', owned: false })
     await Promise.allSettled([previousClose, managed?.close()])
   })

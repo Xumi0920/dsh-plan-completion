@@ -46,7 +46,7 @@ window.__ModuleLoader__.load({
     const STALE_POLL_MS = 15000;
     const STEP_STATUSES = ['todo', 'doing', 'blocked', 'done', 'dropped'];
     // Client build marker surfaced to the Host diagnostic route (proves which bundle is live).
-    const CLIENT_BUILD = 'managed-q8-canary-2026-11-04';
+    const CLIENT_BUILD = 'rag-zero-config-2026-11-05';
     // TEMP verification flag: auto-open the plan panel shortly after mount so a static
     // screenshot can be taken without synthetic clicks. Set back to false before release.
     const DEV_OPEN_POPOVER = false;
@@ -879,6 +879,22 @@ window.__ModuleLoader__.load({
       } catch (error) {
         return Promise.resolve(null);
       }
+    }
+
+    function prepareRag() {
+      try {
+        return Promise.resolve(fetch('/plan-completion/rag/prepare', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'content-type': 'application/json' },
+          body: '{}'
+        }))
+          .then(function readResponse(response) {
+            return response && response.ok === true ? Promise.resolve(response.json()) : null;
+          })
+          .then(function parsed(json) { return json && typeof json === 'object' ? json : null; })
+          .catch(function networkError() { return null; });
+      } catch (error) { return Promise.resolve(null); }
     }
 
     /**
@@ -2208,7 +2224,21 @@ window.__ModuleLoader__.load({
         '.dpc-settings-page .dpc-settings-save{border:0 !important;border-radius:8px !important;padding:8px 16px !important;font-size:14px !important;line-height:20px !important;cursor:pointer;background:rgba(127,127,127,.14) !important;background:color-mix(in srgb,var(--dsw-alias-label-primary) 7%,transparent) !important;color:var(--dsw-alias-label-primary) !important;flex:none;box-shadow:none !important}',
         '.dpc-settings-page .dpc-settings-save:hover{background:color-mix(in srgb,var(--dsw-alias-label-primary) 11%,transparent) !important}',
         '.dpc-settings-save:disabled{opacity:.5;cursor:default}',
-        '.dpc-settings-loading{padding:18px 24px;font-size:13px;color:var(--dsw-alias-label-secondary)}'
+        '.dpc-settings-loading{padding:18px 24px;font-size:13px;color:var(--dsw-alias-label-secondary)}',
+        '.dpc-settings-input{width:100%;box-sizing:border-box;border:0 !important;border-radius:8px !important;padding:8px 12px !important;font-size:14px !important;line-height:20px !important;color:var(--dsw-alias-label-primary) !important;background:color-mix(in srgb,var(--dsw-alias-label-primary) 7%,transparent) !important;box-shadow:none !important;outline:none !important}',
+        '.dpc-settings-input:focus{box-shadow:0 0 0 1px var(--dsw-alias-brand-primary,#4d6bfe) !important}',
+        '.dpc-settings-control-stack{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:132px;max-width:300px}',
+        '.dpc-settings-progress{height:4px;width:100%;border-radius:2px;overflow:hidden;background:color-mix(in srgb,var(--dsw-alias-label-primary) 12%,transparent)}',
+        '.dpc-settings-progress>span{display:block;height:100%;background:var(--dsw-alias-brand-primary,#4d6bfe)}',
+        '.dpc-settings-link{align-self:flex-start;border:0;background:transparent;color:var(--dsw-alias-brand-primary,#4d6bfe);font-size:12px;line-height:18px;cursor:pointer;padding:8px 0;box-shadow:none}',
+        '.dpc-settings-adv{display:flex;flex-direction:column}',
+        '.dpc-settings-adv-body{display:flex;flex-direction:column}',
+        '.dpc-settings-dialog-backdrop{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.35)}',
+        '.dpc-settings-dialog{width:460px;max-width:100%;box-sizing:border-box;border-radius:12px;padding:20px;background:var(--dsw-alias-bg-overlay,#fff);color:var(--dsw-alias-label-primary);box-shadow:0 12px 40px rgba(0,0,0,.24)}',
+        '.dpc-settings-dialog-title{font-size:15px;font-weight:600;line-height:22px}',
+        '.dpc-settings-dialog-text{margin-top:8px;font-size:13px;line-height:20px;color:var(--dsw-alias-label-secondary);white-space:pre-line}',
+        '.dpc-settings-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}',
+        '.dpc-settings-page .dpc-settings-primary{background:var(--dsw-alias-brand-primary,#4d6bfe) !important;color:#fff !important}'
       ].join('\n');
     }
 
@@ -2219,6 +2249,9 @@ window.__ModuleLoader__.load({
       const [saving, setSaving] = React.useState(false);
       const [error, setError] = React.useState('');
       const [saved, setSaved] = React.useState(false);
+      const [ragConfirm, setRagConfirm] = React.useState(false);
+      const [preparing, setPreparing] = React.useState(false);
+      const [advanced, setAdvanced] = React.useState(false);
 
       React.useEffect(function load() {
         let alive = true;
@@ -2231,6 +2264,27 @@ window.__ModuleLoader__.load({
         return function cleanup() { alive = false; };
       }, []);
 
+      // While the managed Q8 setup downloads/starts, poll the host snapshot so
+      // the settings page can show real progress without blocking the UI.
+      React.useEffect(function pollEmbedding() {
+        if (!settings || settings.rag?.enabled !== true) return undefined;
+        const embedding = settings.embedding || {};
+        const stage = embedding.assets?.stage || '';
+        const active = preparing || embedding.state === 'starting'
+          || ['downloading', 'runtime', 'extracting', 'model', 'verifying'].includes(stage);
+        if (!active) return undefined;
+        let alive = true;
+        const timer = setInterval(function refresh() {
+          fetchSettings().then(function applied(result) {
+            if (!alive || !result || !result.settings) return;
+            const next = result.settings.embedding || {};
+            setSettings(function merge(previous) { return previous ? { ...previous, embedding: next } : previous; });
+            if (next.state === 'ready' || next.state === 'failed' || next.state === 'stopped' || next.state === 'disabled') setPreparing(false);
+          });
+        }, 1200);
+        return function stopPolling() { alive = false; clearInterval(timer); };
+      }, [settings?.embedding?.state, settings?.embedding?.assets?.stage, settings?.rag?.enabled, preparing]);
+
       function patch(next) {
         setSaved(false);
         setSettings(function keep(previous) { return previous ? { ...previous, ...next } : previous; });
@@ -2241,26 +2295,53 @@ window.__ModuleLoader__.load({
           if (result && result.ok === true && result.settings) patch({ models: result.settings.models || [] });
         });
       }
-      function save() {
-        if (!settings || saving) return;
+      function payloadOf(current) {
+        return {
+          modelPolicy: current.modelPolicy,
+          fixedProvider: current.fixedProvider || '',
+          fixedModel: current.fixedModel || '',
+          modelCalls: current.modelCalls === true,
+          progressProtocol: current.progressProtocol,
+          rag: current.rag
+        };
+      }
+      function persist(next, prepare) {
+        if (!next || saving) return;
         setSaving(true); setError('');
-        saveSettings({
-          modelPolicy: settings.modelPolicy,
-          fixedProvider: settings.fixedProvider || '',
-          fixedModel: settings.fixedModel || '',
-          modelCalls: settings.modelCalls === true,
-          progressProtocol: settings.progressProtocol,
-          rag: settings.rag
-        }).then(function applied(result) {
+        saveSettings(payloadOf(next)).then(function applied(result) {
           setSaving(false);
           if (!result || result.ok !== true) {
             const detail = result && typeof result.error === 'string' ? result.error : '';
             setError(detail ? t('settings.saveError') + ': ' + detail : t('settings.saveError'));
             return;
           }
-          setSettings(result.settings || settings);
+          setSettings(result.settings || next);
           setSaved(true); setError('');
+          if (prepare) {
+            setPreparing(true);
+            prepareRag();
+          }
         });
+      }
+      function save() { persist(settings, false); }
+      function setRagEnabled(enabled) {
+        if (!settings) return;
+        if (enabled && settings.rag?.enabled !== true) { setRagConfirm(true); return; }
+        const next = { ...settings, rag: { ...(settings.rag || {}), enabled } };
+        setSettings(next);
+        persist(next, false);
+      }
+      function confirmEnableRag() {
+        setRagConfirm(false);
+        if (!settings) return;
+        const next = { ...settings, rag: { ...(settings.rag || {}), enabled: true, autoManage: settings.rag?.autoManage !== false, backend: 'llama.cpp' } };
+        setSettings(next);
+        setPreparing(true);
+        persist(next, true);
+      }
+      function retryRag() {
+        setPreparing(true);
+        prepareRag();
       }
 
       const styleTag = h('style', { key: 'style', 'data-plan-completion-style': 'settings' }, settingsCss());
@@ -2270,6 +2351,24 @@ window.__ModuleLoader__.load({
       const defaultRoute = settings.defaultSelection ? settings.defaultSelection.provider + '/' + settings.defaultSelection.model : '-';
       const providers = settings.providers || [];
       const models = settings.models || [];
+      const embedding = settings.embedding || {};
+      const assets = embedding.assets || {};
+      const ragPercent = typeof assets.percent === 'number' ? assets.percent : 0;
+      const ragStage = assets.stage || '';
+      const ragActive = preparing || embedding.state === 'starting'
+        || ['downloading', 'runtime', 'extracting', 'model'].includes(ragStage);
+      const ragStatus = ragActive
+        ? ((assets.message || '正在准备本地 Q8 模型…') + (ragPercent ? ' · ' + ragPercent + '%' : ''))
+        : embedding.state === 'ready'
+          ? '运行中 · 本地 Q8'
+          : embedding.error ? '失败：' + embedding.error : '已关闭';
+      const ragControl = h('div', { key: 'rag-control', className: 'dpc-settings-control-stack' },
+        h('div', { key: 'state', className: 'dpc-settings-row-desc' }, ragStatus),
+        ragActive ? h('div', { key: 'bar', className: 'dpc-settings-progress' },
+          h('span', { key: 'fill', style: { width: (ragPercent || 2) + '%' } })) : null,
+        ragActive || embedding.state === 'failed'
+          ? h('button', { key: 'retry', type: 'button', className: 'dpc-settings-save', onClick: retryRag }, embedding.state === 'failed' ? '重新尝试' : '查看进度')
+          : null);
       const row = function row(key, label, desc, control) {
         return h('div', { key: key, className: 'dpc-settings-row' },
           h('div', { key: 'main', className: 'dpc-settings-row-main' },
@@ -2277,12 +2376,28 @@ window.__ModuleLoader__.load({
             desc ? h('div', { key: 'desc', className: 'dpc-settings-row-desc' }, desc) : null),
           h('div', { key: 'control', className: 'dpc-settings-control' }, control));
       };
+      const toggle = function toggle(key, on, onClick, extra) {
+        const attributes = { key: key, type: 'button', className: 'dpc-settings-toggle', 'data-on': on ? 'true' : 'false', 'aria-pressed': on ? 'true' : 'false', onClick: onClick };
+        return h('button', Object.assign(attributes, extra || {}), h('span', { key: 'knob' }));
+      };
+      const ragDialog = ragConfirm ? h('div', { key: 'rag-dialog', className: 'dpc-settings-dialog-backdrop' },
+        h('div', { key: 'card', className: 'dpc-settings-dialog' },
+          h('div', { key: 'title', className: 'dpc-settings-dialog-title' }, '启用本地 Q8 检索？'),
+          h('div', { key: 'text', className: 'dpc-settings-dialog-text' },
+            '启用后会自动完成以下步骤，不需要手动填写路径：\n' +
+            '• 下载并校验官方 llama.cpp 运行时（Windows 优先 Vulkan，失败自动回退 CPU；Linux 使用官方构建）\n' +
+            '• 下载官方 Qwen3-Embedding-0.6B Q8 模型（约 610MB）\n' +
+            '• 在本机回环端口启动 llama-server，约占用 1.1GB 内存/显存；空闲或关闭时自动回收\n' +
+            '检索内容默认只在本地使用；除非另行开启“发送检索片段给计划助手”，不会发往云端模型。'),
+          h('div', { key: 'actions', className: 'dpc-settings-dialog-actions' },
+            h('button', { key: 'cancel', type: 'button', className: 'dpc-settings-save', onClick: function cancel() { setRagConfirm(false); } }, '取消'),
+            h('button', { key: 'ok', type: 'button', className: 'dpc-settings-save dpc-settings-primary', onClick: confirmEnableRag }, '启用并自动配置')))) : null;
 
       return h(React.Fragment, null, styleTag,
         h('div', { key: 'page', className: 'dpc-settings-page' },
           h('div', { key: 'head', className: 'dpc-settings-head' },
             h('div', { key: 'title', className: 'dpc-settings-title' }, t('settings.title')),
-            h('div', { key: 'sub', className: 'dpc-settings-sub' }, 'v0.2.0-canary.1 · build ' + CLIENT_BUILD + ' · ' + t('settings.defaultRoute', { value: defaultRoute }))),
+            h('div', { key: 'sub', className: 'dpc-settings-sub' }, 'v0.3.0 · build ' + CLIENT_BUILD + ' · ' + t('settings.defaultRoute', { value: defaultRoute }))),
           row('progress', '计划验收', '兼容模式保留旧行为并标明未验证；已有版本化验收不会被降级。',
             h('select', { className: 'dpc-settings-select', value: settings.progressProtocol || 'legacy', onChange: e => patch({ progressProtocol: e.target.value }) },
               h('option', { value: 'legacy' }, '兼容模式'), h('option', { value: 'strict' }, '严格验收'))),
@@ -2309,23 +2424,41 @@ window.__ModuleLoader__.load({
                   }))))
             : null,
           row('calls', t('settings.modelCalls'), t('settings.callsDesc'),
-            h('button', { type: 'button', className: 'dpc-settings-toggle', 'data-on': settings.modelCalls === true ? 'true' : 'false',
-              'aria-pressed': settings.modelCalls === true ? 'true' : 'false',
-              onClick: function onCalls() { patch({ modelCalls: settings.modelCalls !== true }); } },
-              h('span', { key: 'knob' }))),
-          row('rag-enabled', '本地 Q8 检索', '按需加载；关闭后释放插件托管的模型进程。', h('input', { type: 'checkbox', checked: settings.rag?.enabled === true, onChange: e => patch({ rag: { ...settings.rag, enabled: e.target.checked } }) })),
-          row('rag-send', '发送检索片段给计划助手', '片段经当前生成模型路由发送，独立于本地检索开关。', h('input', { type: 'checkbox', checked: settings.rag?.sendContextToGenerator === true, onChange: e => patch({ rag: { ...settings.rag, sendContextToGenerator: e.target.checked } }) })),
-          row('rag-backend', '向量运行方式', '旧端点保留兼容；托管模式无需 Ollama。', h('select', { className: 'dpc-settings-select', value: settings.rag?.backend || 'llama.cpp', onChange: e => patch({ rag: { ...settings.rag, backend: e.target.value } }) }, h('option', { value: 'llama.cpp' }, '插件托管 llama.cpp'), h('option', { value: 'external' }, '已有本机端点'))),
-          settings.rag?.backend !== 'external' ? row('rag-executable', 'llama-server 程序', '已安装程序的绝对路径；不自动下载或更新。', h('input', { className: 'dpc-settings-select', value: settings.rag?.executablePath || '', onChange: e => patch({ rag: { ...settings.rag, executablePath: e.target.value } }) })) : null,
-          settings.rag?.backend !== 'external' ? row('rag-model', '官方 Q8 文件', '官方 Qwen3-Embedding-0.6B-Q8_0.gguf；启动前校验 SHA-256。', h('input', { className: 'dpc-settings-select', value: settings.rag?.modelPath || '', onChange: e => patch({ rag: { ...settings.rag, modelPath: e.target.value } }) })) : null,
-          row('rag-runtime', '向量运行状态', (settings.embedding?.state || 'disabled') + (settings.embedding?.error ? ' · ' + settings.embedding.error : ''), h('button', { type: 'button', className: 'dpc-settings-save', onClick: () => fetchSettings().then(r => { if (r?.settings) setSettings(s => ({ ...s, embedding: r.settings.embedding })); }) }, '刷新状态')),
+            toggle('calls-toggle', settings.modelCalls === true, function onCalls() { patch({ modelCalls: settings.modelCalls !== true }); })),
+          row('rag-enabled', '本地 Q8 检索', '默认关闭。开启后自动下载并启动本地 llama.cpp 与官方 Qwen3 Q8 模型；无需手动配置路径。',
+            toggle('rag-toggle', settings.rag?.enabled === true, function onRag() { setRagEnabled(settings.rag?.enabled !== true); })),
+          settings.rag?.enabled === true ? row('rag-runtime', '检索运行状态', '首次启用会自动下载（约 610MB 模型 + 运行时），之后按需启动。', ragControl) : null,
+          row('rag-send', '发送检索片段给计划助手', '片段经当前生成模型路由发送，独立于本地检索开关；默认关闭。',
+            toggle('rag-send-toggle', settings.rag?.sendContextToGenerator === true, function onSend() { patch({ rag: { ...(settings.rag || {}), sendContextToGenerator: settings.rag?.sendContextToGenerator !== true } }); })),
+          h('div', { key: 'rag-advanced', className: 'dpc-settings-adv' },
+            h('button', { key: 'link', type: 'button', className: 'dpc-settings-link', onClick: function toggleAdvanced() { setAdvanced(!advanced); } },
+              advanced ? '收起高级设置' : '高级设置（路径 / 变体 / 外部端点）'),
+            advanced ? h('div', { key: 'body', className: 'dpc-settings-adv-body' },
+              row('rag-backend', '向量运行方式', '默认由插件托管 llama.cpp；已有本机端点可切换 external。',
+                h('select', { className: 'dpc-settings-select', value: settings.rag?.backend || 'llama.cpp', onChange: e => patch({ rag: { ...(settings.rag || {}), backend: e.target.value } }) },
+                  h('option', { value: 'llama.cpp' }, '插件托管 llama.cpp'), h('option', { value: 'external' }, '已有本机端点'))),
+              settings.rag?.backend !== 'external' ? row('rag-auto', '自动下载并管理运行时', '关闭后需要手动提供 llama-server 与官方 Q8 模型路径。',
+                toggle('rag-auto-toggle', settings.rag?.autoManage !== false, function onAuto() { patch({ rag: { ...(settings.rag || {}), autoManage: settings.rag?.autoManage === false } }); })) : null,
+              settings.rag?.backend !== 'external' ? row('rag-variant', '运行时变体', 'auto 优先 Vulkan，失败自动回退 CPU；也可固定。',
+                h('select', { className: 'dpc-settings-select', value: settings.rag?.variant || 'auto', onChange: e => patch({ rag: { ...(settings.rag || {}), variant: e.target.value } }) },
+                  h('option', { value: 'auto' }, 'auto（推荐）'), h('option', { value: 'vulkan' }, 'Vulkan'), h('option', { value: 'cpu' }, 'CPU'))) : null,
+              settings.rag?.backend !== 'external' ? row('rag-install', '安装目录', '留空使用插件数据目录下的 managed 文件夹。',
+                h('input', { className: 'dpc-settings-input', value: settings.rag?.installDir || '', placeholder: '默认：<storageDir>/managed', onChange: e => patch({ rag: { ...(settings.rag || {}), installDir: e.target.value } }) })) : null,
+              settings.rag?.backend !== 'external' && settings.rag?.autoManage === false
+                ? row('rag-executable', 'llama-server 程序', '仅在关闭“自动下载”时需要：绝对路径。',
+                    h('input', { className: 'dpc-settings-input', value: settings.rag?.executablePath || '', placeholder: '绝对路径', onChange: e => patch({ rag: { ...(settings.rag || {}), executablePath: e.target.value } }) }))
+                : null,
+              settings.rag?.backend !== 'external' && settings.rag?.autoManage === false
+                ? row('rag-model', '官方 Q8 文件', '仅在关闭“自动下载”时需要：官方 Qwen3-Embedding-0.6B-Q8_0.gguf 绝对路径。',
+                    h('input', { className: 'dpc-settings-input', value: settings.rag?.modelPath || '', placeholder: '绝对路径', onChange: e => patch({ rag: { ...(settings.rag || {}), modelPath: e.target.value } }) }))
+                : null) : null),
+          ragDialog,
           h('div', { key: 'footer', className: 'dpc-settings-footer' },
             error ? h('div', { key: 'e', className: 'dpc-settings-error' }, error)
               : saved ? h('div', { key: 's', className: 'dpc-settings-status' }, t('settings.saved')) : null,
             h('button', { key: 'save', type: 'button', className: 'dpc-settings-save', disabled: saving, onClick: save },
               saving ? t('settings.saving') : t('settings.save')))));
     }
-
 
     // =====================================================================
     // Plugin entry
