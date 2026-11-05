@@ -11,7 +11,7 @@ DSH 计划/补全插件，为会话维护计划，在输入框上方展示下一
 
 开发或修改插件界面前，阅读 [设计规范读取入口](docs/ui-design-contract.md)。完整通用设计体系统一维护在私密仓库 `Xumi0920/dsh-plugin-design-system`；入口固定规范版本与 commit，并保留本插件的业务边界。[AGENTS.md](AGENTS.md) 和 [开发说明](CONTRIBUTING.md) 均指向该入口；插件运行无需访问规范仓库。
 
-当前为 **0.4.2**：同包六组件 + 独立托管 Q8，计划面板与 DSH 原生主题对齐，支持严格回执校验与人工验收。
+当前为 **0.4.2**：具备同包六组件（root / observer / embedding / retrieval / generator / api）与独立托管 Q8；计划面板与 DSH 原生主题对齐，支持严格回执校验与人工验收。
 
 - **0.4.2**：npm 包纳入 `docs/ui-design-contract.md` 入口；`engines.dsh` 放宽为 `>=0.2.1-rc.5`。
 - **0.4.1**：计划面板 DSH 主题对齐、完成状态可读性、头部/底栏固定与窄窗口适配。
@@ -124,7 +124,7 @@ llama.cpp 仍是第三方开源推理引擎，DSH 插件负责其生命周期，
 
 运行 `npm test` 与 `npm run check:package`。当前基线：**292/292 PASS**（Ubuntu/Windows × Node 20/22），打包校验 **57 files / 6 exports**。后者离线安装实际 tarball，检查六个 Host 入口及各组件中英文说明。实验数据、测试脚本、截图和模型二进制不进入 npm 包。真实硬件检查可按托管说明运行 `scripts/check-managed-runtime.mjs`。
 
-[历史设计与实验档案](docs/experiment-archive.md)保留在仓库（源码历史快照可查看对应 tag）；历史近 1M/多次压缩结果不当作本轮重新测试结果。
+[历史设计与实验档案](docs/experiment-archive.md)保留在仓库，作为 v0.3.0 时代的历史快照（源码历史可用对应 tag 查看）；历史近 1M/多次压缩结果不当作本轮重新测试结果。
 
 可选原生加载器检查：`node scripts/check-components-dsh.mjs <DSH运行时目录>`。目录需包含 `node_modules/@deepseek-ai`。脚本使用临时 DSH_HOME，检查六行、旧五行、旧单行配置的加载、中英文元信息与组件启停；不调用生成模型、不下载或启动 Q8，不替代真实硬件与桌面点击验收。
 
