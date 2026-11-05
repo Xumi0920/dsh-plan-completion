@@ -2,7 +2,7 @@
 
 DSH 计划/补全插件，为会话维护计划，在输入框上方展示下一步建议；Tab 只填入草稿，不自动发送。保留 DSH 原生回复、工具与长上下文。
 
-当前为 **0.2.0-canary.1**，尚未发布。集成 PR #1 保留实验历史，增量审查按进度协议、组件拆分、托管 Q8 三阶段进行；不合并、不发布 npm。
+当前为 **0.2.0**，已发布到 npm 与 GitHub Release。0.2.0 由三个增量合并而成：兼容进度协议/人工验收、同包多组件迁移、托管 Q8 检索；集成 PR #1 保留实验历史，不再作为合并目标。
 
 ## 兼容性与验收
 
@@ -32,7 +32,7 @@ Settings 可显式选择 strict：模型只提出计划和验收条件；Host �
 
 llama.cpp 仍是第三方开源推理引擎，DSH 插件负责其生命周期，并不把它变成 DSH 内置模型引擎。模型文件和执行程序不随 npm 包分发，也不自动下载或更新。
 
-配置、故障恢复和数据边界见 [托管 Q8 说明](docs/managed-embedding.md)；测试范围见[本轮验证](https://github.com/Xumi0920/dsh-plan-completion/blob/codex/q8-rag-plan-validation/docs/managed-validation.md)。原生桌面点击验收尚未完成，不能称为发布级全 PASS。
+配置、故障恢复和数据边界见 [托管 Q8 说明](docs/managed-embedding.md)；测试范围见[托管验证记录](docs/managed-validation.md)（仓库内）。自动化无法覆盖原生桌面完整点击链，本版以真实 DSH 加载/组件启停/Q8 进程 canary 作为发布验收依据；未覆盖项如实保留在文档中。
 
 ## 隐私与验证
 
@@ -40,6 +40,6 @@ llama.cpp 仍是第三方开源推理引擎，DSH 插件负责其生命周期，
 
 运行 `npm test` 和 `npm run check:package`。后者离线安装实际 tarball，检查五个 Host 入口。实验数据、测试脚本、截图和模型二进制不进入 npm 包。真实硬件检查可按托管说明运行 `scripts/check-managed-runtime.mjs`。
 
-[历史设计与实验档案](https://github.com/Xumi0920/dsh-plan-completion/tree/codex/q8-rag-plan-validation/docs)保留在仓库，历史近 1M/多次压缩结果不当作本轮重新测试结果。
+[历史设计与实验档案](https://github.com/Xumi0920/dsh-plan-completion/tree/v0.2.0/docs)保留在仓库，历史近 1M/多次压缩结果不当作本轮重新测试结果。
 
 
