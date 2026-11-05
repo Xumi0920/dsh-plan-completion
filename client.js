@@ -2371,7 +2371,7 @@ window.__ModuleLoader__.load({
         prepareRag();
       }
       function loadRagLog() {
-        fetchRagStatus(120).then(function applied(result) {
+        fetchRagStatus(200).then(function applied(result) {
           if (result && result.log) setRagLog(result.log);
         });
       }

@@ -76,12 +76,12 @@ node scripts/check-managed-runtime.mjs
 
 ## 运行状态接口（v0.3.1+）
 
-鉴权后的 `GET /plan-completion/rag/status?tail=120`（`tail`/`lines` 均可，10..500 行）返回：
+鉴权后的 `GET /plan-completion/rag/status?tail=200`（`tail`/`lines` 均可，默认 200 行，范围 10..1000）返回：
 
 - `rag`：enabled/backend/autoManage/variant/installDir 等当前配置；
-- `process`：正在运行时的进程视图（state、pid、port、variant、managed/source、executablePath/modelPath、logPath、starts、startedAt、uptimeMs、error）；未运行时为 `null`；
+- `process`：进程状态视图（running、state、pid、port、variant、managed/source、executablePath/modelPath、logPath、starts、startedAt、uptimeMs、error）；未运行时 running=false 且 pid=null；
 - `embedding`：托管客户端完整快照；
-- `logTail`：日志最后 N 行的便捷别名（同时保留 `log.startup` 前 40 行）；
+- `logTail`：日志最后 200 行的便捷别名（默认 200，可用 `tail`/`lines` 调整）；同时保留 `log.startup` 前 40 行；
 - `log`：`<storageDir>/logs/llama-server.log` 的 `path/size/mtime/startup(前 40 行)/tail(最近 N 行)`；
 - `prepareAvailable`：是否可调用 `POST /plan-completion/rag/prepare` 立即重试。
 

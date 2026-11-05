@@ -330,25 +330,24 @@ function jsonResponse(res, status, value) {
             const embedding = core.embeddingSnapshot?.() ?? { state: 'disabled' }
             const settingsNow = await settingsSnapshot()
             const requested = Number(url?.searchParams?.get('tail') ?? url?.searchParams?.get('lines'))
-            const tailLines = Number.isFinite(requested) && requested > 0 ? Math.min(500, Math.max(10, Math.trunc(requested))) : 120
+            const tailLines = Number.isFinite(requested) && requested > 0 ? Math.min(1000, Math.max(10, Math.trunc(requested))) : 200
             const log = await readRagLog(embedding.logPath ?? '', tailLines)
-            const process = embedding.state !== 'disabled'
-              ? {
-                  state: embedding.state,
-                  pid: embedding.pid ?? null,
-                  port: embedding.port ?? null,
-                  variant: embedding.variant ?? null,
-                  managed: embedding.managed === true,
-                  source: embedding.source ?? '',
-                  executablePath: embedding.executablePath ?? '',
-                  modelPath: embedding.modelPath ?? '',
-                  logPath: embedding.logPath ?? '',
-                  starts: embedding.starts ?? 0,
-                  uptimeMs: embedding.uptimeMs ?? 0,
-                  startedAt: embedding.startedAt ?? null,
-                  error: embedding.error ?? null,
-                }
-              : null
+            const process = {
+              running: embedding.state === 'ready',
+              state: embedding.state ?? 'disabled',
+              pid: embedding.pid ?? null,
+              port: embedding.port ?? null,
+              variant: embedding.variant ?? null,
+              managed: embedding.managed === true,
+              source: embedding.source ?? '',
+              executablePath: embedding.executablePath ?? '',
+              modelPath: embedding.modelPath ?? '',
+              logPath: embedding.logPath ?? '',
+              starts: embedding.starts ?? 0,
+              uptimeMs: embedding.uptimeMs ?? 0,
+              startedAt: embedding.startedAt ?? null,
+              error: embedding.error ?? null,
+            }
             jsonResponse(res, 200, {
               ok: true,
               rag: settingsNow.rag,
