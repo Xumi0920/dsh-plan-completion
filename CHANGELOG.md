@@ -3,7 +3,7 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: SemVer.
 
-## [Unreleased]
+## [0.4.1] - 2026-11-06
 
 - Align the plan popover and composer entries with DSH theme tokens, native button variants, typography and radii. Completed status uses a pale success surface with readable primary text in both themes.
 - Keep the header, update time and actions visible while plan details scroll; hide the empty active-steps section, unify manual confirmation controls, and fit narrow windows. Keep one close control in the header and place the primary draft action last.
