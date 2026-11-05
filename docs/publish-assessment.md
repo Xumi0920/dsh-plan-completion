@@ -1,6 +1,8 @@
 # GitHub 发布评估 · 会话计划补全插件（2026-11-02）
 
-> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.4.0**（计划停更检测 + 建议文本保真 + 核对进度 + 本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+> 历史文档：以下保留 v0.1.0 的交付/评估/计划记录。**当前最新为 v0.4.1**（计划停更检测 + 建议文本保真 + 核对进度 + 本地计划持久化 + 鉴权/状态一致性/隐私边界修复），详见 [security.md](security.md) 与 [CHANGELOG](../CHANGELOG.md)；旧记录中的“无鉴权”、原始诊断字段与独立评审不代表当前实现。
+>
+> v0.4.1 发布记录（2026-11-06）：计划窗口 DSH 视觉对齐与完成状态可读性修复（success-tertiary 浅底、DSH token、头部/正文/底栏固定、按钮层级统一、窄窗适配）。tag `v0.4.1`（merge `a62fdff`）；CI：PR 升版 run 42081584493 与 main run 42081779497 均四 job 全绿（292/292 tests）；npm `dsh-plan-completion@0.4.1`（56 files，shasum `5b1fce759f247a98df6486f0acd707d10f45a53b`，registry 与本地 tarball SHA1/SHA512 一致）；真实 DSH 视觉 canary：浅色已完成/深色进行中面板对比度与固定布局正常（截图 `research/pr7-canary-8-panel-auto-light.png`、`pr7-canary-19-dark-empty-panel.png`），窄窗/面板内点击由单测覆盖。
 >
 > v0.4.0 发布记录（2026-11-06）：Q8 运行服务独立为第六个组件 `embedding`（retrieval 只借用向量，停 embedding 回收 Q8、retrieval 退回关键词；停 retrieval 不直接停 Q8），六个组件补齐中英文名称/职责/icon 元信息，兼容 root-only 与旧五行 profile。tag `v0.4.0`（`d0d5a17`）；CI：PR 升版 run 42072890149 与 main run 42073078695 均四 job 全绿（288/288 tests）；npm `dsh-plan-completion@0.4.0`（56 files，shasum `aad420f27d1526109f2522d1d70ad1963776fa09`，registry 与本地 tarball SHA1/SHA512 一致，registry 安装 + 六入口 import 通过）；真实 DSH canary：六组件加载无 warning、Q8 自动启动、禁用 embedding 2s 内回收、重启用自动恢复、宿主 401；设置→插件视觉确认「计划补全」详情页显示 **共 6 个组件 · 6 运行中**，六个名称/职责/组件 id 与版本 0.4.0 均正确（截图 `research/ui-plugin-detail-1.png`、`ui-plugin-detail-2.png`）。
 >
@@ -119,6 +121,7 @@ git tag v0.1.0 && git push --tags
 ```
 
 > 建议：**先把 P0 B1~B8 全部打勾，再公开仓库**；否则许可证与数据问题会成为不可逆的历史提交。
+
 
 
 
