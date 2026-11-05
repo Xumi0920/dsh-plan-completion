@@ -4,12 +4,60 @@
 [![npm](https://img.shields.io/npm/v/dsh-plan-completion?style=flat-square&color=4D6BFE)](https://www.npmjs.com/package/dsh-plan-completion)
 [![license](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 [![release](https://img.shields.io/github/v/release/Xumi0920/dsh-plan-completion?style=flat-square)](https://github.com/Xumi0920/dsh-plan-completion/releases/latest)
+[![tests](https://img.shields.io/badge/tests-292%20pass-brightgreen?style=flat-square)](.github/workflows/test.yml)
+[![requirements](https://img.shields.io/badge/requires-Node%20%3E%3D20%20%7C%20DSH%20%3E%3D0.2.1--rc.5-4D6BFE?style=flat-square)](package.json)
 
 DSH 计划/补全插件，为会话维护计划，在输入框上方展示下一步建议；Tab 只填入草稿，不自动发送。保留 DSH 原生回复、工具与长上下文。
 
 开发或修改插件界面前，阅读 [设计规范读取入口](docs/ui-design-contract.md)。完整通用设计体系统一维护在私密仓库 `Xumi0920/dsh-plugin-design-system`；入口固定规范版本与 commit，并保留本插件的业务边界。[AGENTS.md](AGENTS.md) 和 [开发说明](CONTRIBUTING.md) 均指向该入口；插件运行无需访问规范仓库。
 
-当前为 **0.4.2**：0.4.2 将 DSH UI/验证契约（`docs/ui-design-contract.md`）纳入 npm 包并放宽 DSH engines 上限；0.3.0 引入零配置本地 Q8（默认关闭；首次确认后自动下载/校验并拉起官方 llama.cpp 与 Qwen3 Q8，无需填路径）；0.4.0 将 Q8 运行服务独立为第六个 `embedding` 组件，并为六组件补齐 DSH 名称/职责/icon 元信息；0.4.1 完成计划面板的 DSH 主题对齐、完成状态可读性与底栏/滚动布局修复。兼容进度协议、人工验收与同包组件架构沿用 0.2.0。
+当前为 **0.4.2**：同包六组件 + 独立托管 Q8，计划面板与 DSH 原生主题对齐，支持严格回执校验与人工验收。
+
+- **0.4.2**：npm 包纳入 `docs/ui-design-contract.md` 入口；`engines.dsh` 放宽为 `>=0.2.1-rc.5`。
+- **0.4.1**：计划面板 DSH 主题对齐、完成状态可读性、头部/底栏固定与窄窗口适配。
+- **0.4.0**：Q8 运行服务拆分独立 `embedding` 组件；六组件补齐中英文名称/职责/icon 元信息。
+- **0.3.0**：零配置托管 Q8（默认关闭，确认后自动下载/校验/拉起）。
+- **0.2.0**：兼容进度协议、人工验收、同包多组件。
+
+## 安装与升级
+
+插件以 DSH Cordis bundle 发布，推荐在 DSH 内安装：
+
+1. **DSH 插件页**：打开「插件 → 添加插件」，选择/输入 npm 包 `dsh-plan-completion`，按 DSH 提示完成安装与启用。
+2. **源码 / 本地开发**：
+   ```powershell
+   plugin_manager install_bundle target='<absolute path to this repo>'
+   ```
+   也可以按 `cordis.patch.yml` 把六组件行加入 profile。
+
+升级：更新 bundle 后，Host 代码需要 toggle 一次插件（`plugin_manager set_plugin` 关闭再开启）或重新安装以重组 profile；Client 代码刷新 DSH 页面即可。设置页版本行显示当前 `vX.Y.Z · build ...`；本地链接 bundle 不会热更新 `client.js`。
+
+## 界面预览
+
+计划面板与输入框上方的常驻入口（当前 0.4.x，真实 DSH 截图）：
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Xumi0920/dsh-plan-completion/main/docs/screenshots/plan-panel-light.png" alt="计划面板（浅色）" width="420">
+  <img src="https://raw.githubusercontent.com/Xumi0920/dsh-plan-completion/main/docs/screenshots/plan-panel-dark.png" alt="计划面板（深色）" width="420">
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Xumi0920/dsh-plan-completion/main/docs/screenshots/composer-entry.png" alt="输入框上方的 Tab 建议与 ▤ 计划入口" width="640">
+</p>
+
+## 核心交互
+
+| 操作 | 行为 |
+|---|---|
+| `Tab` | 将当前建议填入输入框（只写草稿，不发送） |
+| `Alt+1..3` | 选择第 1~3 条候选建议填入 |
+| `Esc` | 关闭计划浮层；无浮层时忽略当前建议 |
+| `Ctrl+Alt+P` | 打开 / 关闭计划浮层 |
+| 点击输入框上方的 `▤ vX.Y` | 打开 / 关闭计划浮层 |
+| 面板内「同步给 Agent / 核对进度 / 填入草稿」 | 让 Agent 关注计划、核对进度、写入草稿 |
+| 面板内「人工验收 / 撤销」 | 记录或撤销用户来源的验收（manual scope） |
+| `/replan` | 请求重新规划；保留验收仍有效的完成步骤 |
+
 
 ## 兼容性与验收
 
@@ -50,14 +98,47 @@ llama.cpp 仍是第三方开源推理引擎，DSH 插件负责其生命周期，
 
 配置、故障恢复和数据边界见 [托管 Q8 说明](docs/managed-embedding.md)；测试范围见[托管验证记录](docs/managed-validation.md)（仓库内）。自动化无法覆盖原生桌面完整点击链，本版以真实 DSH 加载/组件启停/Q8 进程 canary 作为发布验收依据；未覆盖项如实保留在文档中。
 
+## 环境要求与配置
+
+| 依赖 | 要求 |
+|---|---|
+| Node.js | `>=20` |
+| DSH | `>=0.2.1-rc.5`（`engines.dsh` 不设上限） |
+| 本地 Q8（可选） | Windows / Linux x64；首次开启自动下载 llama.cpp 与 Qwen3-Embedding-0.6B Q8（约 610MB） |
+
+常用配置来自 `cordis.patch.yml`：
+
+| 配置 | 默认 | 说明 |
+|---|---|---|
+| `progressProtocol` | `legacy` | `strict` 只按原始执行回执/人工验收推进 |
+| `modelCalls` | `true` | 关闭后不调用生成模型，回执核验保留 |
+| `persistPlans` | `true` | 按会话持久化计划与最近建议 |
+| `storageDir` | `~/.dsh/plan-completion-data` | 跟随显式 DSH_HOME；自定义目录保留原义 |
+| `rag.enabled` | `false` | 本地检索；首次开启需确认并准备 Q8 |
+| `rag.sendContextToGenerator` | `false` | 是否向所选生成模型发送检索片段 |
+| `evidenceChars` / `maxTokensPatch` / `maxTokensRewrite` | `1500` / `800` / `1200` | 证据预算与生成 token 上限 |
+
 ## 隐私与验证
 
 本地 embedding 不外发。若开启“发送检索片段给计划助手”，片段将经选定的 DSH 生成模型路由发送；本地检索不等于生成流程离线。计划和建议可明文持久化。默认存储跟随显式 DSH_HOME；自定义目录保留原义，旧共享目录不会自动导入隔离环境。详见[安全与隐私边界](docs/security.md)。
 
-运行 `npm test` 和 `npm run check:package`。后者离线安装实际 tarball，检查六个 Host 入口及各组件中英文说明。实验数据、测试脚本、截图和模型二进制不进入 npm 包。真实硬件检查可按托管说明运行 `scripts/check-managed-runtime.mjs`。
+运行 `npm test` 与 `npm run check:package`。当前基线：**292/292 PASS**（Ubuntu/Windows × Node 20/22），打包校验 **57 files / 6 exports**。后者离线安装实际 tarball，检查六个 Host 入口及各组件中英文说明。实验数据、测试脚本、截图和模型二进制不进入 npm 包。真实硬件检查可按托管说明运行 `scripts/check-managed-runtime.mjs`。
 
 [历史设计与实验档案](docs/experiment-archive.md)保留在仓库（源码历史快照可查看对应 tag）；历史近 1M/多次压缩结果不当作本轮重新测试结果。
 
 可选原生加载器检查：`node scripts/check-components-dsh.mjs <DSH运行时目录>`。目录需包含 `node_modules/@deepseek-ai`。脚本使用临时 DSH_HOME，检查六行、旧五行、旧单行配置的加载、中英文元信息与组件启停；不调用生成模型、不下载或启动 Q8，不替代真实硬件与桌面点击验收。
+
+## 文档导航
+
+| 文档 | 内容 |
+|---|---|
+| [设计规范读取入口](docs/ui-design-contract.md) | 私密设计仓库的固定版本入口 + 本插件业务边界 |
+| [托管 Q8 说明](docs/managed-embedding.md) | 零配置安装、手动路径、故障恢复与数据边界 |
+| [安全与隐私边界](docs/security.md) | 鉴权、数据外发、模型/检索边界 |
+| [兼容性说明](docs/compatibility.md) | 六组件、进度协议、旧 profile 兼容 |
+| [发布评估记录](docs/publish-assessment.md) | 各版本 tag / CI / npm / 验证记录 |
+| [托管验证记录](docs/managed-validation.md) | 0.2.0 候选阶段历史验证归档 |
+| [历史设计 v1.2](docs/design-v1.2.md) | 早期产品设计（历史） |
+| [一期交付说明](docs/delivery-notes.md) · [二期计划](docs/phase-2-plan.md) · [实验档案](docs/experiment-archive.md) | 历史交付、计划与实验归档 |
 
 [![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
